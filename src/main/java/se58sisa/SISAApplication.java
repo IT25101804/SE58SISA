@@ -4,10 +4,10 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class Se58SisaApplication {
+public class SISAApplication {
 
     public static void main(String[] args) {
-        SpringApplication.run(Se58SisaApplication.class, args);
+        SpringApplication.run(SISAApplication.class, args);
     }
 
 }
