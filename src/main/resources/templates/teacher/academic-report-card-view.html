@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title th:text="${reportCard.student().user.fullName} + ' Report Card · SISA'">Report Card · SISA</title>
+    <link rel="icon" type="image/svg+xml" th:href="@{/images/logo.svg}"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"/>
+    <link rel="stylesheet" th:href="@{/css/styles.css}"/>
+</head>
+<body>
+<div class="app-shell">
+    <div th:replace="~{layout/sidebar :: sidebar('academic')}"></div>
+    <div th:replace="~{layout/topbar :: topbar}"></div>
+    <div th:replace="~{layout/sidebar :: backdrop}"></div>
+
+    <main class="content">
+        <div class="page-head" style="display:flex; align-items:flex-end; justify-content:space-between; flex-wrap:wrap; gap:12px;">
+            <div>
+                <h1 th:text="${reportCard.student().user.fullName}">Student Name</h1>
+                <p><span class="id-badge" th:text="${reportCard.student().studentId}">S2600001</span>
+                    &nbsp;<span th:text="${reportCard.student().className}">Class</span></p>
+            </div>
+            <a th:href="@{/teacher/academic/report-cards}" class="btn btn-outline"><i class="bi bi-arrow-left"></i> Back</a>
+        </div>
+
+        <div class="card">
+            <div th:replace="~{layout/report-card :: view(${reportCard})}"></div>
+        </div>
+
+        <div class="card">
+            <h3><i class="bi bi-journal-text"></i> Behaviour &amp; Discipline Notes</h3>
+            <p style="font-size:12.5px; opacity:.65; margin-top:-6px;">Only this student's Class Teacher can add notes here;
+                the Principal and Registrar can view them from Student Information.</p>
+            <table class="wsims-table" th:if="${not #lists.isEmpty(behaviourNotes)}">
+                <thead><tr><th>Date</th><th>Category</th><th>Note</th><th>By</th></tr></thead>
+                <tbody>
+                <tr th:each="n : ${behaviourNotes}">
+                    <td th:text="${#temporals.format(n.createdAt, 'dd MMM yyyy')}">01 Jan 2026</td>
+                    <td><span class="status" th:classappend="${n.category.name() == 'POSITIVE'} ? 'approved' : (${n.category.name() == 'NEGATIVE'} ? 'rejected' : 'pending')"
+                               th:text="${n.category}">NEUTRAL</span></td>
+                    <td th:text="${n.note}">Note text</td>
+                    <td th:text="${n.authorName}">Teacher</td>
+                </tr>
+                </tbody>
+            </table>
+            <div class="empty-state" th:if="${#lists.isEmpty(behaviourNotes)}">
+                <i class="bi bi-inbox"></i> No behaviour notes recorded for this student yet.
+            </div>
+
+            <form th:action="@{/teacher/academic/report-cards/{id}/notes(id=${reportCard.student().studentId})}" method="post" style="margin-top:14px;">
+                <div class="field">
+                    <label for="category">Category</label>
+                    <select id="category" name="category">
+                        <option th:each="c : ${behaviourCategories}" th:value="${c}" th:text="${c}" th:selected="${c.name() == 'NEUTRAL'}">NEUTRAL</option>
+                    </select>
+                </div>
+                <div class="field"><label for="note">Note</label>
+                    <textarea id="note" name="note" rows="3" placeholder="What happened…" required></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary"><i class="bi bi-plus-circle-fill"></i> Add Note</button>
+            </form>
+        </div>
+    </main>
+</div>
+<script th:src="@{/js/main.js}"></script>
+</body>
+</html>

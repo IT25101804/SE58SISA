@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title th:text="${exam.examName} + ' · SISA'">Exam · SISA</title>
+    <link rel="icon" type="image/svg+xml" th:href="@{/images/logo.svg}"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"/>
+    <link rel="stylesheet" th:href="@{/css/styles.css}"/>
+</head>
+<body>
+<div class="app-shell">
+    <div th:replace="~{layout/sidebar :: sidebar('academic')}"></div>
+    <div th:replace="~{layout/topbar :: topbar}"></div>
+    <div th:replace="~{layout/sidebar :: backdrop}"></div>
+
+    <main class="content">
+        <div class="page-head" style="display:flex; align-items:flex-end; justify-content:space-between; flex-wrap:wrap; gap:12px;">
+            <div>
+                <h1 th:text="${exam.examName}">Exam</h1>
+                <p><span th:text="${exam.className}">Class</span> &middot; <span th:text="${exam.subject}">Subject</span>
+                    &middot; <span th:text="${exam.examDate}">2026-01-01</span> &middot; out of <span th:text="${exam.maxMarks}">100</span></p>
+            </div>
+            <a th:href="@{/teacher/academic}" class="btn btn-outline"><i class="bi bi-arrow-left"></i> Back to Exams</a>
+        </div>
+
+        <div th:if="${success}" class="alert success"><i class="bi bi-check-circle-fill"></i> <span th:text="${success}">Done</span></div>
+        <div th:if="${error}" class="alert error"><i class="bi bi-exclamation-circle-fill"></i> <span th:text="${error}">Error</span></div>
+
+        <div class="card" th:if="${not #lists.isEmpty(roster)}">
+            <p style="font-size:12.5px; opacity:.65; margin:0 0 14px;">
+                <i class="bi bi-info-circle"></i>
+                Already-entered marks are pre-filled below — change a number and save to correct a mistake, or
+                clear a box and save to remove a mark you entered for the wrong student.
+            </p>
+            <form th:action="@{/teacher/academic/{id}/marks(id=${exam.id})}" th:object="${form}" method="post">
+                <table class="wsims-table">
+                    <thead>
+                    <tr><th></th><th>Name</th><th>Student ID</th><th>Marks</th><th>Grade</th></tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="student, iStat : ${roster}">
+                        <td><span class="avatar-initials" th:text="${#strings.substring(student.user.fullName,0,1)}">A</span></td>
+                        <td th:text="${student.user.fullName}">Student Name</td>
+                        <td><span class="id-badge" th:text="${student.studentId}">S2600001</span></td>
+                        <td>
+                            <input type="hidden" th:field="*{entries[__${iStat.index}__].studentId}"/>
+                            <input type="number" step="any" min="0" th:max="${exam.maxMarks}"
+                                   th:field="*{entries[__${iStat.index}__].marksObtained}" style="width:100px; padding:6px;"/>
+                            <div th:if="${marks.get(student.studentId) != null}" style="font-size:11px; opacity:.55; margin-top:4px;">
+                                Last saved <span th:text="${#temporals.format(marks.get(student.studentId).enteredAt, 'dd MMM, HH:mm')}">date</span>
+                            </div>
+                        </td>
+                        <td>
+                            <span th:if="${marks.get(student.studentId) != null}" class="status" th:classappend="${#strings.toLowerCase(marks.get(student.studentId).grade)}" th:text="${marks.get(student.studentId).grade}">A</span>
+                            <span th:unless="${marks.get(student.studentId) != null}" style="opacity:.4;">—</span>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+                <button type="submit" class="btn btn-primary" style="margin-top:16px;"><i class="bi bi-check2-square"></i> Save Marks</button>
+            </form>
+        </div>
+
+        <div class="card" th:if="${#lists.isEmpty(roster)}">
+            <div class="empty-state"><i class="bi bi-inbox"></i> No active students in <span th:text="${exam.className}">this class</span>.</div>
+        </div>
+    </main>
+</div>
+<script th:src="@{/js/main.js}"></script>
+</body>
+</html>

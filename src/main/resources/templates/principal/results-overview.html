@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Results Overview · WSIMS</title>
+    <link rel="icon" type="image/svg+xml" th:href="@{/images/logo.svg}"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"/>
+    <link rel="stylesheet" th:href="@{/css/styles.css}"/>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+</head>
+<body>
+<div class="app-shell">
+    <div th:replace="~{layout/sidebar :: sidebar('academic')}"></div>
+    <div th:replace="~{layout/topbar :: topbar}"></div>
+    <div th:replace="~{layout/sidebar :: backdrop}"></div>
+
+    <main class="content">
+        <div class="page-head">
+            <h1>Results Overview</h1>
+            <p>Read-only comparisons across subjects, classes and teachers &mdash; nothing here is editable.</p>
+        </div>
+
+        <div class="grid grid-2" style="margin-bottom:18px;">
+            <div class="card">
+                <h3><i class="bi bi-bar-chart-fill"></i> Pass Rate per Subject</h3>
+                <canvas id="passRateChart" height="200" th:if="${not #lists.isEmpty(passRatePerSubject)}"></canvas>
+                <div class="empty-state" th:if="${#lists.isEmpty(passRatePerSubject)}"><i class="bi bi-inbox"></i> No marks recorded yet.</div>
+                <script th:if="${not #lists.isEmpty(passRatePerSubject)}" th:inline="javascript">
+                    /*<![CDATA[*/
+                    (function () {
+                        var rows = /*[[${passRatePerSubject}]]*/ [];
+                        new Chart(document.getElementById('passRateChart'), {
+                            type: 'bar',
+                            data: {
+                                labels: rows.map(function (r) { return r.subject; }),
+                                datasets: [{
+                                    label: 'Pass rate %',
+                                    data: rows.map(function (r) { return r.passRatePercent; }),
+                                    backgroundColor: '#0B2E4F'
+                                }]
+                            },
+                            options: { scales: { y: { min: 0, max: 100 } }, plugins: { legend: { display: false } } }
+                        });
+                    })();
+                    /*]]>*/
+                </script>
+            </div>
+
+            <div class="card">
+                <h3><i class="bi bi-trophy-fill"></i> Best-Performing Teacher per Subject</h3>
+                <table class="wsims-table">
+                    <thead><tr><th>Subject</th><th>Teacher</th><th>Average %</th></tr></thead>
+                    <tbody>
+                    <tr th:each="t : ${bestTeacherPerSubject}">
+                        <td th:text="${t.subject()}">Subject</td>
+                        <td th:text="${t.teacher() != null} ? ${t.teacher().user.fullName} : '—'">Teacher</td>
+                        <td th:text="${#numbers.formatDecimal(t.averagePercent(),1,1)} + '%'">0%</td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(bestTeacherPerSubject)}">
+                        <td colspan="3"><div class="empty-state"><i class="bi bi-inbox"></i> No marks recorded yet.</div></td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="card" style="margin-bottom:18px;">
+            <h3><i class="bi bi-exclamation-triangle-fill"></i> Students Needing Extra Help</h3>
+            <p style="font-size:13px; opacity:.7; margin-top:-6px;">Failing 2 or more subjects. Attendance % is read straight from the Attendance module.</p>
+            <table class="wsims-table">
+                <thead><tr><th>Student</th><th>Class</th><th>Failing Subjects</th><th>Attendance %</th></tr></thead>
+                <tbody>
+                <tr th:each="e : ${extraHelp}">
+                    <td>
+                        <span th:text="${e.student().user.fullName}">Name</span>
+                        &nbsp;<span class="id-badge" th:text="${e.student().studentId}">S2600001</span>
+                    </td>
+                    <td th:text="${e.student().className}">Class</td>
+                    <td><span class="status f" th:each="s, sIter : ${e.failingSubjects()}" th:text="${s}" style="margin-right:4px;">Subject</span></td>
+                    <td th:text="${e.attendancePercentage() != null} ? ${#numbers.formatDecimal(e.attendancePercentage(),1,1)} + '%' : '—'">—</td>
+                </tr>
+                <tr th:if="${#lists.isEmpty(extraHelp)}">
+                    <td colspan="4"><div class="empty-state"><i class="bi bi-check-circle"></i> No student is currently failing 2 or more subjects.</div></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="card">
+            <h3><i class="bi bi-list-ol"></i> Class Rankings</h3>
+            <form th:action="@{/principal/results-overview}" method="get" style="display:flex; gap:10px; align-items:flex-end; flex-wrap:wrap; margin-bottom:16px;">
+                <div class="field" style="margin-bottom:0; min-width:220px;">
+                    <label for="className">Class</label>
+                    <select id="className" name="className">
+                        <option value="">Select a class…</option>
+                        <option th:each="c : ${allClassNames}" th:value="${c}" th:text="${c}" th:selected="${c == className}">Class</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-outline"><i class="bi bi-search"></i> View</button>
+            </form>
+
+            <div th:if="${className == null or className == ''}" class="empty-state"><i class="bi bi-inbox"></i> Choose a class above to rank its students by GPA.</div>
+
+            <table class="wsims-table" th:if="${className != null and className != ''}">
+                <thead><tr><th>#</th><th>Student</th><th>GPA</th></tr></thead>
+                <tbody>
+                <tr th:each="r, iStat : ${classRankings}">
+                    <td th:text="${iStat.count}">1</td>
+                    <td>
+                        <span th:text="${r.student().user.fullName}">Name</span>
+                        &nbsp;<span class="id-badge" th:text="${r.student().studentId}">S2600001</span>
+                    </td>
+                    <td th:text="${r.gpa() != null} ? ${#numbers.formatDecimal(r.gpa(),1,2)} : '—'">—</td>
+                </tr>
+                <tr th:if="${#lists.isEmpty(classRankings)}">
+                    <td colspan="3"><div class="empty-state"><i class="bi bi-inbox"></i> No active students in this class.</div></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </main>
+</div>
+<script th:src="@{/js/main.js}"></script>
+</body>
+</html>

@@ -1,0 +1,31 @@
+<div th:fragment="view(reportCard)" xmlns:th="http://www.thymeleaf.org">
+    <div class="grid grid-2" style="margin-bottom:18px;">
+        <div class="card stat-card">
+            <div class="stat-icon"><i class="bi bi-award-fill"></i></div>
+            <div class="stat-value" th:text="${reportCard.gpa() != null} ? ${#numbers.formatDecimal(reportCard.gpa(),1,2)} : '—'">—</div>
+            <div class="stat-label">GPA (out of 4.0)</div>
+        </div>
+        <div class="card stat-card">
+            <div class="stat-icon"><i class="bi bi-journal-text"></i></div>
+            <div class="stat-value" th:text="${#lists.size(reportCard.entries())}">0</div>
+            <div class="stat-label">Exams Recorded</div>
+        </div>
+    </div>
+    <table class="wsims-table">
+        <thead>
+        <tr><th>Date</th><th>Subject</th><th>Exam</th><th>Marks</th><th>Grade</th></tr>
+        </thead>
+        <tbody>
+        <tr th:each="e : ${reportCard.entries()}">
+            <td th:text="${e.examDate()}">2026-01-01</td>
+            <td th:text="${e.subject()}">Subject</td>
+            <td th:text="${e.examName()}">Exam</td>
+            <td th:text="${e.marksObtained()} + ' / ' + ${e.maxMarks()}">0 / 100</td>
+            <td><span class="status" th:classappend="${#strings.toLowerCase(e.grade())}" th:text="${e.grade()}">A</span></td>
+        </tr>
+        <tr th:if="${#lists.isEmpty(reportCard.entries())}">
+            <td colspan="5"><div class="empty-state"><i class="bi bi-inbox"></i> No exam results recorded yet.</div></td>
+        </tr>
+        </tbody>
+    </table>
+</div>

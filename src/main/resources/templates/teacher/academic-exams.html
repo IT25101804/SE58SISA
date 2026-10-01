@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Exams · SISA</title>
+    <link rel="icon" type="image/svg+xml" th:href="@{/images/logo.svg}"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"/>
+    <link rel="stylesheet" th:href="@{/css/styles.css}"/>
+</head>
+<body>
+<div class="app-shell">
+    <div th:replace="~{layout/sidebar :: sidebar('academic')}"></div>
+    <div th:replace="~{layout/topbar :: topbar}"></div>
+    <div th:replace="~{layout/sidebar :: backdrop}"></div>
+
+    <main class="content">
+        <div class="page-head" style="display:flex; align-items:flex-end; justify-content:space-between; flex-wrap:wrap; gap:12px;">
+            <div>
+                <h1>Exams</h1>
+                <p>Exams you can enter marks for &mdash; your class (any subject), or a subject you're assigned to elsewhere.</p>
+            </div>
+            <div style="display:flex; gap:10px;">
+                <a th:if="${teacher.classTeacher}" th:href="@{/teacher/academic/report-cards}" class="btn btn-outline"><i class="bi bi-file-earmark-text-fill"></i> Report Cards</a>
+                <a th:href="@{/teacher/academic/new}" class="btn btn-primary"><i class="bi bi-plus-circle-fill"></i> New Exam</a>
+            </div>
+        </div>
+
+        <div class="card">
+            <table class="wsims-table">
+                <thead>
+                <tr><th>Exam</th><th>Class</th><th>Subject</th><th>Date</th><th>Max Marks</th><th></th></tr>
+                </thead>
+                <tbody>
+                <tr th:each="e : ${exams}">
+                    <td th:text="${e.examName}">Exam</td>
+                    <td th:text="${e.className}">Class</td>
+                    <td th:text="${e.subject}">Subject</td>
+                    <td th:text="${e.examDate}">2026-01-01</td>
+                    <td th:text="${e.maxMarks}">100</td>
+                    <td><a th:href="@{/teacher/academic/{id}(id=${e.id})}" class="btn btn-outline" style="padding:6px 12px; font-size:12.5px;"><i class="bi bi-pencil-square"></i> Enter Marks</a></td>
+                </tr>
+                <tr th:if="${#lists.isEmpty(exams)}">
+                    <td colspan="6"><div class="empty-state"><i class="bi bi-inbox"></i> No exams yet.</div></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </main>
+</div>
+<script th:src="@{/js/main.js}"></script>
+</body>
+</html>

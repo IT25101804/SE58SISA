@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>New Exam · SISA</title>
+    <link rel="icon" type="image/svg+xml" th:href="@{/images/logo.svg}"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"/>
+    <link rel="stylesheet" th:href="@{/css/styles.css}"/>
+</head>
+<body>
+<div class="app-shell">
+    <div th:replace="~{layout/sidebar :: sidebar('academic')}"></div>
+    <div th:replace="~{layout/topbar :: topbar}"></div>
+    <div th:replace="~{layout/sidebar :: backdrop}"></div>
+
+    <main class="content">
+        <div class="page-head">
+            <h1>New Exam</h1>
+            <p>Only for a class/subject you're the Class Teacher of, or assigned to teach on the timetable.</p>
+        </div>
+
+        <div th:if="${error}" class="alert error"><i class="bi bi-exclamation-circle-fill"></i> <span th:text="${error}">Error</span></div>
+
+        <div th:if="${#maps.isEmpty(classOptions)}" class="alert error">
+            <i class="bi bi-exclamation-circle-fill"></i>
+            You're not currently set as a Class Teacher, and you have no class+subject on the timetable yet, so
+            there's nothing to create an exam for. Ask the Principal or Registrar to assign you a class or a
+            timetable slot first.
+        </div>
+
+        <div class="card" style="max-width:480px;" th:unless="${#maps.isEmpty(classOptions)}">
+            <form th:action="@{/teacher/academic/new}" th:object="${form}" method="post">
+                <div class="field">
+                    <label for="className">Class</label>
+                    <select id="className" th:field="*{className}" required>
+                        <option value="" disabled>Select a class…</option>
+                        <option th:each="entry : ${classOptions}" th:value="${entry.key}" th:text="${entry.key}"></option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label for="subject">Subject</label>
+                    <select id="subject" th:field="*{subject}" required>
+                        <option value="" disabled>Select a class first…</option>
+                    </select>
+                </div>
+                <div class="field"><label for="examName">Exam Name</label><input id="examName" type="text" th:field="*{examName}" placeholder="Mid-Term Test" required/></div>
+                <div class="field"><label for="examDate">Exam Date</label><input id="examDate" type="date" th:field="*{examDate}" required/></div>
+                <div class="field"><label for="maxMarks">Max Marks</label><input id="maxMarks" type="number" step="0.5" min="1" th:field="*{maxMarks}" required/></div>
+                <button type="submit" class="btn btn-primary"><i class="bi bi-plus-circle-fill"></i> Create Exam</button>
+                <a th:href="@{/teacher/academic}" class="btn btn-outline"><i class="bi bi-arrow-left"></i> Back</a>
+            </form>
+        </div>
+    </main>
+</div>
+<script th:src="@{/js/main.js}"></script>
+<script th:inline="javascript" th:if="${not #maps.isEmpty(classOptions)}">
+    /*<![CDATA[*/
+    // Class -> Subjects, straight from the same rule the server enforces (MarksEntryService
+    // .classSubjectOptionsFor / requireSubjectAccess), so Subject only ever offers a choice
+    // that will actually be accepted on submit.
+    var classSubjectOptions = /*[[${classOptions}]]*/ {};
+    var previousSubject = /*[[${form.subject}]]*/ '';
+
+    function populateSubjects() {
+        var classSelect = document.getElementById('className');
+        var subjectSelect = document.getElementById('subject');
+        var subjects = classSubjectOptions[classSelect.value] || [];
+
+        subjectSelect.innerHTML = '';
+        if (subjects.length === 0) {
+            var placeholder = document.createElement('option');
+            placeholder.value = '';
+            placeholder.disabled = true;
+            placeholder.selected = true;
+            placeholder.textContent = classSelect.value ? 'No subjects set up for this class' : 'Select a class first…';
+            subjectSelect.appendChild(placeholder);
+            subjectSelect.disabled = true;
+            return;
+        }
+        subjectSelect.disabled = false;
+        subjects.forEach(function (subject) {
+            var opt = document.createElement('option');
+            opt.value = subject;
+            opt.textContent = subject;
+            subjectSelect.appendChild(opt);
+        });
+        if (subjects.indexOf(previousSubject) !== -1) {
+            subjectSelect.value = previousSubject;
+        }
+    }
+
+    document.getElementById('className').addEventListener('change', populateSubjects);
+    populateSubjects();
+    /*]]>*/
+</script>
+</body>
+</html>

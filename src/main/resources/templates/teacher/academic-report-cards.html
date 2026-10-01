@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Report Cards · SISA</title>
+    <link rel="icon" type="image/svg+xml" th:href="@{/images/logo.svg}"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"/>
+    <link rel="stylesheet" th:href="@{/css/styles.css}"/>
+</head>
+<body>
+<div class="app-shell">
+    <div th:replace="~{layout/sidebar :: sidebar('academic')}"></div>
+    <div th:replace="~{layout/topbar :: topbar}"></div>
+    <div th:replace="~{layout/sidebar :: backdrop}"></div>
+
+    <main class="content">
+        <div class="page-head" style="display:flex; align-items:flex-end; justify-content:space-between; flex-wrap:wrap; gap:12px;">
+            <div>
+                <h1>Report Cards</h1>
+                <p th:if="${className}"><span th:text="${className}">Class</span> &mdash; every subject, for your own class only.</p>
+            </div>
+            <a th:href="@{/teacher/academic}" class="btn btn-outline"><i class="bi bi-arrow-left"></i> Back to Exams</a>
+        </div>
+
+        <div class="card" th:if="${className == null}">
+            <div class="empty-state"><i class="bi bi-inbox"></i> Only the Class Teacher of a class can generate its report cards &mdash; you aren't assigned to one.</div>
+        </div>
+
+        <div class="card" th:if="${className != null}">
+            <table class="wsims-table">
+                <thead><tr><th></th><th>Name</th><th>Student ID</th><th></th></tr></thead>
+                <tbody>
+                <tr th:each="student : ${roster}">
+                    <td><span class="avatar-initials" th:text="${#strings.substring(student.user.fullName,0,1)}">A</span></td>
+                    <td th:text="${student.user.fullName}">Name</td>
+                    <td><span class="id-badge" th:text="${student.studentId}">S2600001</span></td>
+                    <td><a th:href="@{/teacher/academic/report-cards/{id}(id=${student.studentId})}" class="btn btn-outline" style="padding:6px 12px; font-size:12.5px;"><i class="bi bi-file-earmark-text-fill"></i> View</a></td>
+                </tr>
+                <tr th:if="${#lists.isEmpty(roster)}">
+                    <td colspan="4"><div class="empty-state"><i class="bi bi-inbox"></i> No active students in this class.</div></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </main>
+</div>
+<script th:src="@{/js/main.js}"></script>
+</body>
+</html>
