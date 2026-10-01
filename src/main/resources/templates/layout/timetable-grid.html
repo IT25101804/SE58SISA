@@ -1,0 +1,21 @@
+<table th:fragment="readonly(grid, periods, days)" xmlns:th="http://www.thymeleaf.org" class="wsims-table">
+    <thead>
+    <tr>
+        <th>Period</th>
+        <th th:each="d : ${days}" th:text="${d}">DAY</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="p : ${periods}">
+        <td th:text="'Period ' + ${p}">Period 1</td>
+        <td th:each="d : ${days}">
+            <div th:if="${grid.get(p) != null and grid.get(p).get(d) != null}">
+                <strong th:text="${grid.get(p).get(d).subject}">Subject</strong><br/>
+                <span style="font-size:12px; opacity:.7;" th:text="${grid.get(p).get(d).teacher.user.fullName}">Teacher</span><br/>
+                <span style="font-size:12px; opacity:.55;" th:text="${grid.get(p).get(d).roomName ?: 'No room set'}">Room</span>
+            </div>
+            <span th:unless="${grid.get(p) != null and grid.get(p).get(d) != null}" style="opacity:.3;">—</span>
+        </td>
+    </tr>
+    </tbody>
+</table>

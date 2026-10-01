@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Timetable · WSIMS</title>
+    <link rel="icon" type="image/svg+xml" th:href="@{/images/logo.svg}"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"/>
+    <link rel="stylesheet" th:href="@{/css/styles.css}"/>
+</head>
+<body>
+<div class="app-shell">
+    <div th:replace="~{layout/sidebar :: sidebar('timetable')}"></div>
+    <div th:replace="~{layout/topbar :: topbar}"></div>
+    <div th:replace="~{layout/sidebar :: backdrop}"></div>
+
+    <main class="content">
+        <div class="page-head">
+            <h1>Timetable</h1>
+            <p>Read-only &mdash; only the Principal can build or edit the timetable.</p>
+        </div>
+
+        <div class="card" style="margin-bottom:18px;">
+            <form th:action="@{/registrar/timetable}" method="get" style="display:flex; gap:10px; align-items:flex-end; flex-wrap:wrap;">
+                <div class="field" style="margin-bottom:0; min-width:220px;">
+                    <label for="className">Class</label>
+                    <select id="className" name="className">
+                        <option value="">Select a class…</option>
+                        <option th:each="c : ${allClassNames}" th:value="${c}" th:text="${c}" th:selected="${c == className}">Class</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-outline"><i class="bi bi-search"></i> View</button>
+            </form>
+        </div>
+
+        <div class="card" th:if="${className == null or className == ''}">
+            <div class="empty-state"><i class="bi bi-inbox"></i> Choose a class above to view its timetable.</div>
+        </div>
+
+        <div class="card" th:if="${className != null and className != ''}" style="overflow-x:auto;">
+            <h3><i class="bi bi-clock-fill"></i> <span th:text="${className}">Class</span></h3>
+            <div th:replace="~{layout/timetable-grid :: readonly(${grid}, ${periods}, ${days})}"></div>
+        </div>
+    </main>
+</div>
+<script th:src="@{/js/main.js}"></script>
+</body>
+</html>

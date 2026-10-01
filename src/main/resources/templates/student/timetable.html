@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>My Timetable · WSIMS</title>
+    <link rel="icon" type="image/svg+xml" th:href="@{/images/logo.svg}"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"/>
+    <link rel="stylesheet" th:href="@{/css/styles.css}"/>
+</head>
+<body>
+<div class="app-shell">
+    <div th:replace="~{layout/sidebar :: sidebar('timetable')}"></div>
+    <div th:replace="~{layout/topbar :: topbar}"></div>
+    <div th:replace="~{layout/sidebar :: backdrop}"></div>
+
+    <main class="content">
+        <div class="page-head" style="display:flex; align-items:flex-end; justify-content:space-between; flex-wrap:wrap; gap:12px;">
+            <div>
+                <h1>My Timetable</h1>
+                <p th:if="${className}"><span th:text="${className}">Class</span> weekly schedule.</p>
+            </div>
+            <a th:if="${className}" th:href="@{/student/assignments}" class="btn btn-outline"><i class="bi bi-file-earmark-text-fill"></i> Assignments</a>
+        </div>
+
+        <div th:if="${notice}" class="card"><div class="empty-state"><i class="bi bi-inbox"></i> <span th:text="${notice}">Notice</span></div></div>
+
+        <div class="card" th:if="${grid != null}" style="overflow-x:auto;">
+            <div th:replace="~{layout/timetable-grid :: readonly(${grid}, ${periods}, ${days})}"></div>
+        </div>
+    </main>
+</div>
+<script th:src="@{/js/main.js}"></script>
+</body>
+</html>

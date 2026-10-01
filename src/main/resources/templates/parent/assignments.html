@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Child's Assignments · WSIMS</title>
+    <link rel="icon" type="image/svg+xml" th:href="@{/images/logo.svg}"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"/>
+    <link rel="stylesheet" th:href="@{/css/styles.css}"/>
+</head>
+<body>
+<div class="app-shell">
+    <div th:replace="~{layout/sidebar :: sidebar('timetable')}"></div>
+    <div th:replace="~{layout/topbar :: topbar}"></div>
+    <div th:replace="~{layout/sidebar :: backdrop}"></div>
+
+    <main class="content">
+        <div class="page-head" style="display:flex; align-items:flex-end; justify-content:space-between; flex-wrap:wrap; gap:12px;">
+            <div>
+                <h1>Child's Assignments</h1>
+                <p>Read-only completion status for each of your children.</p>
+            </div>
+            <a th:if="${children != null and not #lists.isEmpty(children)}" th:href="@{/parent/timetable}" class="btn btn-outline"><i class="bi bi-clock-fill"></i> Timetable</a>
+        </div>
+
+        <div th:if="${notice}" class="card"><div class="empty-state"><i class="bi bi-inbox"></i> <span th:text="${notice}">Notice</span></div></div>
+        <div th:if="${children != null and #lists.isEmpty(children)}" class="card">
+            <div class="empty-state"><i class="bi bi-inbox"></i> No children are linked to your account yet.</div>
+        </div>
+
+        <div th:each="c : ${children}" class="card" style="margin-bottom:18px;">
+            <h3><i class="bi bi-person-vcard-fill"></i> <span th:text="${c.student().user.fullName}">Child</span>
+                &nbsp;<span class="id-badge" th:text="${c.student().studentId}">S2600001</span></h3>
+            <table class="wsims-table">
+                <thead><tr><th>Title</th><th>Subject</th><th>Due</th><th>Status</th></tr></thead>
+                <tbody>
+                <tr th:each="a : ${c.assignments()}">
+                    <td th:text="${a.title}">Title</td>
+                    <td th:text="${a.subject}">Subject</td>
+                    <td th:text="${a.dueDate}">2026-01-01</td>
+                    <td>
+                        <span th:if="${c.submissions().get(a.id) == null}" class="status pending">Not Submitted</span>
+                        <span th:if="${c.submissions().get(a.id) != null and c.submissions().get(a.id).grade == null}"
+                              class="status" th:classappend="${#strings.toLowerCase(c.submissions().get(a.id).status)}"
+                              th:text="${c.submissions().get(a.id).status}">STATUS</span>
+                        <span th:if="${c.submissions().get(a.id) != null and c.submissions().get(a.id).grade != null}" class="status graded">Graded</span>
+                    </td>
+                </tr>
+                <tr th:if="${#lists.isEmpty(c.assignments())}">
+                    <td colspan="4"><div class="empty-state"><i class="bi bi-inbox"></i> No assignments posted for this class yet.</div></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </main>
+</div>
+<script th:src="@{/js/main.js}"></script>
+</body>
+</html>

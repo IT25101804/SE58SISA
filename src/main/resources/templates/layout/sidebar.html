@@ -1,0 +1,64 @@
+<aside th:fragment="sidebar(activeItem)" class="sidebar">
+  <div class="nav-section-label">Overview</div>
+  <a th:href="@{/dashboard}" class="nav-item" th:classappend="${activeItem == 'dashboard'} ? 'active'">
+    <i class="bi bi-grid-1x2-fill"></i> Dashboard
+  </a>
+
+  <div class="nav-section-label">Modules</div>
+  <!-- Every item below is shown only to roles that have a real page for it — per
+       report §6.1's access matrix, a role with no capability in a module gets no
+       link at all, instead of a dead "coming soon" placeholder. -->
+  <a th:if="${user != null and user.role.name() != 'REGISTRAR'}"
+     th:href="${user.role.name() == 'PRINCIPAL'} ? @{/principal/results-overview}
+              : (${user.role.name() == 'TEACHER'} ? @{/teacher/academic}
+              : (${user.role.name() == 'STUDENT'} ? @{/student/results} : @{/parent/child-results}))"
+     class="nav-item" th:classappend="${activeItem == 'academic'} ? 'active'"><i class="bi bi-mortarboard-fill"></i> Academic Management</a>
+  <a th:if="${user != null and user.role.name() != 'TEACHER'}"
+     th:href="${user.role.name() == 'PRINCIPAL' or user.role.name() == 'REGISTRAR'} ? @{/registrar/students}
+              : (${user.role.name() == 'STUDENT'} ? @{/student/profile} : @{/parent/child})"
+     class="nav-item" th:classappend="${activeItem == 'students'} ? 'active'">
+    <i class="bi bi-person-vcard-fill"></i>
+    <span th:text="${user.role.name() == 'REGISTRAR'} ? 'Student Details' : 'Student Information'">Student Information</span>
+  </a>
+  <a th:if="${user != null and user.role.name() != 'REGISTRAR'}"
+     th:href="${user.role.name() == 'PRINCIPAL' or user.role.name() == 'TEACHER'} ? @{/teacher/attendance}
+              : (${user.role.name() == 'STUDENT'} ? @{/student/attendance} : @{/parent/child-attendance})"
+     class="nav-item" th:classappend="${activeItem == 'attendance'} ? 'active'"><i class="bi bi-calendar2-check-fill"></i> Attendance</a>
+  <a th:if="${user != null}"
+     th:href="${user.role.name() == 'PRINCIPAL'} ? @{/principal/timetable}
+              : (${user.role.name() == 'REGISTRAR'} ? @{/registrar/timetable}
+              : (${user.role.name() == 'TEACHER'} ? @{/teacher/timetable}
+              : (${user.role.name() == 'STUDENT'} ? @{/student/timetable} : @{/parent/timetable})))"
+     class="nav-item" th:classappend="${activeItem == 'timetable'} ? 'active'">
+    <i class="bi bi-clock-fill"></i>
+    <span th:text="${user.role.name() == 'PRINCIPAL'} ? 'Timetable' : 'Timetable &amp; Assignments'">Timetable &amp; Assignments</span>
+  </a>
+  <a th:if="${user != null}"
+     th:href="${user.role.name() == 'PRINCIPAL'} ? @{/principal/comms}
+              : (${user.role.name() == 'REGISTRAR'} ? @{/registrar/comms}
+              : (${user.role.name() == 'TEACHER'} ? @{/teacher/comms} : @{/inbox}))"
+     class="nav-item" th:classappend="${activeItem == 'comm'} ? 'active'"><i class="bi bi-megaphone-fill"></i> Messages</a>
+  <a th:if="${user != null and (user.role.name() == 'PRINCIPAL' or user.role.name() == 'REGISTRAR')}"
+     th:href="${user.role.name() == 'PRINCIPAL'} ? @{/principal/reports} : @{/registrar/reports}"
+     class="nav-item" th:classappend="${activeItem == 'reports'} ? 'active'"><i class="bi bi-bar-chart-fill"></i> Reports</a>
+  <a th:if="${user != null and (user.role.name() == 'PRINCIPAL' or user.role.name() == 'REGISTRAR')}"
+     th:href="${user.role.name() == 'PRINCIPAL'} ? @{/principal/accounts} : @{/registrar/teachers}"
+     class="nav-item" th:classappend="${activeItem == 'access'} ? 'active'">
+    <i class="bi bi-shield-lock-fill"></i>
+    <span th:text="${user.role.name() == 'REGISTRAR'} ? 'Teacher Details' : 'User &amp; Access'">User &amp; Access</span>
+  </a>
+  <a th:if="${user != null}"
+     th:href="@{/resources/availability}"
+     class="nav-item" th:classappend="${activeItem == 'resources'} ? 'active'"><i class="bi bi-building-fill"></i> Labs &amp; Classrooms Availability</a>
+  <a th:if="${user != null and (user.role.name() == 'PRINCIPAL' or user.role.name() == 'REGISTRAR')}"
+     th:href="@{/registrar/academic-setup}"
+     class="nav-item" th:classappend="${activeItem == 'academic-setup'} ? 'active'"><i class="bi bi-journal-bookmark-fill"></i> Subjects &amp; Terms</a>
+  <a th:if="${user != null and (user.role.name() == 'PRINCIPAL' or user.role.name() == 'REGISTRAR' or user.role.name() == 'STUDENT' or user.role.name() == 'PARENT')}"
+     th:href="${user.role.name() == 'PRINCIPAL' or user.role.name() == 'REGISTRAR'} ? @{/registrar/library}
+              : (${user.role.name() == 'STUDENT'} ? @{/student/library} : @{/parent/library-due-dates})"
+     class="nav-item" th:classappend="${activeItem == 'library'} ? 'active'"><i class="bi bi-book-half"></i> Library</a>
+
+  <div class="nav-section-label">Account</div>
+  <a th:href="@{/profile}" class="nav-item"><i class="bi bi-person-circle"></i> My Profile</a>
+</aside>
+<div th:fragment="backdrop" id="sidebarBackdrop" class="sidebar-backdrop"></div>

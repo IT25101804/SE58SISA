@@ -1,0 +1,21 @@
+<header th:fragment="topbar" class="topbar">
+  <div class="left">
+    <button id="hamburgerBtn" class="hamburger" type="button" aria-label="Open menu">
+      <i class="bi bi-list"></i>
+    </button>
+  </div>
+  <div class="who">
+    <button id="themeToggle" class="icon-btn" type="button" aria-label="Toggle dark mode" title="Toggle dark mode">
+      <i class="bi bi-moon-stars-fill"></i>
+    </button>
+    <a th:href="@{/inbox}" class="icon-btn" aria-label="Notifications" title="Inbox">
+      <i class="bi bi-bell-fill"></i>
+      <span th:if="${unreadCount != null and unreadCount > 0}" class="badge-dot"></span>
+    </a>
+    <span class="role-pill" th:text="${user.role}">ROLE</span>
+    <span th:text="${user.fullName}">Full Name</span>
+    <form th:action="@{/logout}" method="post" style="display:inline; margin:0;">
+      <button type="submit" class="logout-link">Log out</button>
+    </form>
+  </div>
+</header>

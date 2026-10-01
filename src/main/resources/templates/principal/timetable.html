@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Timetable Builder · WSIMS</title>
+    <link rel="icon" type="image/svg+xml" th:href="@{/images/logo.svg}"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"/>
+    <link rel="stylesheet" th:href="@{/css/styles.css}"/>
+</head>
+<body>
+<div class="app-shell">
+    <div th:replace="~{layout/sidebar :: sidebar('timetable')}"></div>
+    <div th:replace="~{layout/topbar :: topbar}"></div>
+    <div th:replace="~{layout/sidebar :: backdrop}"></div>
+
+    <main class="content">
+        <div class="page-head">
+            <h1>Timetable Builder</h1>
+            <p>Assign a teacher and room to each period. Only the Principal can edit &mdash; every other role sees a read-only view.</p>
+        </div>
+
+        <div th:if="${success}" class="alert success"><i class="bi bi-check-circle-fill"></i> <span th:text="${success}">Done</span></div>
+        <div th:if="${error}" class="alert error"><i class="bi bi-exclamation-circle-fill"></i> <span th:text="${error}">Error</span></div>
+
+        <div class="card" style="margin-bottom:18px;">
+            <form th:action="@{/principal/timetable}" method="get" style="display:flex; gap:10px; align-items:flex-end; flex-wrap:wrap;">
+                <div class="field" style="margin-bottom:0; min-width:220px;">
+                    <label for="className">Class</label>
+                    <select id="className" name="className">
+                        <option value="">Select a class…</option>
+                        <option th:each="c : ${allClassNames}" th:value="${c}" th:text="${c}" th:selected="${c == className}">Class</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-outline"><i class="bi bi-search"></i> View</button>
+            </form>
+        </div>
+
+        <div class="card" th:if="${className == null or className == ''}">
+            <div class="empty-state"><i class="bi bi-inbox"></i> Choose a class above to build its timetable.</div>
+        </div>
+
+        <div th:if="${className != null and className != ''}">
+            <div class="card" style="margin-bottom:18px; overflow-x:auto;">
+                <h3><i class="bi bi-clock-fill"></i> <span th:text="${className}">Class</span> &mdash; Weekly Grid</h3>
+                <table class="wsims-table">
+                    <thead>
+                    <tr>
+                        <th>Period</th>
+                        <th th:each="d : ${days}" th:text="${d}">DAY</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="p : ${periods}">
+                        <td th:text="'Period ' + ${p}">Period 1</td>
+                        <td th:each="d : ${days}">
+                            <div th:if="${grid.get(p) != null and grid.get(p).get(d) != null}">
+                                <strong th:text="${grid.get(p).get(d).subject}">Subject</strong><br/>
+                                <span style="font-size:12px; opacity:.7;" th:text="${grid.get(p).get(d).teacher.user.fullName}">Teacher</span><br/>
+                                <span style="font-size:12px; opacity:.55;" th:text="${grid.get(p).get(d).roomName ?: 'No room'}">Room</span>
+                                <form th:action="@{/principal/timetable/slot/{id}/delete(id=${grid.get(p).get(d).id})}" method="post" style="margin-top:6px;">
+                                    <input type="hidden" name="className" th:value="${className}"/>
+                                    <button type="submit" class="btn btn-outline" style="padding:3px 8px; font-size:11px;"><i class="bi bi-trash"></i></button>
+                                </form>
+                            </div>
+                            <span th:unless="${grid.get(p) != null and grid.get(p).get(d) != null}" style="opacity:.3;">—</span>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="card" style="max-width:520px;">
+                <h3><i class="bi bi-plus-circle-fill"></i> Add / Replace a Slot</h3>
+                <p style="font-size:12.5px; opacity:.65; margin-top:-6px;">Picking a day+period that's already filled replaces it. A teacher already
+                    booked elsewhere at that day+period is rejected with a conflict message.</p>
+                <form th:action="@{/principal/timetable/slot}" th:object="${form}" method="post">
+                    <input type="hidden" name="className" th:value="${className}"/>
+                    <div class="field"><label for="subject">Subject</label><input id="subject" type="text" th:field="*{subject}" required/></div>
+                    <div class="field">
+                        <label for="teacherId">Teacher</label>
+                        <select id="teacherId" th:field="*{teacherId}" required>
+                            <option value="">Select…</option>
+                            <option th:each="t : ${teachers}" th:value="${t.teacherId}"
+                                    th:text="${t.user.fullName} + ' (' + ${t.teacherId} + ')'">Teacher</option>
+                        </select>
+                    </div>
+                    <div class="field">
+                        <label for="dayOfWeek">Day</label>
+                        <select id="dayOfWeek" th:field="*{dayOfWeek}" required>
+                            <option value="">Select…</option>
+                            <option th:each="d : ${days}" th:value="${d}" th:text="${d}">DAY</option>
+                        </select>
+                    </div>
+                    <div class="field">
+                        <label for="periodNumber">Period</label>
+                        <select id="periodNumber" th:field="*{periodNumber}" required>
+                            <option th:each="p : ${periods}" th:value="${p}" th:text="'Period ' + ${p}">Period 1</option>
+                        </select>
+                    </div>
+                    <div class="field">
+                        <label for="roomResourceId">Room (optional, from the resource catalog)</label>
+                        <select id="roomResourceId" th:field="*{roomResourceId}">
+                            <option value="">No room</option>
+                            <option th:each="r : ${bookableRooms}" th:value="${r.id}"
+                                    th:text="${r.name} + ' (' + ${r.type} + ')'">Room</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-primary"><i class="bi bi-save-fill"></i> Save Slot</button>
+                </form>
+            </div>
+        </div>
+    </main>
+</div>
+<script th:src="@{/js/main.js}"></script>
+</body>
+</html>

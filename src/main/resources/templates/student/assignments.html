@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>My Assignments · WSIMS</title>
+    <link rel="icon" type="image/svg+xml" th:href="@{/images/logo.svg}"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"/>
+    <link rel="stylesheet" th:href="@{/css/styles.css}"/>
+</head>
+<body>
+<div class="app-shell">
+    <div th:replace="~{layout/sidebar :: sidebar('timetable')}"></div>
+    <div th:replace="~{layout/topbar :: topbar}"></div>
+    <div th:replace="~{layout/sidebar :: backdrop}"></div>
+
+    <main class="content">
+        <div class="page-head" style="display:flex; align-items:flex-end; justify-content:space-between; flex-wrap:wrap; gap:12px;">
+            <div>
+                <h1>My Assignments</h1>
+                <p>Track deadlines and submission status.</p>
+            </div>
+            <a th:if="${assignments != null}" th:href="@{/student/timetable}" class="btn btn-outline"><i class="bi bi-clock-fill"></i> My Timetable</a>
+        </div>
+
+        <div th:if="${notice}" class="card"><div class="empty-state"><i class="bi bi-inbox"></i> <span th:text="${notice}">Notice</span></div></div>
+
+        <div class="card" th:if="${assignments != null}">
+            <table class="wsims-table">
+                <thead>
+                <tr><th>Title</th><th>Class</th><th>Subject</th><th>Due</th><th>Status</th><th></th></tr>
+                </thead>
+                <tbody>
+                <tr th:each="a : ${assignments}">
+                    <td th:text="${a.title}">Title</td>
+                    <td th:text="${a.className}">Class</td>
+                    <td th:text="${a.subject}">Subject</td>
+                    <td th:text="${a.dueDate}">2026-01-01</td>
+                    <td>
+                        <span th:if="${mySubmissions.get(a.id) == null}" class="status pending">Not Submitted</span>
+                        <span th:if="${mySubmissions.get(a.id) != null and mySubmissions.get(a.id).grade == null}"
+                              class="status" th:classappend="${#strings.toLowerCase(mySubmissions.get(a.id).status)}"
+                              th:text="${mySubmissions.get(a.id).status}">STATUS</span>
+                        <span th:if="${mySubmissions.get(a.id) != null and mySubmissions.get(a.id).grade != null}" class="status graded">Graded</span>
+                    </td>
+                    <td><a th:href="@{/student/assignments/{id}(id=${a.id})}" class="btn btn-outline" style="padding:6px 12px; font-size:12.5px;"><i class="bi bi-eye-fill"></i> View</a></td>
+                </tr>
+                <tr th:if="${#lists.isEmpty(assignments)}">
+                    <td colspan="6"><div class="empty-state"><i class="bi bi-inbox"></i> No assignments posted for your class yet.</div></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </main>
+</div>
+<script th:src="@{/js/main.js}"></script>
+</body>
+</html>

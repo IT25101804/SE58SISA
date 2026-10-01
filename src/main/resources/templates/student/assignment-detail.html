@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title th:text="${assignment.title} + ' · WSIMS'">Assignment · WSIMS</title>
+    <link rel="icon" type="image/svg+xml" th:href="@{/images/logo.svg}"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"/>
+    <link rel="stylesheet" th:href="@{/css/styles.css}"/>
+</head>
+<body>
+<div class="app-shell">
+    <div th:replace="~{layout/sidebar :: sidebar('timetable')}"></div>
+    <div th:replace="~{layout/topbar :: topbar}"></div>
+    <div th:replace="~{layout/sidebar :: backdrop}"></div>
+
+    <main class="content">
+        <div class="page-head" style="display:flex; align-items:flex-end; justify-content:space-between; flex-wrap:wrap; gap:12px;">
+            <div>
+                <h1 th:text="${assignment.title}">Title</h1>
+                <p><span th:text="${assignment.className}">Class</span> &middot; <span th:text="${assignment.subject}">Subject</span>
+                    &middot; Due <span th:text="${assignment.dueDate}">2026-01-01</span>
+                    <span th:if="${assignment.submissionsClosed}" class="status disabled" style="margin-left:8px;">Submissions Closed</span>
+                </p>
+            </div>
+            <a th:href="@{/student/assignments}" class="btn btn-outline"><i class="bi bi-arrow-left"></i> Back to Assignments</a>
+        </div>
+
+        <div th:if="${success}" class="alert success"><i class="bi bi-check-circle-fill"></i> <span th:text="${success}">Done</span></div>
+        <div th:if="${error}" class="alert error"><i class="bi bi-exclamation-circle-fill"></i> <span th:text="${error}">Error</span></div>
+
+        <div class="card" style="margin-bottom:18px;">
+            <p th:if="${assignment.description}" th:text="${assignment.description}">Description</p>
+            <p th:if="${assignment.materialUrl}">Material: <a th:href="${assignment.materialUrl}" th:text="${assignment.materialUrl}" target="_blank" rel="noopener">link</a></p>
+        </div>
+
+        <div class="card" th:if="${isStudent}">
+            <h3><i class="bi bi-send-fill"></i> Your Submission</h3>
+
+            <div th:if="${submission != null}" style="margin-bottom:16px;">
+                <p>
+                    <span class="status" th:classappend="${#strings.toLowerCase(submission.status)}" th:text="${submission.status}">STATUS</span>
+                    &nbsp;<span style="font-size:12.5px; opacity:.7;">Submitted <span th:text="${submission.submittedAt}">2026-01-01</span></span>
+                </p>
+                <p th:text="${submission.fileUrlOrText}">Answer</p>
+                <div th:if="${submission.grade != null}" class="card" style="background:var(--azure-soft); box-shadow:none;">
+                    <p style="margin:0;"><strong>Grade:</strong> <span class="status graded" th:text="${submission.grade}">Grade</span></p>
+                    <p style="margin:8px 0 0;" th:if="${submission.feedback}"><strong>Feedback:</strong> <span th:text="${submission.feedback}">Feedback</span></p>
+                </div>
+                <div th:unless="${submission.grade != null}" class="empty-state" style="padding:16px 0;">
+                    <i class="bi bi-hourglass-split"></i> Not graded yet.
+                </div>
+            </div>
+
+            <form th:if="${!assignment.submissionsClosed}" th:action="@{/student/assignments/{id}/submit(id=${assignment.id})}" th:object="${form}" method="post">
+                <div class="field">
+                    <label for="fileUrlOrText"><span th:if="${submission != null}">Resubmit</span><span th:unless="${submission != null}">Submit</span> your answer (text or link)</label>
+                    <textarea id="fileUrlOrText" th:field="*{fileUrlOrText}" rows="4" required></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary"><i class="bi bi-cloud-upload-fill"></i> <span th:text="${submission != null} ? 'Resubmit' : 'Submit'">Submit</span></button>
+            </form>
+            <p th:if="${assignment.submissionsClosed}" style="opacity:.6; font-size:13px;">The teacher has closed submissions for this assignment.</p>
+        </div>
+    </main>
+</div>
+<script th:src="@{/js/main.js}"></script>
+</body>
+</html>
