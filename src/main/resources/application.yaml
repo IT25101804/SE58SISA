@@ -1,3 +1,24 @@
 spring:
   application:
     name: SE58SISA
+
+datasource:
+  url: jdbc:sqlserver://localhost:1433;databaseName=sisa_db;encrypt=true;trustServerCertificate=true
+  driver-class-name: com.microsoft.sqlserver.jdbc.SQLServerDriver
+  username: Myuser
+  password: "Kavindu2004"
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: true
+    open-in-view: false
+
+  thymeleaf:
+    cache: false
+
+server:
+  port: 8080
