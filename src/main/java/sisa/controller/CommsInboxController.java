@@ -1,11 +1,13 @@
 package sisa.controller;
 
 import sisa.entity.Notification;
+import sisa.entity.Role;
 import sisa.entity.User;
 import sisa.repository.NotificationRepository;
 import sisa.repository.UserRepository;
 import sisa.service.AnnouncementService;
 import sisa.service.MessagingService;
+import sisa.service.ParentTeacherContactService;
 import sisa.service.dto.MessageForm;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
@@ -28,17 +30,27 @@ public class CommsInboxController {
     private final NotificationRepository notificationRepository;
     private final MessagingService messagingService;
     private final AnnouncementService announcementService;
+    private final ParentTeacherContactService parentTeacherContactService;
 
     public CommsInboxController(UserRepository userRepository, NotificationRepository notificationRepository,
-                                MessagingService messagingService, AnnouncementService announcementService) {
+                                MessagingService messagingService, AnnouncementService announcementService,
+                                ParentTeacherContactService parentTeacherContactService) {
         this.userRepository = userRepository;
         this.notificationRepository = notificationRepository;
         this.messagingService = messagingService;
         this.announcementService = announcementService;
+        this.parentTeacherContactService = parentTeacherContactService;
     }
 
     private User currentUser(Authentication authentication) {
         return userRepository.findByUsername(authentication.getName()).orElseThrow();
+    }
+
+    /** Parents pick from their children's teachers (name + subject) instead of typing a user ID. */
+    private void addTeacherOptions(User user, Model model) {
+        if (user.getRole() == Role.PARENT) {
+            model.addAttribute("teacherOptions", parentTeacherContactService.teachersForParent(user.getUserId()));
+        }
     }
 
     @GetMapping("/inbox")
@@ -92,8 +104,10 @@ public class CommsInboxController {
 
     @GetMapping("/messages/new")
     public String newThreadForm(Authentication authentication, Model model) {
-        model.addAttribute("user", currentUser(authentication));
+        User user = currentUser(authentication);
+        model.addAttribute("user", user);
         model.addAttribute("activeItem", "comm");
+        addTeacherOptions(user, model);
         model.addAttribute("form", new MessageForm());
         return "comms/message-new";
     }
@@ -111,6 +125,7 @@ public class CommsInboxController {
             model.addAttribute("activeItem", "comm");
             model.addAttribute("error", ex.getMessage());
             model.addAttribute("form", form);
+            addTeacherOptions(user, model);
             return "comms/message-new";
         }
     }
