@@ -18,7 +18,7 @@
         <div class="page-head" style="display:flex; align-items:flex-end; justify-content:space-between; flex-wrap:wrap; gap:12px;">
             <div>
                 <h1>Inbox</h1>
-                <p>Announcements, alerts and reminders sent to you.</p>
+                <p>Messages, announcements, alerts and reminders sent to you.</p>
             </div>
             <div style="display:flex; gap:10px;">
                 <a th:if="${user != null and user.role.name() == 'STUDENT'}" th:href="@{/discussions}" class="btn btn-outline">
@@ -35,6 +35,16 @@
                 <tr><th></th><th>Subject</th><th>Category</th><th>From</th><th>Received</th></tr>
                 </thead>
                 <tbody>
+                <!-- Direct messages received (one row per conversation) — the bell counts these too. -->
+                <tr th:each="t : ${messageRows}">
+                    <td><span class="status" th:classappend="${t.unreadCount() > 0} ? 'unread' : 'read'"
+                              th:text="${t.unreadCount() > 0} ? 'Unread' : 'Read'">Unread</span></td>
+                    <td><a th:href="@{/messages/{id}(id=${t.partnerUserId()})}"
+                           th:text="${#strings.abbreviate(t.lastMessage().body, 60)}">Message preview</a></td>
+                    <td>MESSAGE</td>
+                    <td th:text="${t.partnerName()}">Sender</td>
+                    <td th:text="${t.lastMessage().sentAt}">2026-01-01</td>
+                </tr>
                 <tr th:each="n : ${notifications}">
                     <td><span class="status" th:classappend="${n.read} ? 'read' : 'unread'" th:text="${n.read} ? 'Read' : 'Unread'">Unread</span></td>
                     <td><a th:href="@{/inbox/{id}(id=${n.id})}" th:text="${n.subject != null and n.subject != ''} ? ${n.subject} : '(no subject)'">Subject</a></td>
@@ -42,7 +52,7 @@
                     <td th:text="${n.senderUserId ?: 'System'}">Sender</td>
                     <td th:text="${n.sentAt}">2026-01-01</td>
                 </tr>
-                <tr th:if="${#lists.isEmpty(notifications)}">
+                <tr th:if="${#lists.isEmpty(notifications) and #lists.isEmpty(messageRows)}">
                     <td colspan="5"><div class="empty-state"><i class="bi bi-inbox"></i> Nothing here yet.</div></td>
                 </tr>
                 </tbody>

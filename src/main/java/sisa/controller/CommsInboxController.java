@@ -69,6 +69,11 @@ public class CommsInboxController {
         model.addAttribute("activeItem", "comm");
         model.addAttribute("notifications",
                 notificationRepository.findByRecipientUserIdAndSentAtIsNotNullOrderBySentAtDesc(user.getUserId()));
+        // The bell counts unread direct messages too, so they're listed here as well (one row per
+        // conversation where the latest message was sent to you, or that has unread messages).
+        model.addAttribute("messageRows", messagingService.threadsFor(user.getUserId()).stream()
+                .filter(t -> t.unreadCount() > 0 || t.lastMessage().getToUserId().equals(user.getUserId()))
+                .toList());
         return "comms/inbox";
     }
 
