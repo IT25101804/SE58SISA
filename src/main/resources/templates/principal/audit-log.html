@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Audit Log · WSIMS</title>
+    <link rel="icon" type="image/svg+xml" th:href="@{/images/logo.svg}"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"/>
+    <link rel="stylesheet" th:href="@{/css/styles.css}"/>
+</head>
+<body>
+<div class="app-shell">
+    <div th:replace="~{layout/sidebar :: sidebar('access')}"></div>
+    <div th:replace="~{layout/topbar :: topbar}"></div>
+    <div th:replace="~{layout/sidebar :: backdrop}"></div>
+
+    <main class="content">
+        <div class="page-head" style="display:flex; align-items:flex-end; justify-content:space-between; flex-wrap:wrap; gap:12px;">
+            <div>
+                <h1>Login &amp; Security History</h1>
+                <p>The most recent 50 account actions across WSIMS.</p>
+            </div>
+            <a th:href="@{/principal/accounts}" class="btn btn-outline"><i class="bi bi-arrow-left"></i> Back to Accounts</a>
+        </div>
+
+        <div class="card">
+            <table class="wsims-table">
+                <thead>
+                <tr><th>When</th><th>Account</th><th>Action</th><th>Performed By</th><th>Detail</th></tr>
+                </thead>
+                <tbody>
+                <tr th:each="e : ${entries}">
+                    <td th:text="${#temporals.format(e.timestamp, 'dd MMM yyyy, HH:mm')}">01 Jan 2026, 09:00</td>
+                    <td><span class="id-badge" th:text="${e.userId}">ID</span></td>
+                    <td th:text="${e.action}">LOGIN</td>
+                    <td th:text="${e.performedByUserId}">ID</td>
+                    <td th:text="${e.detail}">Detail</td>
+                </tr>
+                <tr th:if="${#lists.isEmpty(entries)}">
+                    <td colspan="5"><div class="empty-state"><i class="bi bi-inbox"></i> No activity logged yet.</div></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </main>
+</div>
+<script th:src="@{/js/main.js}"></script>
+</body>
+</html>

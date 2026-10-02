@@ -1,0 +1,144 @@
+/* Full-bleed campus photo, left untouched (its own signage carries the
+   SISA brand, so no text is layered over the image). The login box sits
+   lower on the page, clear of the building's signage, as a translucent
+   white glass panel with dark, fully readable text. */
+
+html, body.login-body {
+  height: 100%;
+}
+
+body.login-body {
+  margin: 0;
+  min-height: 100vh;
+  position: relative;
+  background: url('/images/sisa-campus.jpg') center 62% / cover no-repeat fixed;
+}
+
+.login-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  background:
+    linear-gradient(180deg, rgba(6,26,46,0.20) 0%, rgba(6,26,46,0.06) 30%, rgba(6,26,46,0.38) 100%);
+}
+
+.login-wrap {
+  position: relative;
+  z-index: 2;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+}
+
+/* ---------- The login box: translucent white glass, dark readable text ---------- */
+
+.login-card {
+  width: 100%;
+  max-width: 400px;
+  margin-top: 16vh;
+  background: rgba(255,255,255,0.58);
+  backdrop-filter: blur(22px) saturate(130%);
+  -webkit-backdrop-filter: blur(22px) saturate(130%);
+  border: 1px solid rgba(255,255,255,0.7);
+  border-radius: 20px;
+  box-shadow: 0 30px 80px rgba(4,16,28,0.4), 0 2px 12px rgba(4,16,28,0.08);
+  padding: 44px 40px 36px;
+}
+
+.login-card h2 { color: var(--navy); font-size: 21px; margin: 0 0 4px; text-align: center; }
+.login-card p.sub { color: var(--charcoal); opacity: .7; font-size: 13.5px; margin: 0 0 26px; text-align: center; }
+
+.login-alert {
+  background: rgba(251,231,228,0.95); color: #B8412A; border-radius: var(--radius-sm);
+  padding: 10px 14px; font-size: 13.5px; margin-bottom: 18px; font-weight: 600;
+}
+.login-alert.ok { background: rgba(228,244,234,0.95); color: #1F7A46; }
+
+.field { margin-bottom: 16px; }
+.field label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; color: var(--navy); }
+.field input {
+  width: 100%; padding: 11px 13px; border-radius: var(--radius-sm);
+  border: 1.5px solid rgba(220,231,238,0.9); font-family: var(--font-display); font-size: 14px;
+  background: rgba(255,255,255,0.85); color: var(--charcoal);
+}
+.field input::placeholder { color: var(--charcoal); opacity: .4; }
+.field input:focus {
+  outline: none; background: #FFFFFF;
+  border-color: var(--orange); box-shadow: 0 0 0 3px rgba(232,132,60,0.18);
+}
+
+.login-card .btn-primary { width: 100%; justify-content: center; padding: 12px; font-size: 15px; margin-top: 6px; }
+
+@media (max-width: 480px) {
+  .login-card { padding: 34px 26px 28px; border-radius: 16px; margin-top: 10vh; }
+}
+
+/* ---------- Demo-account quick logins: small pill of round chips, bottom-right ---------- */
+
+.demo-quick-login {
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(11,46,79,0.55);
+  backdrop-filter: blur(14px) saturate(130%);
+  -webkit-backdrop-filter: blur(14px) saturate(130%);
+  border: 1px solid rgba(255,255,255,0.25);
+  border-radius: 999px;
+  padding: 6px 10px 6px 14px;
+  box-shadow: 0 10px 30px rgba(4,16,28,0.35);
+}
+
+.demo-quick-login-label {
+  color: rgba(255,255,255,0.85);
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  margin-right: 2px;
+  white-space: nowrap;
+}
+
+.demo-chip {
+  width: 30px;
+  height: 30px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  border: 1.5px solid rgba(255,255,255,0.45);
+  background: rgba(255,255,255,0.12);
+  color: #fff;
+  font-family: var(--font-display);
+  font-size: 12.5px;
+  font-weight: 700;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  cursor: pointer;
+  transition: transform .15s ease, background .15s ease, border-color .15s ease;
+}
+
+.demo-chip:hover,
+.demo-chip:focus-visible {
+  background: var(--orange);
+  border-color: var(--orange);
+  transform: translateY(-2px);
+  outline: none;
+}
+
+/* Principal is highlighted (it's the one fixed, permanent account); the two "P" chips
+   (Principal / Parent) also differ in fill so they're not mistaken for each other. */
+.demo-chip--principal { background: rgba(232,132,60,0.85); border-color: rgba(232,132,60,0.9); }
+.demo-chip--parent { background: rgba(255,255,255,0.22); }
+
+@media (max-width: 480px) {
+  .demo-quick-login { right: 12px; bottom: 12px; padding: 6px 8px 6px 10px; gap: 6px; }
+  .demo-quick-login-label { display: none; }
+  .demo-chip { width: 26px; height: 26px; font-size: 11px; }
+}

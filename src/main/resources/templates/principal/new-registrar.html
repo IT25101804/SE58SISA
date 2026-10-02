@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>New Registrar · WSIMS</title>
+    <link rel="icon" type="image/svg+xml" th:href="@{/images/logo.svg}"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"/>
+    <link rel="stylesheet" th:href="@{/css/styles.css}"/>
+</head>
+<body>
+<div class="app-shell">
+    <div th:replace="~{layout/sidebar :: sidebar('access')}"></div>
+    <div th:replace="~{layout/topbar :: topbar}"></div>
+    <div th:replace="~{layout/sidebar :: backdrop}"></div>
+
+    <main class="content">
+        <div class="page-head">
+            <h1>Create a Registrar Account</h1>
+            <p>Only the Principal can create Registrar accounts. A Registrar ID is generated automatically —
+                it's also this account's login username, since it's guaranteed unique.</p>
+        </div>
+
+        <div th:if="${createdId}" class="alert success">
+            <i class="bi bi-check-circle-fill"></i>
+            Registrar account created &mdash; log in with ID: <span class="id-badge" th:text="${createdId}" style="margin-left:6px;">R2600001</span>
+        </div>
+        <div th:if="${error}" class="alert error"><i class="bi bi-exclamation-circle-fill"></i> <span th:text="${error}">Error</span></div>
+
+        <div class="card" style="max-width:480px;">
+            <form th:action="@{/principal/accounts/new-registrar}" th:object="${request}" method="post">
+                <div class="field">
+                    <label for="fullName">Full Name</label>
+                    <input id="fullName" type="text" th:field="*{fullName}" required/>
+                </div>
+                <div class="field">
+                    <label for="email">Email</label>
+                    <input id="email" type="email" th:field="*{email}" required/>
+                </div>
+                <div class="field">
+                    <label for="rawPassword">Temporary Password</label>
+                    <input id="rawPassword" type="password" th:field="*{rawPassword}" required minlength="8"/>
+                </div>
+                <button type="submit" class="btn btn-primary"><i class="bi bi-person-plus-fill"></i> Create Registrar</button>
+                <a th:href="@{/principal/accounts}" class="btn btn-outline"><i class="bi bi-arrow-left"></i> Back to Accounts</a>
+            </form>
+        </div>
+    </main>
+</div>
+<script th:src="@{/js/main.js}"></script>
+</body>
+</html>

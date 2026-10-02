@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>My Profile · WSIMS</title>
+  <link rel="icon" type="image/svg+xml" th:href="@{/images/logo.svg}"/>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"/>
+  <link rel="stylesheet" th:href="@{/css/styles.css}"/>
+</head>
+<body>
+<div class="app-shell">
+  <div th:replace="~{layout/sidebar :: sidebar('profile')}"></div>
+  <div th:replace="~{layout/topbar :: topbar}"></div>
+  <div th:replace="~{layout/sidebar :: backdrop}"></div>
+
+  <main class="content">
+    <div class="page-head">
+      <h1>My Profile</h1>
+      <p>Update your own info and change your password.</p>
+    </div>
+
+    <div th:if="${success}" class="alert success"><i class="bi bi-check-circle-fill"></i> <span th:text="${success}">Done</span></div>
+    <div th:if="${error}" class="alert error"><i class="bi bi-exclamation-circle-fill"></i> <span th:text="${error}">Error</span></div>
+
+    <div class="grid grid-2">
+      <div class="card">
+        <h3><i class="bi bi-person-circle"></i> Account Details</h3>
+        <form th:action="@{/profile}" method="post">
+          <div class="field"><label>Full Name</label><input type="text" name="fullName" th:value="${user.fullName}" required/></div>
+          <div class="field"><label>Username</label><input type="text" th:value="${user.username}" disabled/></div>
+          <div class="field"><label>Email</label><input type="email" name="email" th:value="${user.email}" required/></div>
+          <div class="field">
+            <label>Role &amp; ID</label>
+            <p><span class="role-pill" th:text="${user.role}">ROLE</span>
+              &nbsp; <span class="id-badge" th:text="${user.userId}">ID</span></p>
+          </div>
+          <button type="submit" class="btn btn-primary"><i class="bi bi-save-fill"></i> Save Changes</button>
+        </form>
+      </div>
+
+      <div class="card">
+        <h3><i class="bi bi-shield-lock-fill"></i> Change Password</h3>
+        <form th:action="@{/profile/password}" method="post">
+          <div class="field"><label>Current Password</label><input type="password" name="currentPassword" required/></div>
+          <div class="field"><label>New Password</label><input type="password" name="newPassword" minlength="8" required/></div>
+          <button type="submit" class="btn btn-primary"><i class="bi bi-lock-fill"></i> Update Password</button>
+        </form>
+        <p style="font-size:12.5px; opacity:.6; margin-top:12px;">Minimum 8 characters.</p>
+      </div>
+    </div>
+  </main>
+</div>
+<script th:src="@{/js/main.js}"></script>
+</body>
+</html>

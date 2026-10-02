@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Accounts · WSIMS</title>
+    <link rel="icon" type="image/svg+xml" th:href="@{/images/logo.svg}"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"/>
+    <link rel="stylesheet" th:href="@{/css/styles.css}"/>
+</head>
+<body>
+<div class="app-shell">
+    <div th:replace="~{layout/sidebar :: sidebar('access')}"></div>
+    <div th:replace="~{layout/topbar :: topbar}"></div>
+    <div th:replace="~{layout/sidebar :: backdrop}"></div>
+
+    <main class="content">
+        <div class="page-head" style="display:flex; align-items:flex-end; justify-content:space-between; flex-wrap:wrap; gap:12px;">
+            <div>
+                <h1>User &amp; Access</h1>
+                <p>Approve pending accounts, and manage every login in WSIMS.</p>
+            </div>
+            <div style="display:flex; gap:10px;">
+                <a th:href="@{/principal/audit-log}" class="btn btn-outline"><i class="bi bi-clock-history"></i> Audit Log</a>
+                <a th:href="@{/principal/accounts/new-registrar}" class="btn btn-primary"><i class="bi bi-person-plus-fill"></i> New Registrar</a>
+            </div>
+        </div>
+
+        <div th:if="${success}" class="alert success"><i class="bi bi-check-circle-fill"></i> <span th:text="${success}">Done</span></div>
+        <div th:if="${error}" class="alert error"><i class="bi bi-exclamation-circle-fill"></i> <span th:text="${error}">Error</span></div>
+
+        <div class="card" style="margin-bottom:18px;">
+            <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                <a th:href="@{/principal/accounts}" class="btn" th:classappend="${selectedRole == null} ? 'btn-primary' : 'btn-outline'">All</a>
+                <a th:each="r : ${roles}" th:href="@{/principal/accounts(role=${r})}"
+                   class="btn" th:classappend="${selectedRole == r.name()} ? 'btn-primary' : 'btn-outline'" th:text="${r}">ROLE</a>
+            </div>
+        </div>
+
+        <div class="card">
+            <table class="wsims-table">
+                <thead>
+                <tr><th>ID</th><th>Name</th><th>Username</th><th>Role</th><th>Status</th><th>Created</th><th>Actions</th></tr>
+                </thead>
+                <tbody>
+                <tr th:each="acc : ${accounts}">
+                    <td><span class="id-badge" th:text="${acc.userId}">ID</span></td>
+                    <td th:text="${acc.fullName}">Name</td>
+                    <td th:text="${acc.username}">username</td>
+                    <td th:text="${acc.role}">ROLE</td>
+                    <td><span class="status" th:classappend="${#strings.toLowerCase(acc.status)}" th:text="${acc.status}">STATUS</span></td>
+                    <td th:text="${#temporals.format(acc.createdAt, 'dd MMM yyyy')}">01 Jan 2026</td>
+                    <td>
+                        <div style="display:flex; gap:6px; flex-wrap:wrap;">
+                            <form th:if="${acc.status.name() == 'PENDING'}" th:action="@{/principal/accounts/{id}/approve(id=${acc.userId})}" method="post">
+                                <button type="submit" class="btn btn-primary" style="padding:6px 12px; font-size:12.5px;"><i class="bi bi-check-lg"></i> Approve</button>
+                            </form>
+                            <form th:if="${acc.status.name() == 'PENDING'}" th:action="@{/principal/accounts/{id}/reject(id=${acc.userId})}" method="post">
+                                <button type="submit" class="btn btn-outline" style="padding:6px 12px; font-size:12.5px;"><i class="bi bi-x-lg"></i> Reject</button>
+                            </form>
+                            <form th:if="${acc.status.name() == 'APPROVED' and acc.role.name() != 'PRINCIPAL'}" th:action="@{/principal/accounts/{id}/disable(id=${acc.userId})}" method="post">
+                                <button type="submit" class="btn btn-outline" style="padding:6px 12px; font-size:12.5px;"><i class="bi bi-slash-circle"></i> Disable</button>
+                            </form>
+                            <form th:if="${acc.status.name() == 'DISABLED'}" th:action="@{/principal/accounts/{id}/enable(id=${acc.userId})}" method="post">
+                                <button type="submit" class="btn btn-primary" style="padding:6px 12px; font-size:12.5px;"><i class="bi bi-arrow-counterclockwise"></i> Re-enable</button>
+                            </form>
+                            <form th:if="${(acc.status.name() == 'REJECTED' or acc.status.name() == 'DISABLED') and acc.role.name() != 'PRINCIPAL'}"
+                                  th:action="@{/principal/accounts/{id}/delete(id=${acc.userId})}" method="post" class="delete-account-form"
+                                  th:data-confirm="'Permanently delete account ' + ${acc.userId} + ' (' + ${acc.fullName} + ')? This cannot be undone.'">
+                                <button type="submit" class="btn btn-danger" style="padding:6px 12px; font-size:12.5px;"><i class="bi bi-trash-fill"></i> Delete</button>
+                            </form>
+                            <span th:if="${acc.role.name() == 'PRINCIPAL'}" style="font-size:12.5px; opacity:.55;">Permanent account</span>
+                        </div>
+                    </td>
+                </tr>
+                <tr th:if="${#lists.isEmpty(accounts)}">
+                    <td colspan="7">
+                        <div class="empty-state"><i class="bi bi-inbox"></i> No accounts in this view yet.</div>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </main>
+</div>
+<script th:src="@{/js/main.js}"></script>
+<script>
+    document.querySelectorAll('.delete-account-form').forEach(function (form) {
+        form.addEventListener('submit', function (e) {
+            if (!confirm(form.dataset.confirm || 'Permanently delete this account?')) e.preventDefault();
+        });
+    });
+</script>
+</body>
+</html>
