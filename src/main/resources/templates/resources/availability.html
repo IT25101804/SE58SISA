@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Resource Availability · WSIMS</title>
+    <link rel="icon" type="image/svg+xml" th:href="@{/images/logo.svg}"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"/>
+    <link rel="stylesheet" th:href="@{/css/styles.css}"/>
+</head>
+<body>
+<div class="app-shell">
+    <div th:replace="~{layout/sidebar :: sidebar('resources')}"></div>
+    <div th:replace="~{layout/topbar :: topbar}"></div>
+    <div th:replace="~{layout/sidebar :: backdrop}"></div>
+
+    <main class="content">
+        <div class="page-head" style="display:flex; align-items:flex-end; justify-content:space-between; flex-wrap:wrap; gap:12px;">
+            <div>
+                <h1>Resource Availability</h1>
+                <p>Classrooms, labs and equipment &mdash; who has what booked, period by period.</p>
+            </div>
+            <div style="display:flex; gap:10px;">
+                <a th:if="${user != null and user.role.name() != 'PARENT'}"
+                   th:href="@{/resources/book}" class="btn btn-primary"><i class="bi bi-calendar-plus-fill"></i> Book a Resource</a>
+                <a th:if="${user != null and (user.role.name() == 'PRINCIPAL' or user.role.name() == 'REGISTRAR')}"
+                   th:href="@{/registrar/resources}" class="btn btn-outline"><i class="bi bi-building-gear"></i> Manage Catalog</a>
+                <a th:if="${user != null and user.role.name() == 'PRINCIPAL'}"
+                   th:href="@{/principal/resources/approvals}" class="btn btn-outline"><i class="bi bi-check2-square"></i> Approvals</a>
+            </div>
+        </div>
+
+        <div th:if="${success}" class="alert success"><i class="bi bi-check-circle-fill"></i> <span th:text="${success}">Done</span></div>
+        <div th:if="${error}" class="alert error"><i class="bi bi-exclamation-circle-fill"></i> <span th:text="${error}">Error</span></div>
+
+        <div class="card" style="margin-bottom:18px;">
+            <form th:action="@{/resources/availability}" method="get" style="display:flex; gap:10px; align-items:flex-end; flex-wrap:wrap;">
+                <div class="field" style="margin-bottom:0;">
+                    <label for="date">Date</label>
+                    <input id="date" type="date" name="date" th:value="${date}"/>
+                </div>
+                <div class="field" style="margin-bottom:0; min-width:180px;">
+                    <label for="type">Type</label>
+                    <select id="type" name="type">
+                        <option value="">All types</option>
+                        <option th:each="t : ${resourceTypes}" th:value="${t}" th:text="${t}" th:selected="${t == type}">TYPE</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-outline"><i class="bi bi-search"></i> View</button>
+            </form>
+        </div>
+
+        <div class="card" style="overflow-x:auto;">
+            <h3><i class="bi bi-grid-3x3-gap-fill"></i> <span th:text="${date}">Date</span></h3>
+            <p style="font-size:12.5px; opacity:.65; margin-top:-6px;">
+                <span class="status approved" style="margin-right:6px;">Free</span>
+                <span class="status pending" style="margin-right:6px;">Requested</span>
+                <span class="status rejected" style="margin-right:6px;">Booked</span>
+                <span class="status disabled">On the timetable</span>
+            </p>
+            <table class="wsims-table" th:if="${not #maps.isEmpty(grid)}">
+                <thead>
+                <tr>
+                    <th>Resource</th>
+                    <th th:each="p : ${periods}" th:text="'P' + ${p}">P1</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="entry : ${grid}">
+                    <td>
+                        <strong th:text="${entry.key.name}">Resource</strong><br/>
+                        <span style="font-size:11px; opacity:.6;" th:text="${entry.key.type} + (${entry.key.location} != null ? ' · ' + ${entry.key.location} : '')">Type</span>
+                    </td>
+                    <td th:each="p : ${periods}">
+                        <a th:if="${entry.value.get(p).state().name() == 'FREE'}"
+                           th:href="@{/resources/book(resourceId=${entry.key.id},date=${date},period=${p})}"
+                           class="status" th:classappend="${entry.value.get(p).state().cssClass()}"
+                           th:text="${entry.value.get(p).label()}" style="text-decoration:none;">Free</a>
+                        <span th:unless="${entry.value.get(p).state().name() == 'FREE'}"
+                              class="status" th:classappend="${entry.value.get(p).state().cssClass()}"
+                              th:text="${entry.value.get(p).label()}">Booked</span>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+            <div class="empty-state" th:if="${#maps.isEmpty(grid)}">
+                <i class="bi bi-inbox"></i> No resources of this type yet &mdash;
+                <a th:href="@{/registrar/resources}">add one to the catalog</a>.
+            </div>
+        </div>
+    </main>
+</div>
+<script th:src="@{/js/main.js}"></script>
+</body>
+</html>

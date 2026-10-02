@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Library Due Dates · WSIMS</title>
+    <link rel="icon" type="image/svg+xml" th:href="@{/images/logo.svg}"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"/>
+    <link rel="stylesheet" th:href="@{/css/styles.css}"/>
+</head>
+<body>
+<div class="app-shell">
+    <div th:replace="~{layout/sidebar :: sidebar('library')}"></div>
+    <div th:replace="~{layout/topbar :: topbar}"></div>
+    <div th:replace="~{layout/sidebar :: backdrop}"></div>
+
+    <main class="content">
+        <div class="page-head">
+            <h1>Library Due Dates</h1>
+            <p>Books currently borrowed by your child(ren).</p>
+        </div>
+
+        <div class="empty-state" th:if="${#lists.isEmpty(children)}">
+            <i class="bi bi-inbox"></i> No children linked to your account yet.
+        </div>
+
+        <div class="card" th:if="${not #lists.isEmpty(children)}">
+            <table class="wsims-table" th:if="${not #lists.isEmpty(loans)}">
+                <thead><tr><th>Student</th><th>Item</th><th>Borrowed</th><th>Due</th></tr></thead>
+                <tbody>
+                <tr th:each="l : ${loans}">
+                    <td th:text="${l.student.user.fullName} + ' (' + ${l.student.studentId} + ')'">Student</td>
+                    <td th:text="${l.libraryItem.title}">Title</td>
+                    <td th:text="${l.borrowedAt}">2026-01-01</td>
+                    <td th:text="${l.dueDate}">2026-01-15</td>
+                </tr>
+                </tbody>
+            </table>
+            <div class="empty-state" th:if="${#lists.isEmpty(loans)}">
+                <i class="bi bi-inbox"></i> No books currently on loan.
+            </div>
+        </div>
+    </main>
+</div>
+<script th:src="@{/js/main.js}"></script>
+</body>
+</html>

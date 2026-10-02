@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Book a Resource · WSIMS</title>
+    <link rel="icon" type="image/svg+xml" th:href="@{/images/logo.svg}"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"/>
+    <link rel="stylesheet" th:href="@{/css/styles.css}"/>
+</head>
+<body>
+<div class="app-shell">
+    <div th:replace="~{layout/sidebar :: sidebar('resources')}"></div>
+    <div th:replace="~{layout/topbar :: topbar}"></div>
+    <div th:replace="~{layout/sidebar :: backdrop}"></div>
+
+    <main class="content">
+        <div class="page-head">
+            <h1>Book a Resource</h1>
+            <p>Classrooms, labs and equipment book instantly if the resource is marked auto-approve &mdash;
+                otherwise it waits for the Principal's approval.</p>
+        </div>
+
+        <div th:if="${error}" class="alert error"><i class="bi bi-exclamation-circle-fill"></i> <span th:text="${error}">Error</span></div>
+
+        <div class="card" style="max-width:520px;">
+            <form th:action="@{/resources/book}" th:object="${form}" method="post">
+                <div class="field">
+                    <label for="resourceId">Resource</label>
+                    <select id="resourceId" th:field="*{resourceId}" required>
+                        <option value="">Select…</option>
+                        <option th:each="r : ${resources}" th:value="${r.id}"
+                                th:text="${r.name} + ' (' + ${r.type} + ')' + (${r.autoApprove} ? ' — auto-approve' : '')">Resource</option>
+                    </select>
+                </div>
+                <div class="field"><label for="bookingDate">Date</label>
+                    <!-- bookingDateIso (a plain String, not *{bookingDate}) so the HTML5 date input gets
+                         yyyy-MM-dd — reading the bound LocalDate through th:object here renders a locale
+                         date style instead (e.g. "9/12/26"), which browsers reject. -->
+                    <input id="bookingDate" name="bookingDate" type="date" th:value="${bookingDateIso}" required/>
+                </div>
+                <div class="field">
+                    <label for="periodNumber">Period</label>
+                    <select id="periodNumber" th:field="*{periodNumber}" required>
+                        <option th:each="p : ${periods}" th:value="${p}" th:text="'Period ' + ${p}">Period 1</option>
+                    </select>
+                </div>
+                <div class="field"><label for="purpose">Purpose</label>
+                    <input id="purpose" type="text" th:field="*{purpose}" placeholder="e.g. Grade 9 Chemistry practical" required/>
+                </div>
+                <button type="submit" class="btn btn-primary"><i class="bi bi-send-fill"></i> Submit Request</button>
+                <a th:href="@{/resources/availability}" class="btn btn-outline"><i class="bi bi-arrow-left"></i> Back to Availability</a>
+            </form>
+        </div>
+    </main>
+</div>
+<script th:src="@{/js/main.js}"></script>
+</body>
+</html>

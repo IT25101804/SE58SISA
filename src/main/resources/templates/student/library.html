@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Library · WSIMS</title>
+    <link rel="icon" type="image/svg+xml" th:href="@{/images/logo.svg}"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"/>
+    <link rel="stylesheet" th:href="@{/css/styles.css}"/>
+</head>
+<body>
+<div class="app-shell">
+    <div th:replace="~{layout/sidebar :: sidebar('library')}"></div>
+    <div th:replace="~{layout/topbar :: topbar}"></div>
+    <div th:replace="~{layout/sidebar :: backdrop}"></div>
+
+    <main class="content">
+        <div class="page-head">
+            <h1>Library</h1>
+            <p>Search books and materials available at SISA.</p>
+        </div>
+
+        <div class="card" style="margin-bottom:18px;">
+            <form th:action="@{/student/library}" method="get" style="display:flex; gap:10px; align-items:flex-end; flex-wrap:wrap;">
+                <div class="field" style="margin-bottom:0; min-width:240px;">
+                    <label for="q">Search</label>
+                    <input id="q" name="q" type="text" th:value="${q}" placeholder="Title, author or category"/>
+                </div>
+                <button type="submit" class="btn btn-outline"><i class="bi bi-search"></i> Search</button>
+            </form>
+        </div>
+
+        <div class="card">
+            <table class="wsims-table" th:if="${not #lists.isEmpty(items)}">
+                <thead><tr><th>Title</th><th>Author</th><th>Category</th><th>Available</th></tr></thead>
+                <tbody>
+                <tr th:each="i : ${items}">
+                    <td th:text="${i.title}">Title</td>
+                    <td th:text="${i.author} ?: '—'">Author</td>
+                    <td th:text="${i.category} ?: '—'">Category</td>
+                    <td><span class="status" th:classappend="${i.availableCopies > 0} ? 'approved' : 'disabled'"
+                               th:text="${i.availableCopies} + ' / ' + ${i.totalCopies}">1 / 1</span></td>
+                </tr>
+                </tbody>
+            </table>
+            <div class="empty-state" th:if="${#lists.isEmpty(items)}">
+                <i class="bi bi-inbox"></i> No matching items.
+            </div>
+        </div>
+    </main>
+</div>
+<script th:src="@{/js/main.js}"></script>
+</body>
+</html>

@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Resource Catalog · WSIMS</title>
+    <link rel="icon" type="image/svg+xml" th:href="@{/images/logo.svg}"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"/>
+    <link rel="stylesheet" th:href="@{/css/styles.css}"/>
+</head>
+<body>
+<div class="app-shell">
+    <div th:replace="~{layout/sidebar :: sidebar('resources')}"></div>
+    <div th:replace="~{layout/topbar :: topbar}"></div>
+    <div th:replace="~{layout/sidebar :: backdrop}"></div>
+
+    <main class="content">
+        <div class="page-head" style="display:flex; align-items:flex-end; justify-content:space-between; flex-wrap:wrap; gap:12px;">
+            <div>
+                <h1>Resource Catalog</h1>
+                <p>Classrooms, labs and equipment available to book. The Registrar keeps this up to date; the Principal may too.
+                    A <strong>Classroom</strong>-type entry is a real class of the school, not just a booking listing — its name
+                    is what shows up as "Class" at student registration, and its Capacity caps how many active students it can hold.</p>
+            </div>
+            <a th:href="@{/resources/availability}" class="btn btn-outline"><i class="bi bi-grid-3x3-gap-fill"></i> Availability &rarr;</a>
+        </div>
+
+        <div th:if="${success}" class="alert success"><i class="bi bi-check-circle-fill"></i> <span th:text="${success}">Done</span></div>
+        <div th:if="${error}" class="alert error"><i class="bi bi-exclamation-circle-fill"></i> <span th:text="${error}">Error</span></div>
+
+        <div class="grid grid-2">
+            <div class="card">
+                <h3><i class="bi bi-building-fill"></i> All Resources</h3>
+                <table class="wsims-table" th:if="${not #lists.isEmpty(resources)}">
+                    <thead><tr><th>Name</th><th>Type</th><th>Capacity</th><th>Enrolled</th><th>Location</th><th>Auto-approve</th><th>Student may book</th><th></th></tr></thead>
+                    <tbody>
+                    <tr th:each="r : ${resources}">
+                        <td th:text="${r.name}">Room</td>
+                        <td th:text="${r.type}">ROOM</td>
+                        <td th:text="${r.capacity != null} ? ${r.capacity} : '—'">30</td>
+                        <td th:text="${r.type.name() == 'CLASSROOM'} ? (${classEnrollment.get(r.name)} ?: 0) : '—'">—</td>
+                        <td th:text="${r.location} ?: '—'">Block A</td>
+                        <td><span class="status" th:classappend="${r.autoApprove} ? 'approved' : 'pending'"
+                                   th:text="${r.autoApprove} ? 'Yes' : 'No'">No</span></td>
+                        <td><span class="status" th:classappend="${r.studentBookable} ? 'approved' : 'disabled'"
+                                   th:text="${r.studentBookable} ? 'Yes' : 'No'">No</span></td>
+                        <td style="white-space:nowrap;">
+                            <button type="button" class="btn btn-outline edit-resource-btn" style="padding:4px 10px; font-size:12px;"
+                                    th:data-id="${r.id}" th:data-name="${r.name}" th:data-type="${r.type}"
+                                    th:data-capacity="${r.capacity}" th:data-location="${r.location}" th:data-autoapprove="${r.autoApprove}"
+                                    th:data-studentbookable="${r.studentBookable}">
+                                <i class="bi bi-pencil-fill"></i> Edit
+                            </button>
+                            <form th:action="@{/registrar/resources/{id}/delete(id=${r.id})}" method="post" style="display:inline;"
+                                  th:data-confirm="'Delete ' + ${r.name} + '? This cannot be undone.'" class="delete-resource-form">
+                                <button type="submit" class="btn btn-danger" style="padding:4px 10px; font-size:12px;">
+                                    <i class="bi bi-trash-fill"></i> Delete
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+                <div class="empty-state" th:if="${#lists.isEmpty(resources)}">
+                    <i class="bi bi-inbox"></i> No resources yet &mdash; add the first classroom, lab or equipment item.
+                </div>
+            </div>
+
+            <div class="card" id="resourceFormCard">
+                <h3 id="resourceFormTitle"><i class="bi bi-plus-circle-fill"></i> Add a Resource</h3>
+                <form th:action="@{/registrar/resources/save}" th:object="${form}" method="post" id="resourceForm">
+                    <input type="hidden" id="id" th:field="*{id}"/>
+                    <div class="field"><label for="name">Name</label><input id="name" type="text" th:field="*{name}" placeholder="Room 12" required/></div>
+                    <div class="field">
+                        <label for="type">Type</label>
+                        <select id="type" th:field="*{type}" required>
+                            <option value="">Select…</option>
+                            <option th:each="t : ${resourceTypes}" th:value="${t}" th:text="${t}">TYPE</option>
+                        </select>
+                    </div>
+                    <div class="field"><label for="capacity">Capacity (optional)</label><input id="capacity" type="number" min="0" th:field="*{capacity}"/></div>
+                    <div class="field"><label for="location">Location (optional)</label><input id="location" type="text" th:field="*{location}" placeholder="Block A, 2nd floor"/></div>
+                    <div class="field">
+                        <label for="autoApprove">Auto-approve bookings?</label>
+                        <select id="autoApprove" th:field="*{autoApprove}">
+                            <option value="false">No — needs Principal approval</option>
+                            <option value="true">Yes — skip approval</option>
+                        </select>
+                    </div>
+                    <div class="field">
+                        <!-- Not part of the ResourceForm DTO — sent as a plain request param and read
+                             by ResourceCatalogController#save via @RequestParam(name="studentBookable"). -->
+                        <label for="studentBookable">Student may book?</label>
+                        <select id="studentBookable" name="studentBookable">
+                            <option value="false">No — staff/Principal only</option>
+                            <option value="true">Yes — Students can book this too</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-primary"><i class="bi bi-save-fill"></i> Save Resource</button>
+                    <button type="button" class="btn btn-outline" id="resetFormBtn">New Resource</button>
+                </form>
+            </div>
+        </div>
+    </main>
+</div>
+<script th:src="@{/js/main.js}"></script>
+<script th:inline="javascript">
+    /*<![CDATA[*/
+    document.querySelectorAll('.edit-resource-btn').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            document.getElementById('id').value = btn.dataset.id;
+            document.getElementById('name').value = btn.dataset.name;
+            document.getElementById('type').value = btn.dataset.type;
+            document.getElementById('capacity').value = btn.dataset.capacity || '';
+            document.getElementById('location').value = btn.dataset.location || '';
+            document.getElementById('autoApprove').value = btn.dataset.autoapprove;
+            document.getElementById('studentBookable').value = btn.dataset.studentbookable;
+            document.getElementById('resourceFormTitle').innerHTML = '<i class="bi bi-pencil-fill"></i> Edit ' + btn.dataset.name;
+            document.getElementById('resourceFormCard').scrollIntoView({behavior: 'smooth'});
+        });
+    });
+    document.querySelectorAll('.delete-resource-form').forEach(function (form) {
+        form.addEventListener('submit', function (e) {
+            if (!confirm(form.dataset.confirm || 'Delete this resource?')) {
+                e.preventDefault();
+            }
+        });
+    });
+    var resetBtn = document.getElementById('resetFormBtn');
+    if (resetBtn) {
+        resetBtn.addEventListener('click', function () {
+            document.getElementById('resourceForm').reset();
+            document.getElementById('id').value = '';
+            document.getElementById('studentBookable').value = 'false';
+            document.getElementById('resourceFormTitle').innerHTML = '<i class="bi bi-plus-circle-fill"></i> Add a Resource';
+        });
+    }
+    /*]]>*/
+</script>
+</body>
+</html>
