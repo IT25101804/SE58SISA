@@ -162,6 +162,18 @@ public class MarksEntryService {
         return new ArrayList<>(byId.values());
     }
 
+    /**
+     * Same access rule as entering marks (requireSubjectAccess). Marks reference the exam via
+     * a foreign key, so they're removed first, then the exam itself.
+     */
+    @Transactional
+    public void deleteExam(Long examId, User actingUser) {
+        Exam exam = getOrThrow(examId);
+        requireSubjectAccess(exam.getClassName(), exam.getSubject(), actingUser);
+        markRepository.deleteAll(markRepository.findByExam_Id(examId));
+        examRepository.delete(exam);
+    }
+
     public Exam getOrThrow(Long examId) {
         return examRepository.findById(examId)
                 .orElseThrow(() -> new IllegalArgumentException("No such exam: " + examId));

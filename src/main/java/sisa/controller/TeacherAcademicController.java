@@ -140,6 +140,21 @@ public class TeacherAcademicController {
         return "redirect:/teacher/academic/" + examId;
     }
 
+    @PostMapping("/{examId}/delete")
+    public String deleteExam(@PathVariable Long examId, Authentication authentication,
+                             RedirectAttributes redirectAttributes) {
+        User user = currentUser(authentication);
+        try {
+            marksEntryService.deleteExam(examId, user);
+            redirectAttributes.addFlashAttribute("success", "Exam deleted.");
+        } catch (ResponseStatusException rse) {
+            throw rse;
+        } catch (RuntimeException ex) {
+            redirectAttributes.addFlashAttribute("error", ex.getMessage());
+        }
+        return "redirect:/teacher/academic";
+    }
+
     @GetMapping("/report-cards")
     public String reportCards(Authentication authentication, Model model) {
         User user = currentUser(authentication);

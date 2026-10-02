@@ -26,6 +26,9 @@
             </div>
         </div>
 
+        <div th:if="${success}" class="alert success"><i class="bi bi-check-circle-fill"></i> <span th:text="${success}">Done</span></div>
+        <div th:if="${error}" class="alert error"><i class="bi bi-exclamation-circle-fill"></i> <span th:text="${error}">Error</span></div>
+
         <div class="card">
             <table class="wsims-table">
                 <thead>
@@ -38,7 +41,17 @@
                     <td th:text="${e.subject}">Subject</td>
                     <td th:text="${e.examDate}">2026-01-01</td>
                     <td th:text="${e.maxMarks}">100</td>
-                    <td><a th:href="@{/teacher/academic/{id}(id=${e.id})}" class="btn btn-outline" style="padding:6px 12px; font-size:12.5px;"><i class="bi bi-pencil-square"></i> Enter Marks</a></td>
+                    <td>
+                        <div style="display:flex; gap:8px; justify-content:flex-end;">
+                            <a th:href="@{/teacher/academic/{id}(id=${e.id})}" class="btn btn-outline" style="padding:6px 12px; font-size:12.5px;"><i class="bi bi-pencil-square"></i> Enter Marks</a>
+                            <form th:action="@{/teacher/academic/{id}/delete(id=${e.id})}" method="post" style="margin:0;">
+                                <button type="submit" class="btn btn-danger" style="padding:6px 12px; font-size:12.5px;"
+                                        onclick="return confirm('Delete this exam and all marks entered for it? This cannot be undone.');">
+                                    <i class="bi bi-trash-fill"></i> Delete
+                                </button>
+                            </form>
+                        </div>
+                    </td>
                 </tr>
                 <tr th:if="${#lists.isEmpty(exams)}">
                     <td colspan="6"><div class="empty-state"><i class="bi bi-inbox"></i> No exams yet.</div></td>
