@@ -16,14 +16,14 @@
 
     <main class="content">
         <div class="page-head">
-            <h1>New Class Notice</h1>
-            <p th:if="${className}">Goes to every student in <strong th:text="${className}">Class</strong> and their linked guardians.</p>
-            <p th:unless="${className}" style="color:var(--orange-deep);">You aren't a Class Teacher, so you have no class to post notices to.</p>
+            <h1>New Notice</h1>
+            <p>Send to your class, the Principal, one student you teach, or one student's parent.</p>
         </div>
 
+        <div th:if="${success}" class="alert success"><i class="bi bi-check-circle-fill"></i> <span th:text="${success}">Done</span></div>
         <div th:if="${error}" class="alert error"><i class="bi bi-exclamation-circle-fill"></i> <span th:text="${error}">Error</span></div>
 
-        <div class="card" style="max-width:560px;" th:if="${className}">
+        <div class="card" style="max-width:560px;">
             <form th:action="@{/teacher/comms/new}" th:object="${form}" method="post">
                 <div class="field">
                     <label for="category">Category</label>
@@ -34,12 +34,47 @@
                 </div>
                 <div class="field"><label for="subject">Subject</label><input id="subject" type="text" th:field="*{subject}" required/></div>
                 <div class="field"><label for="body">Message</label><textarea id="body" th:field="*{body}" rows="4" required></textarea></div>
-                <button type="submit" class="btn btn-primary"><i class="bi bi-send-fill"></i> Send to <span th:text="${className}">Class</span></button>
+                <div class="field">
+                    <label for="targetScope">Send To</label>
+                    <select id="targetScope" th:field="*{targetScope}">
+                        <option th:if="${className}" value="CLASS" th:text="'My Class (' + ${className} + ') and their guardians'">My Class</option>
+                        <option value="PRINCIPAL">Principal</option>
+                        <option value="ONE_STUDENT">One Student</option>
+                        <option value="GUARDIANS">One Parent</option>
+                    </select>
+                </div>
+                <!-- Only shown for "One Student" / "One Parent" (see script below). -->
+                <div class="field" data-scope="ONE_STUDENT GUARDIANS">
+                    <label for="studentId" id="studentIdLabel">Student ID</label>
+                    <input id="studentId" type="text" th:field="*{studentId}" placeholder="S2600001"/>
+                </div>
+                <button type="submit" class="btn btn-primary"><i class="bi bi-send-fill"></i> Send</button>
                 <a th:href="@{/teacher/comms}" class="btn btn-outline"><i class="bi bi-arrow-left"></i> Back</a>
             </form>
         </div>
     </main>
 </div>
 <script th:src="@{/js/main.js}"></script>
+<script>
+    (function () {
+        var scope = document.getElementById('targetScope');
+        var label = document.getElementById('studentIdLabel');
+        function sync() {
+            document.querySelectorAll('[data-scope]').forEach(function (field) {
+                var show = field.dataset.scope.split(' ').indexOf(scope.value) !== -1;
+                field.style.display = show ? '' : 'none';
+                field.querySelectorAll('input, select').forEach(function (input) {
+                    input.disabled = !show;   // hidden fields aren't submitted
+                    input.required = show;
+                });
+            });
+            label.textContent = scope.value === 'GUARDIANS'
+                ? 'Student ID (the parent linked to this student gets the message)'
+                : 'Student ID';
+        }
+        scope.addEventListener('change', sync);
+        sync();
+    })();
+</script>
 </body>
 </html>

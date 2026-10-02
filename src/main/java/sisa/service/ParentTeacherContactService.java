@@ -38,29 +38,40 @@ public class ParentTeacherContactService {
     public List<TeacherContact> teachersForParent(String parentUserId) {
         List<TeacherContact> contacts = new ArrayList<>();
         for (Student child : studentRepository.findByParent_UserId(parentUserId)) {
-            String className = child.getClassName();
-            if (className == null) continue;
-
-            // teacherId -> (teacher, subjects they teach in this class), in timetable order
-            Map<String, Teacher> teachers = new LinkedHashMap<>();
-            Map<String, Set<String>> subjects = new LinkedHashMap<>();
-            for (Teacher classTeacher : teacherRepository.findByAssignedClassNameAndClassTeacherTrue(className)) {
-                teachers.put(classTeacher.getTeacherId(), classTeacher);
-                subjects.computeIfAbsent(classTeacher.getTeacherId(), k -> new LinkedHashSet<>()).add("Class Teacher");
-            }
-            for (TimetableSlot slot : timetableSlotRepository.findByClassNameOrderByPeriodNumberAsc(className)) {
-                Teacher t = slot.getTeacher();
-                teachers.putIfAbsent(t.getTeacherId(), t);
-                subjects.computeIfAbsent(t.getTeacherId(), k -> new LinkedHashSet<>()).add(slot.getSubject());
-            }
-
-            String childName = child.getUser() != null ? child.getUser().getFullName() : child.getStudentId();
-            teachers.values().stream()
-                    .filter(t -> t.getUser() != null && t.getUser().getStatus() == AccountStatus.APPROVED)
-                    .sorted(Comparator.comparing(t -> t.getUser().getFullName(), String.CASE_INSENSITIVE_ORDER))
-                    .forEach(t -> contacts.add(new TeacherContact(t.getUser().getUserId(), t.getUser().getFullName(),
-                            String.join(", ", subjects.get(t.getTeacherId())), childName, className)));
+            contacts.addAll(teachersOf(child));
         }
         return contacts;
+    }
+
+    /** Same list for a student messaging their own teachers. */
+    public List<TeacherContact> teachersForStudent(String studentId) {
+        return studentRepository.findById(studentId).map(this::teachersOf).orElse(List.of());
+    }
+
+    /** The Class Teacher plus every timetabled teacher of this student's class, with the subjects each teaches there. */
+    private List<TeacherContact> teachersOf(Student student) {
+        String className = student.getClassName();
+        if (className == null) return List.of();
+
+        // teacherId -> (teacher, subjects they teach in this class), in timetable order
+        Map<String, Teacher> teachers = new LinkedHashMap<>();
+        Map<String, Set<String>> subjects = new LinkedHashMap<>();
+        for (Teacher classTeacher : teacherRepository.findByAssignedClassNameAndClassTeacherTrue(className)) {
+            teachers.put(classTeacher.getTeacherId(), classTeacher);
+            subjects.computeIfAbsent(classTeacher.getTeacherId(), k -> new LinkedHashSet<>()).add("Class Teacher");
+        }
+        for (TimetableSlot slot : timetableSlotRepository.findByClassNameOrderByPeriodNumberAsc(className)) {
+            Teacher t = slot.getTeacher();
+            teachers.putIfAbsent(t.getTeacherId(), t);
+            subjects.computeIfAbsent(t.getTeacherId(), k -> new LinkedHashSet<>()).add(slot.getSubject());
+        }
+
+        String childName = student.getUser() != null ? student.getUser().getFullName() : student.getStudentId();
+        return teachers.values().stream()
+                .filter(t -> t.getUser() != null && t.getUser().getStatus() == AccountStatus.APPROVED)
+                .sorted(Comparator.comparing(t -> t.getUser().getFullName(), String.CASE_INSENSITIVE_ORDER))
+                .map(t -> new TeacherContact(t.getUser().getUserId(), t.getUser().getFullName(),
+                        String.join(", ", subjects.get(t.getTeacherId())), childName, className))
+                .toList();
     }
 }

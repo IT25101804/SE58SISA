@@ -46,10 +46,12 @@ public class CommsInboxController {
         return userRepository.findByUsername(authentication.getName()).orElseThrow();
     }
 
-    /** Parents pick from their children's teachers (name + subject) instead of typing a user ID. */
+    /** Parents and students pick from their (children's) teachers by name + subject instead of typing a user ID. */
     private void addTeacherOptions(User user, Model model) {
         if (user.getRole() == Role.PARENT) {
             model.addAttribute("teacherOptions", parentTeacherContactService.teachersForParent(user.getUserId()));
+        } else if (user.getRole() == Role.STUDENT) {
+            model.addAttribute("teacherOptions", parentTeacherContactService.teachersForStudent(user.getUserId()));
         }
     }
 

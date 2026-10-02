@@ -5,6 +5,7 @@ import sisa.entity.*;
 import sisa.repository.NotificationRepository;
 import sisa.repository.StudentRepository;
 import sisa.repository.TeacherRepository;
+import sisa.repository.TimetableSlotRepository;
 import sisa.repository.UserRepository;
 import sisa.service.dto.AnnouncementForm;
 import org.springframework.http.HttpStatus;
@@ -30,13 +31,16 @@ public class AnnouncementService {
     private final UserRepository userRepository;
     private final StudentRepository studentRepository;
     private final TeacherRepository teacherRepository;
+    private final TimetableSlotRepository timetableSlotRepository;
 
     public AnnouncementService(NotificationRepository notificationRepository, UserRepository userRepository,
-                               StudentRepository studentRepository, TeacherRepository teacherRepository) {
+                               StudentRepository studentRepository, TeacherRepository teacherRepository,
+                               TimetableSlotRepository timetableSlotRepository) {
         this.notificationRepository = notificationRepository;
         this.userRepository = userRepository;
         this.studentRepository = studentRepository;
         this.teacherRepository = teacherRepository;
+        this.timetableSlotRepository = timetableSlotRepository;
     }
 
     /**
@@ -51,19 +55,37 @@ public class AnnouncementService {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Only the Principal, Registrar or a Teacher can post notices.");
         }
         NotificationCategory category = NotificationCategory.valueOf(form.getCategory());
-        NotificationScope scope = NotificationScope.valueOf(form.getTargetScope());
+        boolean noScope = form.getTargetScope() == null || form.getTargetScope().isBlank();
+        if (noScope && sender.getRole() != Role.TEACHER) {
+            throw new IllegalArgumentException("Choose who to send this to.");
+        }
+        // A teacher's form without a choice means their own class, as it always used to.
+        NotificationScope scope = noScope ? NotificationScope.CLASS : NotificationScope.valueOf(form.getTargetScope());
 
         String className = form.getClassName();
         if (sender.getRole() == Role.TEACHER) {
-            // A Teacher's notices are always their own class, per business rule 3 — never the whole school
-            // or someone else's class, even if the form tried to say otherwise.
+            // A Teacher may reach their own class (business rule 3 — never the whole school or someone
+            // else's class), the Principal, or one student / one student's parent in a class they teach.
             Teacher teacher = teacherRepository.findById(sender.getUserId())
                     .orElseThrow(() -> new IllegalStateException("No teacher record for " + sender.getUserId()));
-            if (!teacher.isClassTeacher() || teacher.getAssignedClassName() == null) {
-                throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Only a Class Teacher can post class notices.");
+            switch (scope) {
+                case CLASS -> {
+                    if (!teacher.isClassTeacher() || teacher.getAssignedClassName() == null) {
+                        throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Only a Class Teacher can post class notices.");
+                    }
+                    className = teacher.getAssignedClassName();
+                }
+                case PRINCIPAL -> { }
+                case ONE_STUDENT, GUARDIANS -> {
+                    Student student = requireStudent(form.getStudentId());
+                    if (!classesTaughtBy(teacher).contains(student.getClassName())) {
+                        throw new IllegalArgumentException("Student " + student.getStudentId()
+                                + " isn't in a class you teach.");
+                    }
+                }
+                default -> throw new ResponseStatusException(HttpStatus.FORBIDDEN,
+                        "Teachers can send to their class, the Principal, one student or one parent.");
             }
-            scope = NotificationScope.CLASS;
-            className = teacher.getAssignedClassName();
         }
 
         Set<String> recipients = resolveRecipients(scope, className, form.getStudentId(), form.getTeacherId());
@@ -133,6 +155,9 @@ public class AnnouncementService {
                 }
                 ids.add(teacher.getTeacherId());
             }
+            case PRINCIPAL -> userRepository.findByRole(Role.PRINCIPAL).stream()
+                    .filter(u -> u.getStatus() == AccountStatus.APPROVED)
+                    .forEach(u -> ids.add(u.getUserId()));
             case ONE_STUDENT -> ids.add(requireStudent(studentId).getStudentId());
             case GUARDIANS -> {
                 Student student = requireStudent(studentId);
@@ -151,6 +176,15 @@ public class AnnouncementService {
                 .filter(t -> t.getUser() != null && t.getUser().getStatus() == AccountStatus.APPROVED)
                 .sorted(Comparator.comparing(t -> t.getUser().getFullName(), String.CASE_INSENSITIVE_ORDER))
                 .toList();
+    }
+
+    /** The Class Teacher's own class plus every class on this teacher's timetable. */
+    private Set<String> classesTaughtBy(Teacher teacher) {
+        Set<String> classes = new HashSet<>();
+        if (teacher.isClassTeacher() && teacher.getAssignedClassName() != null) classes.add(teacher.getAssignedClassName());
+        timetableSlotRepository.findByTeacher_TeacherIdOrderByPeriodNumberAsc(teacher.getTeacherId())
+                .forEach(slot -> classes.add(slot.getClassName()));
+        return classes;
     }
 
     private Student requireStudent(String studentId) {

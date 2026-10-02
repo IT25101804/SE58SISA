@@ -8,5 +8,6 @@ public enum NotificationScope {
     TEACHERS,
     TEACHER,      // one specific teacher
     ONE_STUDENT,  // one student only
-    GUARDIANS     // one student's linked parent only
+    GUARDIANS,    // one student's linked parent only
+    PRINCIPAL     // the Principal (e.g. a teacher's note to the Principal)
 }
