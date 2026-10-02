@@ -51,6 +51,7 @@ public class RegistrarCommsController {
         model.addAttribute("user", currentUser(authentication));
         model.addAttribute("activeItem", "comm");
         model.addAttribute("allClassNames", studentRepository.distinctClassNames());
+        model.addAttribute("allTeachers", announcementService.activeTeachers());
         model.addAttribute("form", new AnnouncementForm());
         return "registrar/comms-new";
     }
@@ -61,6 +62,7 @@ public class RegistrarCommsController {
         model.addAttribute("user", user);
         model.addAttribute("activeItem", "comm");
         model.addAttribute("allClassNames", studentRepository.distinctClassNames());
+        model.addAttribute("allTeachers", announcementService.activeTeachers());
         try {
             int reached = announcementService.create(form, user);
             model.addAttribute("success", "Sent to " + reached + " recipient(s).");
