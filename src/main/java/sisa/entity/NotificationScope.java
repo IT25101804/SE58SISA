@@ -4,6 +4,9 @@ package sisa.entity;
 public enum NotificationScope {
     SCHOOL,
     CLASS,
-    STUDENT,
-    TEACHERS
+    STUDENT,      // one student + their linked parent
+    TEACHERS,
+    TEACHER,      // one specific teacher
+    ONE_STUDENT,  // one student only
+    GUARDIANS     // one student's linked parent only
 }

@@ -64,6 +64,7 @@ public class PrincipalCommsController {
         model.addAttribute("user", currentUser(authentication));
         model.addAttribute("activeItem", "comm");
         model.addAttribute("allClassNames", studentRepository.distinctClassNames());
+        model.addAttribute("allTeachers", announcementService.activeTeachers());
         model.addAttribute("canSchedule", true);
         model.addAttribute("form", new AnnouncementForm());
         return "principal/comms-new";
@@ -75,6 +76,7 @@ public class PrincipalCommsController {
         model.addAttribute("user", user);
         model.addAttribute("activeItem", "comm");
         model.addAttribute("allClassNames", studentRepository.distinctClassNames());
+        model.addAttribute("allTeachers", announcementService.activeTeachers());
         model.addAttribute("canSchedule", true);
         try {
             int reached = announcementService.create(form, user);

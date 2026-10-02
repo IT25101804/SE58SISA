@@ -17,7 +17,7 @@
     <main class="content">
         <div class="page-head">
             <h1>New Announcement</h1>
-            <p>Post to the whole school, one class, every teacher, or one student's guardians &mdash; optionally scheduled for later.</p>
+            <p>Post to the whole school, one class, every teacher or just one, one student, or one student's guardians &mdash; optionally scheduled for later.</p>
         </div>
 
         <div th:if="${success}" class="alert success"><i class="bi bi-check-circle-fill"></i> <span th:text="${success}">Done</span></div>
@@ -41,17 +41,31 @@
                         <option value="SCHOOL">Whole School</option>
                         <option value="CLASS">One Class</option>
                         <option value="TEACHERS">All Teachers</option>
-                        <option value="STUDENT">One Student's Guardians</option>
+                        <option value="TEACHER">One Teacher</option>
+                        <option value="ONE_STUDENT">One Student</option>
+                        <option value="GUARDIANS">One Student's Guardians</option>
                     </select>
                 </div>
-                <div class="field">
-                    <label for="className">Class (only if "One Class")</label>
+                <!-- Only the field for the chosen "Send To" is shown (see script below). -->
+                <div class="field" data-scope="CLASS">
+                    <label for="className">Class</label>
                     <select id="className" th:field="*{className}">
-                        <option value="">—</option>
+                        <option value="">— Choose a class —</option>
                         <option th:each="c : ${allClassNames}" th:value="${c}" th:text="${c}">Class</option>
                     </select>
                 </div>
-                <div class="field"><label for="studentId">Student ID (only if "One Student's Guardians")</label><input id="studentId" type="text" th:field="*{studentId}" placeholder="S2600001"/></div>
+                <div class="field" data-scope="TEACHER">
+                    <label for="teacherId">Teacher</label>
+                    <select id="teacherId" th:field="*{teacherId}">
+                        <option value="">— Choose a teacher —</option>
+                        <option th:each="t : ${allTeachers}" th:value="${t.teacherId}"
+                                th:text="${t.user.fullName + ' (' + t.teacherId + ')'}">Teacher</option>
+                    </select>
+                </div>
+                <div class="field" data-scope="ONE_STUDENT GUARDIANS">
+                    <label for="studentId" id="studentIdLabel">Student ID</label>
+                    <input id="studentId" type="text" th:field="*{studentId}" placeholder="S2600001"/>
+                </div>
                 <div class="field" th:if="${canSchedule}">
                     <label for="scheduledFor">Schedule For (optional — leave blank to send now)</label>
                     <input id="scheduledFor" type="datetime-local" th:field="*{scheduledFor}"/>
@@ -63,5 +77,26 @@
     </main>
 </div>
 <script th:src="@{/js/main.js}"></script>
+<script>
+    (function () {
+        var scope = document.getElementById('targetScope');
+        var label = document.getElementById('studentIdLabel');
+        function sync() {
+            document.querySelectorAll('[data-scope]').forEach(function (field) {
+                var show = field.dataset.scope.split(' ').indexOf(scope.value) !== -1;
+                field.style.display = show ? '' : 'none';
+                field.querySelectorAll('input, select').forEach(function (input) {
+                    input.disabled = !show;   // hidden fields aren't submitted
+                    input.required = show;
+                });
+            });
+            label.textContent = scope.value === 'GUARDIANS'
+                ? 'Student ID (the guardian linked to this student gets the message)'
+                : 'Student ID';
+        }
+        scope.addEventListener('change', sync);
+        sync();
+    })();
+</script>
 </body>
 </html>

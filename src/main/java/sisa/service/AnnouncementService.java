@@ -66,7 +66,7 @@ public class AnnouncementService {
             className = teacher.getAssignedClassName();
         }
 
-        Set<String> recipients = resolveRecipients(scope, className, form.getStudentId());
+        Set<String> recipients = resolveRecipients(scope, className, form.getStudentId(), form.getTeacherId());
         if (recipients.isEmpty()) {
             throw new IllegalArgumentException("No recipients found for that target.");
         }
@@ -92,8 +92,12 @@ public class AnnouncementService {
         return recipients.size();
     }
 
-    /** SCHOOL -> every approved (enabled) user; CLASS -> that class's active students + their linked parents; STUDENT -> that student + their parent; TEACHERS -> every approved teacher. */
-    private Set<String> resolveRecipients(NotificationScope scope, String className, String studentId) {
+    /**
+     * SCHOOL -> every approved (enabled) user; CLASS -> that class's active students + their linked parents;
+     * STUDENT -> that student + their parent; TEACHERS -> every approved teacher; TEACHER -> that one teacher;
+     * ONE_STUDENT -> that student only; GUARDIANS -> that student's linked parent only.
+     */
+    private Set<String> resolveRecipients(NotificationScope scope, String className, String studentId, String teacherId) {
         Set<String> ids = new LinkedHashSet<>();
         switch (scope) {
             case SCHOOL -> userRepository.findByStatus(AccountStatus.APPROVED).forEach(u -> ids.add(u.getUserId()));
@@ -118,8 +122,43 @@ public class AnnouncementService {
                 ids.add(student.getStudentId());
                 if (student.getParent() != null) ids.add(student.getParent().getUserId());
             }
+            case TEACHER -> {
+                if (teacherId == null || teacherId.isBlank()) {
+                    throw new IllegalArgumentException("Choose a teacher to send this to.");
+                }
+                Teacher teacher = teacherRepository.findById(teacherId.trim())
+                        .orElseThrow(() -> new IllegalArgumentException("No such teacher: " + teacherId));
+                if (teacher.getUser() == null || teacher.getUser().getStatus() != AccountStatus.APPROVED) {
+                    throw new IllegalArgumentException("That teacher's account isn't active.");
+                }
+                ids.add(teacher.getTeacherId());
+            }
+            case ONE_STUDENT -> ids.add(requireStudent(studentId).getStudentId());
+            case GUARDIANS -> {
+                Student student = requireStudent(studentId);
+                if (student.getParent() == null) {
+                    throw new IllegalArgumentException("Student " + student.getStudentId() + " has no linked parent/guardian.");
+                }
+                ids.add(student.getParent().getUserId());
+            }
         }
         return ids;
+    }
+
+    /** Approved teachers, A-Z by name — the choices for a "One Teacher" notice. */
+    public List<Teacher> activeTeachers() {
+        return teacherRepository.findAll().stream()
+                .filter(t -> t.getUser() != null && t.getUser().getStatus() == AccountStatus.APPROVED)
+                .sorted(Comparator.comparing(t -> t.getUser().getFullName(), String.CASE_INSENSITIVE_ORDER))
+                .toList();
+    }
+
+    private Student requireStudent(String studentId) {
+        if (studentId == null || studentId.isBlank()) {
+            throw new IllegalArgumentException("Type the student's ID (e.g. S2600001).");
+        }
+        return studentRepository.findById(studentId.trim())
+                .orElseThrow(() -> new IllegalArgumentException("No such student: " + studentId.trim()));
     }
 
     private LocalDateTime parseScheduledFor(String raw) {
