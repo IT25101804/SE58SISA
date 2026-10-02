@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<body>
+<!--
+  Administration & Reporting Management — "Saved reports" card shared by the Principal and
+  Registrar report pages. Create = save the filters on screen under a name; Read = the list +
+  Open (re-runs the report live); Update = rename and/or replace its filters with the ones on
+  screen; Delete = remove it. Expects: savedReports, savedBase, selectedType, from, to, className.
+-->
+<div th:fragment="card">
+    <div th:if="${success}" class="alert success"><i class="bi bi-check-circle-fill"></i> <span th:text="${success}">Done</span></div>
+    <div th:if="${error}" class="alert error"><i class="bi bi-exclamation-circle-fill"></i> <span th:text="${error}">Error</span></div>
+
+    <div class="card" style="margin-bottom:18px;">
+        <h3 style="margin-top:0;"><i class="bi bi-bookmark-star-fill"></i> Saved Reports</h3>
+
+        <form th:action="@{${savedBase}}" method="post" style="display:flex; gap:10px; align-items:flex-end; flex-wrap:wrap; margin-bottom:14px;">
+            <input type="hidden" name="type" th:value="${selectedType}"/>
+            <input type="hidden" name="from" th:value="${from}"/>
+            <input type="hidden" name="to" th:value="${to}"/>
+            <input type="hidden" name="className" th:value="${className}"/>
+            <div class="field" style="margin-bottom:0; min-width:240px;">
+                <label for="savedName">Save the current view as</label>
+                <input id="savedName" type="text" name="name" maxlength="100" required placeholder="e.g. Term 1 enrolment"/>
+            </div>
+            <button type="submit" class="btn btn-primary"><i class="bi bi-bookmark-plus-fill"></i> Save Report</button>
+        </form>
+
+        <div style="overflow-x:auto;">
+            <table class="wsims-table">
+                <thead><tr><th>Name</th><th>Report</th><th>Filters</th><th>Last changed</th><th>Actions</th></tr></thead>
+                <tbody>
+                <tr th:each="r : ${savedReports}">
+                    <td th:text="${r.name}">Name</td>
+                    <td th:text="${r.reportType}">TYPE</td>
+                    <td style="font-size:12.5px;">
+                        <span th:text="${r.fromDate != null} ? ${r.fromDate} : 'any'">from</span> &rarr;
+                        <span th:text="${r.toDate != null} ? ${r.toDate} : 'any'">to</span>
+                        <span th:if="${r.className != null}" th:text="' · ' + ${r.className}">class</span>
+                    </td>
+                    <td th:text="${#temporals.format(r.updatedAt != null ? r.updatedAt : r.createdAt, 'dd MMM yyyy HH:mm')}">01 Jan 2026</td>
+                    <td>
+                        <div style="display:flex; gap:6px; flex-wrap:wrap; align-items:center;">
+                            <a th:href="@{${savedBase + '/' + r.id}}" class="btn btn-outline" style="padding:4px 10px; font-size:12px;"><i class="bi bi-box-arrow-up-right"></i> Open</a>
+                            <form th:action="@{${savedBase + '/' + r.id + '/update'}}" method="post" style="display:flex; gap:6px; align-items:center;">
+                                <input type="hidden" name="type" th:value="${selectedType}"/>
+                                <input type="hidden" name="from" th:value="${from}"/>
+                                <input type="hidden" name="to" th:value="${to}"/>
+                                <input type="hidden" name="className" th:value="${className}"/>
+                                <input type="text" name="name" th:value="${r.name}" maxlength="100" required style="padding:4px 8px; font-size:12.5px; width:150px;" aria-label="New name"/>
+                                <button type="submit" class="btn btn-outline" style="padding:4px 10px; font-size:12px;" title="Rename and replace its filters with the ones currently on screen"><i class="bi bi-pencil-square"></i> Update</button>
+                            </form>
+                            <form th:action="@{${savedBase + '/' + r.id + '/delete'}}" method="post" class="delete-saved-report-form"
+                                  th:data-confirm="'Delete saved report: ' + ${r.name} + '?'">
+                                <button type="submit" class="btn btn-danger" style="padding:4px 10px; font-size:12px;"><i class="bi bi-trash-fill"></i> Delete</button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                <tr th:if="${#lists.isEmpty(savedReports)}">
+                    <td colspan="5"><div class="empty-state"><i class="bi bi-bookmark"></i> No saved reports yet &mdash; pick filters above and save them.</div></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+        <p style="font-size:12.5px; opacity:.65; margin:10px 0 0;">
+            Update renames the saved report and replaces its filters with the ones currently on screen. Saved reports only store filters &mdash; the data is always recomputed live.
+        </p>
+    </div>
+    <script>
+        document.querySelectorAll('.delete-saved-report-form').forEach(function (form) {
+            form.addEventListener('submit', function (e) {
+                if (!confirm(form.dataset.confirm || 'Delete this saved report?')) e.preventDefault();
+            });
+        });
+    </script>
+</div>
+</body>
+</html>

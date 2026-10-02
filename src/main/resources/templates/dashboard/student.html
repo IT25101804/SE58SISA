@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Student Dashboard · WSIMS</title>
+    <link rel="icon" type="image/svg+xml" th:href="@{/images/logo.svg}"/>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"/>
+  <link rel="stylesheet" th:href="@{/css/styles.css}"/>
+</head>
+<body>
+<div class="app-shell">
+  <div th:replace="~{layout/sidebar :: sidebar('timetable')}"></div>
+  <div th:replace="~{layout/topbar :: topbar}"></div>
+  <div th:replace="~{layout/sidebar :: backdrop}"></div>
+  <main class="content">
+    <div class="page-head">
+      <h1>Hey, <span th:text="${user.fullName}">Student</span> 🎒</h1>
+      <p>Your timetable, marks, and assignments in one place.</p>
+    </div>
+    <div class="grid grid-3" style="margin-bottom:20px;">
+      <div class="card stat-card">
+        <div class="stat-icon"><i class="bi bi-calendar2-check-fill"></i></div>
+        <div class="stat-value" th:text="${attendanceSummary != null and attendanceSummary.percentage() != null} ? ${#numbers.formatDecimal(attendanceSummary.percentage(),1,1)} + '%' : '—'">—</div>
+        <div class="stat-label">Attendance %</div>
+      </div>
+      <div class="card stat-card">
+        <div class="stat-icon"><i class="bi bi-award-fill"></i></div>
+        <div class="stat-value" th:text="${gpa != null} ? ${#numbers.formatDecimal(gpa,1,2)} : '—'">—</div>
+        <div class="stat-label">Current GPA</div>
+      </div>
+      <div class="card stat-card">
+        <div class="stat-icon"><i class="bi bi-file-earmark-arrow-up-fill"></i></div>
+        <div class="stat-value" th:text="${assignmentsDueSoon != null} ? ${assignmentsDueSoon} : '—'">—</div>
+        <div class="stat-label">Assignments Due Soon</div>
+      </div>
+    </div>
+    <div class="card">
+      <h3 style="display:flex; align-items:center; justify-content:space-between;">
+        <span><i class="bi bi-clock-fill"></i> My Weekly Timetable</span>
+        <a th:if="${timetableGrid != null}" th:href="@{/student/assignments}" class="btn btn-outline" style="padding:6px 12px; font-size:12.5px;">
+          <i class="bi bi-file-earmark-text-fill"></i> Assignments
+        </a>
+      </h3>
+      <div th:if="${timetableGrid != null}" style="overflow-x:auto;">
+        <div th:replace="~{layout/timetable-grid :: readonly(${timetableGrid}, ${timetablePeriods}, ${timetableDays})}"></div>
+      </div>
+      <div class="empty-state" th:if="${timetableGrid == null}">
+        <i class="bi bi-inbox"></i>
+        No class timetable yet &mdash; ask the Registrar to assign you to a class, or the Principal to build its schedule.
+      </div>
+    </div>
+  </main>
+</div>
+  <script th:src="@{/js/main.js}"></script>
+</body>
+</html>

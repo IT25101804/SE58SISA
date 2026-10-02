@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Registrar Dashboard · WSIMS</title>
+    <link rel="icon" type="image/svg+xml" th:href="@{/images/logo.svg}"/>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"/>
+  <link rel="stylesheet" th:href="@{/css/styles.css}"/>
+</head>
+<body>
+<div class="app-shell">
+  <div th:replace="~{layout/sidebar :: sidebar('students')}"></div>
+  <div th:replace="~{layout/topbar :: topbar}"></div>
+  <div th:replace="~{layout/sidebar :: backdrop}"></div>
+  <main class="content">
+    <div class="page-head">
+      <h1>Registrar Desk</h1>
+      <p>Register students &amp; teachers, and manage official records.</p>
+    </div>
+    <div class="grid grid-3" style="margin-bottom:20px;">
+      <div class="card stat-card">
+        <div class="stat-icon"><i class="bi bi-person-plus-fill"></i></div>
+        <div class="stat-value" th:text="${studentsRegisteredCount}">—</div>
+        <div class="stat-label">Students Registered</div>
+      </div>
+      <div class="card stat-card">
+        <div class="stat-icon"><i class="bi bi-hourglass-split"></i></div>
+        <div class="stat-value" th:text="${awaitingApprovalCount}">—</div>
+        <div class="stat-label">Awaiting Principal Approval</div>
+      </div>
+      <div class="card stat-card">
+        <div class="stat-icon"><i class="bi bi-arrow-left-right"></i></div>
+        <div class="stat-value" th:text="${transferredCount}">—</div>
+        <div class="stat-label">Transferred Out of SISA</div>
+      </div>
+    </div>
+    <div class="card">
+      <h3><i class="bi bi-person-vcard-fill"></i> Recently Registered Students</h3>
+      <table class="wsims-table" th:if="${not #lists.isEmpty(recentStudents)}">
+        <thead>
+        <tr><th>Name</th><th>Student ID</th><th>Class</th><th>Status</th></tr>
+        </thead>
+        <tbody>
+        <tr th:each="s : ${recentStudents}">
+          <td><a th:href="@{/registrar/students/{id}(id=${s.studentId})}" th:text="${s.user.fullName}">Name</a></td>
+          <td><span class="id-badge" th:text="${s.studentId}">S2600001</span></td>
+          <td th:text="${s.className ?: '—'}">Class</td>
+          <td><span class="status" th:classappend="${#strings.toLowerCase(s.status)}" th:text="${s.status}">STATUS</span></td>
+        </tr>
+        </tbody>
+      </table>
+      <div class="empty-state" th:if="${#lists.isEmpty(recentStudents)}">
+        <i class="bi bi-inbox"></i>
+        No students registered yet &mdash;
+        <a th:href="@{/registrar/students/new}">register your first student</a>.
+        New Student IDs follow S2600001, Parent IDs follow P2600001.
+      </div>
+    </div>
+  </main>
+</div>
+  <script th:src="@{/js/main.js}"></script>
+</body>
+</html>

@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Principal Dashboard · WSIMS</title>
+    <link rel="icon" type="image/svg+xml" th:href="@{/images/logo.svg}"/>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"/>
+  <link rel="stylesheet" th:href="@{/css/styles.css}"/>
+</head>
+<body>
+<div class="app-shell">
+  <div th:replace="~{layout/sidebar :: sidebar('dashboard')}"></div>
+  <div th:replace="~{layout/topbar :: topbar}"></div>
+  <div th:replace="~{layout/sidebar :: backdrop}"></div>
+
+  <main class="content">
+    <div class="page-head">
+      <h1>Good to see you, <span th:text="${user.fullName}">Principal</span> 👋</h1>
+      <p>Here's how SISA is doing across all eight modules today.</p>
+    </div>
+
+    <div class="grid grid-4" style="margin-bottom:20px;">
+      <div class="card stat-card">
+        <div class="stat-icon tone-blue"><i class="bi bi-people-fill"></i></div>
+        <div class="stat-value" th:text="${totalEnrolledStudents != null} ? ${totalEnrolledStudents} : '—'">—</div>
+        <div class="stat-label">Total Enrolled Students</div>
+        <div class="stat-trend"><a th:href="@{/principal/reports}">Reports &rarr;</a></div>
+      </div>
+      <div class="card stat-card">
+        <div class="stat-icon tone-green"><i class="bi bi-calendar2-check-fill"></i></div>
+        <div class="stat-value" th:text="${todaysAttendancePercentage != null} ? ${#numbers.formatDecimal(todaysAttendancePercentage,1,1)} + '%' : '—'">—</div>
+        <div class="stat-label">Today's Attendance %</div>
+        <div class="stat-trend"><a th:href="@{/teacher/attendance/often-absent}">Often absent &rarr;</a></div>
+      </div>
+      <div class="card stat-card">
+        <div class="stat-icon tone-amber"><i class="bi bi-hourglass-split"></i></div>
+        <div class="stat-value" th:text="${pendingCount != null} ? ${pendingCount} : '—'">—</div>
+        <div class="stat-label">Pending Approvals</div>
+        <div class="stat-trend"><a th:href="@{/principal/accounts}">Review now &rarr;</a></div>
+      </div>
+      <div class="card stat-card">
+        <div class="stat-icon tone-purple"><i class="bi bi-door-closed-fill"></i></div>
+        <div class="stat-value" th:text="${roomsBookedToday != null} ? ${roomsBookedToday} : '—'">—</div>
+        <div class="stat-label">Rooms Booked Today</div>
+        <div class="stat-trend"><a th:href="@{/resources/availability}">Availability &rarr;</a></div>
+      </div>
+    </div>
+
+    <div class="grid grid-2">
+      <div class="card">
+        <h3 style="display:flex; align-items:center; gap:10px;">
+          <span class="card-icon tone-teal"><i class="bi bi-person-plus-fill"></i></span> Accounts Awaiting Approval
+        </h3>
+        <table class="wsims-table" th:if="${not #lists.isEmpty(pendingAccounts)}">
+          <thead><tr><th>ID</th><th>Name</th><th>Role</th><th></th></tr></thead>
+          <tbody>
+          <tr th:each="acc : ${pendingAccounts}">
+            <td><span class="id-badge" th:text="${acc.userId}">ID</span></td>
+            <td th:text="${acc.fullName}">Name</td>
+            <td th:text="${acc.role}">ROLE</td>
+            <td>
+              <form th:action="@{/principal/accounts/{id}/approve(id=${acc.userId})}" method="post" style="display:inline;">
+                <button type="submit" class="btn btn-primary" style="padding:5px 10px; font-size:12px;">Approve</button>
+              </form>
+            </td>
+          </tr>
+          </tbody>
+        </table>
+        <div class="empty-state" th:if="${#lists.isEmpty(pendingAccounts)}">
+          <i class="bi bi-inbox"></i>
+          No pending accounts right now.
+        </div>
+        <p th:if="${not #lists.isEmpty(pendingAccounts)}" style="margin-top:12px;">
+          <a th:href="@{/principal/accounts}" class="btn btn-outline" style="padding:7px 14px; font-size:13px;">View all accounts &rarr;</a>
+        </p>
+      </div>
+      <div class="card">
+        <h3 style="display:flex; align-items:center; justify-content:space-between;">
+          <span style="display:flex; align-items:center; gap:10px;">
+            <span class="card-icon tone-indigo"><i class="bi bi-graph-up-arrow"></i></span> Results Overview
+          </span>
+          <a th:href="@{/principal/results-overview}" class="btn btn-outline" style="padding:6px 12px; font-size:12.5px;">Full View &rarr;</a>
+        </h3>
+        <table class="wsims-table" th:if="${not #lists.isEmpty(passRatePerSubject)}">
+          <thead><tr><th>Subject</th><th>Pass Rate</th></tr></thead>
+          <tbody>
+          <tr th:each="r : ${passRatePerSubject}">
+            <td th:text="${r.subject()}">Subject</td>
+            <td th:text="${#numbers.formatDecimal(r.passRatePercent(),1,1)} + '%'">0%</td>
+          </tr>
+          </tbody>
+        </table>
+        <p th:if="${extraHelpCount != null and extraHelpCount > 0}" style="margin-top:12px; font-size:13px;">
+          <i class="bi bi-exclamation-triangle-fill" style="color:var(--orange-deep);"></i>
+          <span th:text="${extraHelpCount}">0</span> student(s) failing 2+ subjects need extra help.
+        </p>
+        <div class="empty-state" th:if="${#lists.isEmpty(passRatePerSubject)}">
+          <i class="bi bi-bar-chart"></i>
+          No exam results recorded yet
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+  <script th:src="@{/js/main.js}"></script>
+</body>
+</html>
