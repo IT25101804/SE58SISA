@@ -14,13 +14,6 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-/**
- * Registrar (and Principal) desk for Teacher accounts and subject/class assignment
- * (System Functions doc: Academic Management -> Registrar "Assign teachers to
- * subjects... change subject-teacher assignments"; User & Access -> Registrar
- * "Create ... teacher ... accounts"). Access is already scoped to
- * PRINCIPAL/REGISTRAR by SecurityConfig's /registrar/** rule.
- */
 @Controller
 @RequestMapping("/registrar/teachers")
 public class RegistrarTeacherController {
@@ -104,7 +97,6 @@ public class RegistrarTeacherController {
         return "redirect:/registrar/teachers/" + id;
     }
 
-    /** Administration & Reporting Management's "staff-pay reports" (System Functions doc, Principal) needs a salary on file to report on. */
     @PostMapping("/{id}/salary")
     public String updateSalary(@PathVariable String id, @RequestParam(required = false) Double monthlySalary,
                                RedirectAttributes redirectAttributes) {

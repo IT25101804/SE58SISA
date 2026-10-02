@@ -5,11 +5,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-/**
- * School Resources & Facilities Management module (System Functions doc, Student:
- * "Search library resources"; Registrar: catalog upkeep). One row per title/copy
- * group — availableCopies tracks how many of totalCopies are not currently on loan.
- */
 @Entity
 @Table(name = "library_items")
 @Getter

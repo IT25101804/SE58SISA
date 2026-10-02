@@ -26,7 +26,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.hamcrest.Matchers.containsString;
 
-/** The pages/buttons added for full CRUD render and route correctly end-to-end. */
 @SpringBootTest
 @AutoConfigureMockMvc
 @Transactional

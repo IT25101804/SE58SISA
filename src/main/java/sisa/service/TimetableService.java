@@ -15,11 +15,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Timetable Management (report FR-09, section 6.2). Only the Principal may create/edit
- * slots (business rule 1) — enforced by callers restricted to /principal/**; everyone
- * else only ever reads through this service.
- */
 @Service
 public class TimetableService {
 
@@ -49,7 +44,6 @@ public class TimetableService {
         return timetableSlotRepository.findByTeacher_TeacherIdOrderByPeriodNumberAsc(teacherId);
     }
 
-    /** period number -> day -> slot, for rendering a weekly grid (rows = periods, columns = days). */
     public Map<Integer, Map<DayOfWeek, TimetableSlot>> asGrid(List<TimetableSlot> slots) {
         Map<Integer, Map<DayOfWeek, TimetableSlot>> grid = new HashMap<>();
         for (TimetableSlot slot : slots) {
@@ -58,10 +52,6 @@ public class TimetableService {
         return grid;
     }
 
-    /**
-     * Creates or replaces the slot at (className, dayOfWeek, periodNumber) after checking
-     * the teacher isn't already booked elsewhere at that day+period (business rule 2).
-     */
     @Transactional
     public TimetableSlot upsertSlot(TimetableSlotForm form) {
         DayOfWeek dayOfWeek = DayOfWeek.valueOf(form.getDayOfWeek());
@@ -86,8 +76,6 @@ public class TimetableService {
             Resource resolvedRoom = resourceRepository.findById(form.getRoomResourceId())
                     .orElseThrow(() -> new IllegalArgumentException("No such resource: " + form.getRoomResourceId()));
 
-            // Business rule 4 / report section 7 item 10: this room must be free at this
-            // day+period through the SAME conflict check Module 8's ad-hoc bookings use.
             conflictChecker.roomConflictFor(resolvedRoom.getId(), dayOfWeek, form.getPeriodNumber(), excludingId)
                     .ifPresent(conflict -> {
                         throw new IllegalArgumentException(resolvedRoom.getName() + " on " + dayOfWeek + " period "

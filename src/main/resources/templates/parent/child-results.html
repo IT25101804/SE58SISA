@@ -36,7 +36,6 @@
                 <h4 style="color:var(--navy); margin:0 0 10px;">Month-over-Month GPA</h4>
                 <canvas th:id="'trend-' + ${c.student().studentId}" height="90"></canvas>
                 <script th:inline="javascript">
-                    /*<![CDATA[*/
                     (function () {
                         var trend = /*[[${c.trend()}]]*/ [];
                         var ctx = document.getElementById('trend-' + /*[[${c.student().studentId}]]*/ '');
@@ -59,7 +58,6 @@
                             }
                         });
                     })();
-                    /*]]>*/
                 </script>
             </div>
         </div>

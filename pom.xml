@@ -6,7 +6,7 @@
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
         <version>3.5.16</version>
-        <relativePath/> <!-- lookup parent from repository -->
+        <relativePath/>
     </parent>
     <groupId>SE58SISA</groupId>
     <artifactId>SE58SISA</artifactId>
@@ -56,8 +56,6 @@
             <artifactId>spring-boot-starter-validation</artifactId>
         </dependency>
 
-        <!-- H2 kept available (e.g. for quick local runs) even though the app now points
-             at SQL Server by default — see application.yml. -->
         <dependency>
             <groupId>com.h2database</groupId>
             <artifactId>h2</artifactId>
@@ -68,8 +66,6 @@
             <artifactId>mysql-connector-j</artifactId>
             <scope>runtime</scope>
         </dependency>
-        <!-- Microsoft SQL Server JDBC driver — lets the app connect to the local SQL Server
-             Express instance so its tables show up in SQL Server Management Studio. -->
         <dependency>
             <groupId>com.microsoft.sqlserver</groupId>
             <artifactId>mssql-jdbc</artifactId>
@@ -82,8 +78,6 @@
             <optional>true</optional>
         </dependency>
 
-        <!-- Report export (Strategy pattern, report section 4.5): OpenPDF for the PDF strategy,
-             Apache POI for the Excel strategy. Both are lightweight, table-only output. -->
         <dependency>
             <groupId>com.github.librepdf</groupId>
             <artifactId>openpdf</artifactId>
@@ -116,8 +110,6 @@
 
     <build>
         <plugins>
-            <!-- JDK 23+ no longer runs annotation processors found on the classpath, so
-                 Lombok must be declared here or no getters/setters get generated. -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>

@@ -17,15 +17,9 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
 
-/**
- * Administration & Reporting Management — full CRUD over SavedReport (a named report
- * definition). The Registrar keeps the same type whitelist as RegistrarReportingController,
- * so a saved report can never be used to reach a report the Registrar can't view.
- */
 @Service
 public class SavedReportService {
 
-    /** Mirrors RegistrarReportingController.ALLOWED_TYPES. */
     public static final Set<ReportType> REGISTRAR_TYPES =
             EnumSet.of(ReportType.ENROLMENT, ReportType.TRANSFER, ReportType.CLASS_LIST, ReportType.STAFF);
 
@@ -37,7 +31,6 @@ public class SavedReportService {
         this.auditLogService = auditLogService;
     }
 
-    // C
     @Transactional
     public SavedReport create(String name, ReportType type, String from, String to, String className, User owner) {
         SavedReport report = new SavedReport();
@@ -49,7 +42,6 @@ public class SavedReportService {
         return report;
     }
 
-    // R
     public List<SavedReport> listFor(User owner) {
         return savedReportRepository.findByOwnerUserIdOrderByNameAsc(owner.getUserId());
     }
@@ -63,7 +55,6 @@ public class SavedReportService {
         return report;
     }
 
-    // U
     @Transactional
     public SavedReport update(Long id, String name, ReportType type, String from, String to, String className, User owner) {
         SavedReport report = getOwnedOrThrow(id, owner);
@@ -75,7 +66,6 @@ public class SavedReportService {
         return report;
     }
 
-    // D
     @Transactional
     public String delete(Long id, User owner) {
         SavedReport report = getOwnedOrThrow(id, owner);

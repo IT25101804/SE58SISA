@@ -16,14 +16,6 @@ import org.springframework.web.server.ResponseStatusException;
 import java.time.LocalDateTime;
 import java.util.*;
 
-/**
- * Communication & Notification Management (report FR-11, business rules 1-4): the
- * Principal/Registrar/Teacher's "post an announcement/alert/notice" path, fanning out
- * to one Notification row per resolved recipient. This is the NotificationCenter any
- * module can call for a broadcast; Module 3's single-recipient system alerts keep
- * using the plain Notification constructor directly since they already know their one
- * recipient and don't need scope resolution.
- */
 @Service
 public class AnnouncementService {
 
@@ -43,12 +35,6 @@ public class AnnouncementService {
         this.timetableSlotRepository = timetableSlotRepository;
     }
 
-    /**
-     * Creates one broadcast, fanned out to every resolved recipient (business rule 4).
-     * Only PRINCIPAL, REGISTRAR and TEACHER may call this (business rules 1-3); a
-     * Teacher may only target their own class (business rule 3 — "class notices").
-     * Returns how many recipients were reached.
-     */
     @Transactional
     public int create(AnnouncementForm form, User sender) {
         if (sender.getRole() != Role.PRINCIPAL && sender.getRole() != Role.REGISTRAR && sender.getRole() != Role.TEACHER) {
@@ -59,13 +45,10 @@ public class AnnouncementService {
         if (noScope && sender.getRole() != Role.TEACHER) {
             throw new IllegalArgumentException("Choose who to send this to.");
         }
-        // A teacher's form without a choice means their own class, as it always used to.
         NotificationScope scope = noScope ? NotificationScope.CLASS : NotificationScope.valueOf(form.getTargetScope());
 
         String className = form.getClassName();
         if (sender.getRole() == Role.TEACHER) {
-            // A Teacher may reach their own class (business rule 3 — never the whole school or someone
-            // else's class), the Principal, or one student / one student's parent in a class they teach.
             Teacher teacher = teacherRepository.findById(sender.getUserId())
                     .orElseThrow(() -> new IllegalStateException("No teacher record for " + sender.getUserId()));
             switch (scope) {
@@ -114,11 +97,6 @@ public class AnnouncementService {
         return recipients.size();
     }
 
-    /**
-     * SCHOOL -> every approved (enabled) user; CLASS -> that class's active students + their linked parents;
-     * STUDENT -> that student + their parent; TEACHERS -> every approved teacher; TEACHER -> that one teacher;
-     * ONE_STUDENT -> that student only; GUARDIANS -> that student's linked parent only.
-     */
     private Set<String> resolveRecipients(NotificationScope scope, String className, String studentId, String teacherId) {
         Set<String> ids = new LinkedHashSet<>();
         switch (scope) {
@@ -170,7 +148,6 @@ public class AnnouncementService {
         return ids;
     }
 
-    /** Approved teachers, A-Z by name — the choices for a "One Teacher" notice. */
     public List<Teacher> activeTeachers() {
         return teacherRepository.findAll().stream()
                 .filter(t -> t.getUser() != null && t.getUser().getStatus() == AccountStatus.APPROVED)
@@ -178,7 +155,6 @@ public class AnnouncementService {
                 .toList();
     }
 
-    /** The Class Teacher's own class plus every class on this teacher's timetable. */
     private Set<String> classesTaughtBy(Teacher teacher) {
         Set<String> classes = new HashSet<>();
         if (teacher.isClassTeacher() && teacher.getAssignedClassName() != null) classes.add(teacher.getAssignedClassName());
@@ -200,8 +176,6 @@ public class AnnouncementService {
         return LocalDateTime.parse(raw);
     }
 
-    // ---------- reading back what was sent (the "message log") ----------
-
     public record Broadcast(String broadcastId, String senderUserId, NotificationCategory category, String subject,
                             String body, NotificationScope targetScope, LocalDateTime scheduledFor,
                             LocalDateTime sentAt, LocalDateTime createdAt, int recipientCount) {}
@@ -212,12 +186,10 @@ public class AnnouncementService {
                 first.getBody(), first.getTargetScope(), first.getScheduledFor(), first.getSentAt(), first.getCreatedAt(), rows.size());
     }
 
-    /** Every broadcast sent school-wide, newest first — the Principal's oversight log. */
     public List<Broadcast> allBroadcasts() {
         return groupIntoBroadcasts(notificationRepository.findByBroadcastIdIsNotNullOrderByCreatedAtDesc());
     }
 
-    /** Just this sender's own broadcasts — the Registrar/Teacher "sent" log. */
     public List<Broadcast> broadcastsBySender(String senderUserId) {
         return groupIntoBroadcasts(notificationRepository.findBySenderUserIdAndBroadcastIdIsNotNullOrderByCreatedAtDesc(senderUserId));
     }
@@ -230,31 +202,15 @@ public class AnnouncementService {
         return broadcasts;
     }
 
-    /** One broadcast by id, for the edit form — same ownership rule as edit/delete. */
     public Broadcast getBroadcastForEdit(String broadcastId, User requester) {
         return toBroadcast(requireEditableRows(broadcastId, requester));
     }
 
-    /**
-     * Edits a broadcast's subject/body (Update in Communication & Notification
-     * Management) — e.g. fixing a typo or a wrong date in a notice. The change is applied
-     * to every fanned-out recipient row so everyone sees the corrected text; recipients who
-     * had already read it get it flagged unread again so the correction isn't missed.
-     * Only the Principal, or the broadcast's own sender, may edit it. Category, scope and
-     * recipients are not editable — to reach different people, post a new notice.
-     */
     @Transactional
     public String updateBroadcast(String broadcastId, String subject, String body, User requester) {
         return updateBroadcast(broadcastId, subject, body, null, requester);
     }
 
-    /**
-     * Same as above, plus rescheduling: while a broadcast is still waiting to go out
-     * (no recipient row sent yet), its date/time can be moved. {@code scheduledFor} null
-     * leaves the date alone; blank or a time that's already passed sends it right away,
-     * exactly like leaving the date empty on the "New Announcement" form. Once it has been
-     * sent the date is history and can no longer be changed.
-     */
     @Transactional
     public String updateBroadcast(String broadcastId, String subject, String body, String scheduledFor, User requester) {
         if (body == null || body.isBlank()) {
@@ -302,11 +258,6 @@ public class AnnouncementService {
         return rows;
     }
 
-    /**
-     * Deletes one notification from the requester's own inbox (Delete in Communication &
-     * Notification Management). It only removes that recipient's copy — the sender's log
-     * and every other recipient's copy are untouched.
-     */
     @Transactional
     public void deleteFromInbox(Long notificationId, User requester) {
         Notification notification = notificationRepository.findById(notificationId)
@@ -317,14 +268,6 @@ public class AnnouncementService {
         notificationRepository.delete(notification);
     }
 
-    /**
-     * Cancels a scheduled broadcast before it goes out (business rule 1's "scheduled
-     * announcement" — the flip side of it: undo before NotificationSchedulerService's
-     * poller marks it sent). Only the Principal, or the broadcast's own sender, may
-     * cancel it, and only while every one of its fanned-out rows is still unsent —
-     * once any recipient has it (sentAt set), it can no longer be deleted, only left
-     * to stand. Returns the cancelled broadcast's subject, for the confirmation flash.
-     */
     @Transactional
     public String deleteScheduledBroadcast(String broadcastId, User requester) {
         List<Notification> rows = notificationRepository.findByBroadcastId(broadcastId);

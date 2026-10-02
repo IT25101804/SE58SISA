@@ -35,7 +35,6 @@ public class AccountAdminService {
         return registrar;
     }
 
-    /** Registrar/Principal capability (System Functions doc, User & Access Management). */
     public User createTeacher(CreateAccountRequest req, User createdBy) {
         User teacher = userAccountFactory.createFor(Role.TEACHER, req);
         auditLogService.log(teacher.getUserId(), createdBy.getUserId(), "CREATE_TEACHER",
@@ -43,13 +42,6 @@ public class AccountAdminService {
         return teacher;
     }
 
-    /**
-     * A standalone Parent account not tied to a student registration (System Functions
-     * doc: Registrar "Create student, teacher, and parent accounts" lists these as three
-     * separate capabilities) — e.g. adding a second guardian ahead of linking them to a
-     * student later. Registering a student still auto-creates/links a Parent on its own;
-     * this covers the case where a parent account is needed first.
-     */
     public User createParent(CreateAccountRequest req, User createdBy) {
         User parent = userAccountFactory.createFor(Role.PARENT, req);
         auditLogService.log(parent.getUserId(), createdBy.getUserId(), "CREATE_PARENT",

@@ -8,12 +8,12 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 public class AnnouncementForm {
-    private String category;    // ANNOUNCEMENT / ALERT / REMINDER
+    private String category;
     private String subject;
     private String body;
-    private String targetScope; // SCHOOL / CLASS / STUDENT
-    private String className;   // used when targetScope == CLASS
-    private String studentId;   // used when targetScope == STUDENT / ONE_STUDENT / GUARDIANS
-    private String teacherId;   // used when targetScope == TEACHER
-    private String scheduledFor; // yyyy-MM-ddTHH:mm from <input type="datetime-local">, optional
+    private String targetScope;
+    private String className;
+    private String studentId;
+    private String teacherId;
+    private String scheduledFor;
 }

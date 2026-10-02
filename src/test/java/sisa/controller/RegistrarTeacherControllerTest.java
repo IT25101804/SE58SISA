@@ -24,13 +24,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.flash;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-/**
- * Covers the previously-missing "create a Teacher account, then assign them a subject
- * specialty and (at most one) class" capability (System Functions doc: User & Access
- * -> Registrar "Create ... teacher ... accounts"; Academic Management -> Registrar
- * "Assign teachers to subjects... change subject-teacher assignments"). Before this,
- * there was no way to create a Teacher account through the UI at all.
- */
 @SpringBootTest
 @AutoConfigureMockMvc
 @Transactional
@@ -80,7 +73,6 @@ class RegistrarTeacherControllerTest {
                 .findFirst().orElseThrow();
         assertThat(created.getRole()).isEqualTo(Role.TEACHER);
         assertThat(created.getStatus()).isEqualTo(AccountStatus.PENDING);
-        // Username is never chosen — it's the auto-generated ID itself, since that's unique.
         assertThat(created.getUsername()).isEqualTo(created.getUserId());
         assertThat(teacherRepository.findById(created.getUserId())).isPresent();
     }
@@ -137,12 +129,6 @@ class RegistrarTeacherControllerTest {
                 .andExpect(status().isForbidden());
     }
 
-    /**
-     * Account creation is the Registrar's job alone (report section 6.2/6.3) — the
-     * Principal's role in User & Access is to approve/reject/disable/reset, never to
-     * create accounts. The Principal keeps full read/list access to /registrar/**
-     * otherwise (e.g. GET /registrar/teachers), just not this one creation endpoint.
-     */
     @Test
     void principalCannotCreateATeacherAccountButCanStillViewTheTeacherList() throws Exception {
         createUser("PRINCIPAL2699", "principal2699", Role.PRINCIPAL);

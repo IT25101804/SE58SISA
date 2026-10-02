@@ -8,6 +8,6 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 public class MessageForm {
-    private String toUserId; // only used when starting a new thread
+    private String toUserId;
     private String body;
 }

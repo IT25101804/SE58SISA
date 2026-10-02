@@ -35,7 +35,6 @@
                 <tr><th></th><th>Subject</th><th>Category</th><th>From</th><th>Received</th></tr>
                 </thead>
                 <tbody>
-                <!-- Direct messages received (one row per conversation) — the bell counts these too. -->
                 <tr th:each="t : ${messageRows}">
                     <td><span class="status" th:classappend="${t.unreadCount() > 0} ? 'unread' : 'read'"
                               th:text="${t.unreadCount() > 0} ? 'Unread' : 'Read'">Unread</span></td>

@@ -61,8 +61,6 @@
         <div class="card" style="max-width:520px;">
             <h3><i class="bi bi-cash-coin"></i> Monthly Salary</h3>
             <p style="font-size:12.5px; opacity:.65; margin-top:-6px;">Feeds the Principal's Staff Pay report (Reporting module).</p>
-            <!-- Not part of the TeacherAssignmentRequest DTO — sent as its own plain request param and
-                 read by RegistrarTeacherController#updateSalary via @RequestParam. -->
             <form th:action="@{/registrar/teachers/{id}/salary(id=${teacher.teacherId})}" method="post">
                 <div class="field"><label for="monthlySalary">Monthly Salary</label>
                     <input id="monthlySalary" name="monthlySalary" type="number" step="0.01" min="0"

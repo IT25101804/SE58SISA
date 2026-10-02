@@ -20,7 +20,6 @@
                 <h1>Student Information</h1>
                 <p>Register, search and manage every student record in SISA.</p>
             </div>
-            <!-- Only the Registrar creates accounts — the Principal's role here is to approve them (report section 6.2). -->
             <div th:if="${user.role.name() == 'REGISTRAR'}" style="display:flex; gap:10px;">
                 <a th:href="@{/registrar/accounts/new-parent}" class="btn btn-outline"><i class="bi bi-person-plus-fill"></i> New Parent</a>
                 <a th:href="@{/registrar/students/new}" class="btn btn-primary"><i class="bi bi-person-plus-fill"></i> New Student</a>

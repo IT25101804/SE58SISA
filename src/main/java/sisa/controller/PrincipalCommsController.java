@@ -12,13 +12,6 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-/**
- * Principal desk for Communication & Notification Management (report FR-11, business
- * rule 1): post announcements/alerts, optionally scheduled, to the whole school, one
- * class, or one student's guardians — plus an oversight log of every broadcast sent
- * school-wide. Access is already scoped to PRINCIPAL by SecurityConfig's
- * /principal/** rule.
- */
 @Controller
 @RequestMapping("/principal/comms")
 public class PrincipalCommsController {

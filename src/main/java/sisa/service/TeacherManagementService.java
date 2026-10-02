@@ -11,14 +11,6 @@ import org.springframework.util.StringUtils;
 import java.util.Comparator;
 import java.util.List;
 
-/**
- * Academic Management's "assign teachers to subjects... change subject-teacher
- * assignments" (System Functions doc, Registrar). A Teacher account created via
- * AccountAdminService.createTeacher() has no subject specialty or class-teacher
- * assignment yet — this is where the Registrar (or Principal) sets it, which is what
- * makes the Teacher functional elsewhere (attendance marking, marks entry, dashboards
- * all key off Teacher.classTeacher + Teacher.assignedClassName).
- */
 @Service
 public class TeacherManagementService {
 
@@ -41,11 +33,6 @@ public class TeacherManagementService {
                 .orElseThrow(() -> new IllegalArgumentException("No such teacher: " + teacherId));
     }
 
-    /**
-     * At most one Class Teacher per class (every other lookup in the codebase — attendance,
-     * marks entry, dashboards — assumes exactly one). Multiple Subject Teachers per subject
-     * are unrestricted, per the report's own "multiple teachers can teach the same subject."
-     */
     @Transactional
     public void updateAssignment(String teacherId, TeacherAssignmentRequest req, User actingUser) {
         Teacher teacher = getOrThrow(teacherId);
@@ -75,7 +62,6 @@ public class TeacherManagementService {
                 actingUser.getFullName() + " updated " + teacher.getUser().getFullName() + "'s subject/class assignment");
     }
 
-    /** Administration & Reporting Management's "staff-pay reports" (System Functions doc, Principal) reads this. */
     @Transactional
     public void updateSalary(String teacherId, Double monthlySalary) {
         Teacher teacher = getOrThrow(teacherId);

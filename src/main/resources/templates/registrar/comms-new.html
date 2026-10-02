@@ -45,7 +45,6 @@
                         <option value="GUARDIANS">One Student's Guardians</option>
                     </select>
                 </div>
-                <!-- Only the field for the chosen "Send To" is shown (see script below). -->
                 <div class="field" data-scope="CLASS">
                     <label for="className">Class</label>
                     <select id="className" th:field="*{className}">
@@ -85,7 +84,7 @@
                 var show = field.dataset.scope.split(' ').indexOf(scope.value) !== -1;
                 field.style.display = show ? '' : 'none';
                 field.querySelectorAll('input, select').forEach(function (input) {
-                    input.disabled = !show;   // hidden fields aren't submitted
+                    input.disabled = !show;
                     input.required = show;
                 });
             });

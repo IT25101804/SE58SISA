@@ -9,13 +9,6 @@ import lombok.Setter;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
-/**
- * Administration & Reporting Management: a named, reusable report definition (report
- * type + date range + class filter) that the Principal or Registrar saves from the
- * report picker. The report's data is still computed live by ReportingAggregationService
- * every time it is opened — only the filter set is stored, so the saved report never
- * goes stale. Each user only sees and manages their own saved reports.
- */
 @Entity
 @Table(name = "saved_reports")
 @Getter

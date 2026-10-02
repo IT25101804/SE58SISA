@@ -27,7 +27,6 @@
                 <canvas id="passRateChart" height="200" th:if="${not #lists.isEmpty(passRatePerSubject)}"></canvas>
                 <div class="empty-state" th:if="${#lists.isEmpty(passRatePerSubject)}"><i class="bi bi-inbox"></i> No marks recorded yet.</div>
                 <script th:if="${not #lists.isEmpty(passRatePerSubject)}" th:inline="javascript">
-                    /*<![CDATA[*/
                     (function () {
                         var rows = /*[[${passRatePerSubject}]]*/ [];
                         new Chart(document.getElementById('passRateChart'), {
@@ -43,7 +42,6 @@
                             options: { scales: { y: { min: 0, max: 100 } }, plugins: { legend: { display: false } } }
                         });
                     })();
-                    /*]]>*/
                 </script>
             </div>
 

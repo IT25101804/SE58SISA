@@ -23,7 +23,6 @@
 
         <div class="card" style="max-width:480px;">
             <form th:action="@{/messages/new}" th:object="${form}" method="post">
-                <!-- Parents: choose one of their children's teachers by name and subject. -->
                 <div class="field" th:if="${teacherOptions != null}">
                     <label for="toUserId">Teacher</label>
                     <select id="toUserId" th:field="*{toUserId}" required>
@@ -37,7 +36,6 @@
                        th:text="${user.role.name() == 'PARENT'} ? 'No teachers found for your child\'s class yet.' : 'No teachers found for your class yet.'">
                         No teachers found for your class yet.</p>
                 </div>
-                <!-- Teachers: choose who to send to, like the Principal's New Announcement form. -->
                 <th:block th:if="${teacherClassOptions != null}">
                     <div class="field">
                         <label for="sendTo">Send To</label>
@@ -72,14 +70,14 @@
 <script>
     (function () {
         var sendTo = document.getElementById('sendTo');
-        if (!sendTo) return; // only the teacher form has "Send To"
+        if (!sendTo) return;
         var label = document.getElementById('studentIdLabel');
         function sync() {
             document.querySelectorAll('[data-send-to]').forEach(function (field) {
                 var show = field.dataset.sendTo.split(' ').indexOf(sendTo.value) !== -1;
                 field.style.display = show ? '' : 'none';
                 field.querySelectorAll('input, select').forEach(function (input) {
-                    input.disabled = !show;   // hidden fields aren't submitted
+                    input.disabled = !show;
                     input.required = show;
                 });
             });

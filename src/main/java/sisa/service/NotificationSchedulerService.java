@@ -9,13 +9,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.List;
 
-/**
- * The "poller" for scheduled announcements (business rule 1): every due, not-yet-sent
- * Notification gets sentAt set, which is what makes it visible to its recipient (see
- * Notification's class doc). {@code flipDueToSent()} is exposed separately from the
- * {@code @Scheduled} method so tests can trigger it deterministically instead of
- * waiting on a real timer.
- */
 @Service
 public class NotificationSchedulerService {
 

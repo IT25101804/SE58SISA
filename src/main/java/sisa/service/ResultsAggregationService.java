@@ -9,15 +9,9 @@ import org.springframework.stereotype.Service;
 import java.util.*;
 import java.util.stream.Collectors;
 
-/**
- * Principal's read-only comparison views (report business rule 2, section 6.2) — class
- * rankings, per-subject pass rates, best-performing teacher per subject, and students
- * who need extra help. Nothing here writes data; every method just reads Marks/Exams.
- */
 @Service
 public class ResultsAggregationService {
 
-    /** A student failing this many distinct subjects is flagged for extra help (business rule 2). */
     private static final int FAILING_SUBJECTS_THRESHOLD = 2;
 
     private final MarkRepository markRepository;
@@ -33,8 +27,6 @@ public class ResultsAggregationService {
         this.attendanceService = attendanceService;
     }
 
-    // ---------- class rankings ----------
-
     public record RankedStudent(Student student, Double gpa) {}
 
     public List<RankedStudent> classRankings(String className) {
@@ -43,8 +35,6 @@ public class ResultsAggregationService {
                 .sorted(Comparator.comparing((RankedStudent r) -> r.gpa() == null ? -1.0 : r.gpa()).reversed())
                 .toList();
     }
-
-    // ---------- pass rate per subject ----------
 
     public record SubjectPassRate(String subject, long totalMarks, long passingMarks, double passRatePercent) {}
 
@@ -60,8 +50,6 @@ public class ResultsAggregationService {
                 .sorted(Comparator.comparing(SubjectPassRate::subject))
                 .toList();
     }
-
-    // ---------- best teacher per subject ----------
 
     public record TeacherSubjectAverage(String subject, Teacher teacher, double averagePercent) {}
 
@@ -88,14 +76,6 @@ public class ResultsAggregationService {
         return best.stream().sorted(Comparator.comparing(TeacherSubjectAverage::subject)).toList();
     }
 
-    // ---------- students needing extra help ----------
-
-    /**
-     * attendancePercentage is read straight from AttendanceService (Module 3), which is
-     * already part of this codebase — report section 7 item 2's "read via the AttendanceRecord
-     * repository if present, otherwise leave blank" is honored by the null it already returns
-     * for a student with no attendance history yet, rather than a special case here.
-     */
     public record ExtraHelpEntry(Student student, Set<String> failingSubjects, Double attendancePercentage) {}
 
     public List<ExtraHelpEntry> studentsNeedingExtraHelp() {

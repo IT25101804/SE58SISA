@@ -20,11 +20,6 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-/**
- * Covers the business rules unique to Module 3 (report FR-05/FR-06, section 6.4,
- * section 9.1 TC-05): parent notification via the Observer pattern, Subject-Teacher
- * lockout from marking, and the audit trail on same-day edits.
- */
 @SpringBootTest
 @AutoConfigureMockMvc
 @Transactional
@@ -111,7 +106,7 @@ class TeacherAttendanceControllerTest {
     @Test
     void subjectTeacherCannotPostToMarkAttendanceEndpoint() throws Exception {
         studentIn("S2699102", "student102", "6B", null);
-        teacherFor("T2699102", "subjectteacher102", "6B", false); // subject teacher, NOT the class teacher
+        teacherFor("T2699102", "subjectteacher102", "6B", false);
 
         mockMvc.perform(post("/teacher/attendance/mark")
                         .with(user("subjectteacher102").roles("TEACHER"))

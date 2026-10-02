@@ -13,11 +13,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 
 import java.util.List;
 
-/**
- * Read-only for Parents: their child's results/GPA/report card, plus a term-over-term
- * comparison chart (report FR-08, business rule 3). Access is already scoped to
- * PRINCIPAL/PARENT by SecurityConfig's /parent/** rule.
- */
 @Controller
 public class ParentAcademicController {
 

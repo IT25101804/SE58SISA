@@ -12,19 +12,12 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
-/**
- * Teacher desk for Communication & Notification Management (report FR-11, business
- * rule 3): post a class notice to your own class's students + their guardians.
- * Direct messaging with parents/students lives in the shared CommsInboxController
- * (/messages), reused across roles. Access is already scoped to PRINCIPAL/TEACHER by
- * SecurityConfig's /teacher/** rule.
- */
 @Controller
 @RequestMapping("/teacher/comms")
 public class TeacherCommsController {
 
     private final UserRepository userRepository;
-    private final AttendanceService attendanceService; // owns requireTeacher(user), reused from Module 3
+    private final AttendanceService attendanceService;
     private final AnnouncementService announcementService;
 
     public TeacherCommsController(UserRepository userRepository, AttendanceService attendanceService,
@@ -44,8 +37,6 @@ public class TeacherCommsController {
         model.addAttribute("user", user);
         model.addAttribute("activeItem", "comm");
         model.addAttribute("broadcasts", announcementService.broadcastsBySender(user.getUserId()));
-        // Communication module's "Participate in class discussions" (System Functions doc,
-        // Student) — only this teacher's own Class Teacher assignment, if any, gets the link.
         model.addAttribute("teacher", attendanceService.requireTeacher(user));
         return "teacher/comms";
     }

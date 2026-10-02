@@ -11,7 +11,7 @@ public class TimetableSlotForm {
     private String className;
     private String subject;
     private String teacherId;
-    private String dayOfWeek; // MONDAY..FRIDAY
+    private String dayOfWeek;
     private int periodNumber;
-    private Long roomResourceId; // Module 8 Resource id, optional
+    private Long roomResourceId;
 }

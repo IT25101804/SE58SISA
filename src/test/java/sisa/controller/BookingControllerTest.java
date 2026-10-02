@@ -22,11 +22,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.flash;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-/**
- * Covers the business rules unique to Module 8 (report FR-13): the double-booking
- * check (business rule 3), Student/Parent having no access at all (business rule 1),
- * and the approve/reject lifecycle's effect on that check.
- */
 @SpringBootTest
 @AutoConfigureMockMvc
 @Transactional
@@ -65,12 +60,6 @@ class BookingControllerTest {
         return resourceRepository.save(resource);
     }
 
-    /**
-     * Module 8 integration (report section 7, item 10; business rule 4): the reverse
-     * direction of TimetableAssignmentServiceTest's equivalent case — a recurring
-     * TimetableSlot already using this room blocks a new ad-hoc booking for the
-     * matching day-of-week/period.
-     */
     @Test
     void adHocBookingIsRejectedWhenARecurringTimetableSlotAlreadyUsesThatRoomOnTheMatchingDayOfWeek() throws Exception {
         createUser("T2699409", "teacher409", Role.TEACHER);
@@ -122,7 +111,6 @@ class BookingControllerTest {
                 .andExpect(status().is3xxRedirection())
                 .andExpect(flash().attributeExists("success"));
 
-        // Second, different requester, same resource/date/period -> rejected naming the first booking.
         mockMvc.perform(post("/resources/book")
                         .with(user("teacherB402").roles("TEACHER"))
                         .with(csrf())
@@ -137,15 +125,9 @@ class BookingControllerTest {
 
         List<ResourceBooking> bookings = resourceBookingRepository.findByResource_IdAndBookingDateAndPeriodNumberAndStatusNot(
                 lab.getId(), date, 3, BookingStatus.REJECTED);
-        assertThat(bookings).hasSize(1); // the conflicting second request was never persisted
+        assertThat(bookings).hasSize(1);
     }
 
-    /**
-     * System Functions doc, School Resources & Facilities Management: Student "Search
-     * library resources; view lab schedules", "Book a study room, if allowed"; Parent
-     * "View facility schedules and closures". Both can now view; Parent can never book;
-     * Student can only book a resource explicitly flagged studentBookable.
-     */
     @Test
     void studentAndParentCanViewButOnlyStudentBookableResourcesAreBookableByAStudentAndNeverByAParent() throws Exception {
         createUser("S2699403", "student403", Role.STUDENT);
@@ -160,7 +142,6 @@ class BookingControllerTest {
         mockMvc.perform(get("/resources/availability").with(user("parent403").roles("PARENT")))
                 .andExpect(status().isOk());
 
-        // Parent: view-only, booking is always forbidden.
         mockMvc.perform(post("/resources/book")
                         .with(user("parent403").roles("PARENT"))
                         .with(csrf())
@@ -170,7 +151,6 @@ class BookingControllerTest {
                         .param("purpose", "Should be blocked"))
                 .andExpect(status().isForbidden());
 
-        // Student: booking a non-studentBookable resource is rejected...
         mockMvc.perform(post("/resources/book")
                         .with(user("student403").roles("STUDENT"))
                         .with(csrf())
@@ -181,7 +161,6 @@ class BookingControllerTest {
                 .andExpect(status().is3xxRedirection())
                 .andExpect(flash().attributeExists("error"));
 
-        // ...but booking one flagged studentBookable succeeds.
         mockMvc.perform(post("/resources/book")
                         .with(user("student403").roles("STUDENT"))
                         .with(csrf())
@@ -224,7 +203,6 @@ class BookingControllerTest {
         assertThat(approved.getStatus()).isEqualTo(BookingStatus.APPROVED);
         assertThat(approved.getDecidedBy()).isEqualTo("PRINCIPAL2699");
 
-        // Still blocks another request for the exact same slot.
         mockMvc.perform(post("/resources/book")
                         .with(user("teacher405").roles("TEACHER"))
                         .with(csrf())
@@ -235,7 +213,6 @@ class BookingControllerTest {
                 .andExpect(status().is3xxRedirection())
                 .andExpect(flash().attributeExists("error"));
 
-        // A separate booking, once rejected, blocks nothing.
         mockMvc.perform(post("/resources/book")
                         .with(user("teacher404").roles("TEACHER"))
                         .with(csrf())

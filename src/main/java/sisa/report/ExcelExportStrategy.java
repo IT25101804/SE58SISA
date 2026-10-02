@@ -9,7 +9,6 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.List;
 
-/** Concrete Strategy: renders a ReportData as a simple one-sheet XLSX (Apache POI). */
 @Component
 public class ExcelExportStrategy implements ReportExportStrategy {
 

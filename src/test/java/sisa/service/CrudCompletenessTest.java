@@ -18,11 +18,6 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-/**
- * Covers the operations added so every module has full Create / Read / Update / Delete:
- * account + student hard delete (with their history guards), announcement edit, inbox
- * delete, and saved-report CRUD.
- */
 @SpringBootTest
 @Transactional
 class CrudCompletenessTest {
@@ -61,8 +56,6 @@ class CrudCompletenessTest {
         return userRepository.findByUsername("principal").orElseThrow();
     }
 
-    // ---------- User & Access Management: Delete ----------
-
     @Test
     void principalCanDeleteRejectedTeacherAccount() {
         User t = createUser("TX900001", Role.TEACHER, AccountStatus.REJECTED);
@@ -91,8 +84,6 @@ class CrudCompletenessTest {
                 .isInstanceOf(IllegalStateException.class);
     }
 
-    // ---------- Student Information Management: Delete ----------
-
     @Test
     void studentRegisteredInErrorCanBeDeleted() {
         createStudent("SX900001", AccountStatus.PENDING);
@@ -118,8 +109,6 @@ class CrudCompletenessTest {
                 .hasMessageContaining("archive the student instead");
         assertThat(studentRepository.findById("SX900002")).isPresent();
     }
-
-    // ---------- Communication & Notification Management: Update + Delete ----------
 
     @Test
     void editingABroadcastUpdatesEveryRecipientAndInboxDeleteOnlyRemovesOwnCopy() {
@@ -152,8 +141,6 @@ class CrudCompletenessTest {
         assertThatThrownBy(() -> announcementService.updateBroadcast(broadcastId, "x", "y", studentA))
                 .isInstanceOf(ResponseStatusException.class);
     }
-
-    // ---------- Administration & Reporting Management: Create / Read / Update / Delete ----------
 
     @Test
     void savedReportFullCrud() {

@@ -19,12 +19,6 @@ import java.time.LocalDate;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-/**
- * Covers the business rules unique to Module 4 (report FR-09/FR-10, section 9.1):
- * TC-06 (late submissions are marked, not blocked), the teacher/period double-booking
- * check (business rule 2), and that a teacher's grade + feedback is visible on the
- * student's own submission.
- */
 @SpringBootTest
 @Transactional
 class TimetableAssignmentServiceTest {
@@ -88,7 +82,7 @@ class TimetableAssignmentServiceTest {
         form.setSubject("Maths");
         form.setTitle("Homework 1");
         form.setDescription("Do the exercises");
-        form.setDueDate(LocalDate.now().minusDays(1).toString()); // due yesterday
+        form.setDueDate(LocalDate.now().minusDays(1).toString());
 
         Assignment assignment = assignmentService.create(form, teacher);
 
@@ -165,19 +159,13 @@ class TimetableAssignmentServiceTest {
         form.setRoomResourceId(room1.getId());
         timetableService.upsertSlot(form);
 
-        form.setRoomResourceId(room2.getId()); // re-saving the same class/day/period — should just update, not conflict
+        form.setRoomResourceId(room2.getId());
         timetableService.upsertSlot(form);
 
         TimetableSlot updated = timetableService.slotsForClass("7A").get(0);
         assertThat(updated.getRoomName()).isEqualTo("Room 2");
     }
 
-    /**
-     * Module 8 integration (report section 7, item 10; business rule 4): a recurring
-     * TimetableSlot and an ad-hoc ResourceBooking share one source of truth for room
-     * availability, so an existing ad-hoc booking on the matching day-of-week blocks a
-     * new timetable slot for that same room+period.
-     */
     @Test
     void savingATimetableSlotIsRejectedWhenItsRoomIsAlreadyAdHocBookedOnThatDayOfWeek() {
         Teacher teacher = createTeacher("T2699206", "teacher206", null, false);

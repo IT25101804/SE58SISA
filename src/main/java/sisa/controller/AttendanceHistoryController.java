@@ -18,11 +18,6 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.List;
 
-/**
- * Read-only attendance history for Student and Parent (business rule 5), plus the
- * Student's correction-request submission. Access is already scoped by SecurityConfig's
- * /student/** and /parent/** rules.
- */
 @Controller
 public class AttendanceHistoryController {
 

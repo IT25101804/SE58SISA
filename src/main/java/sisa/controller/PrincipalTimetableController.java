@@ -38,18 +38,13 @@ public class PrincipalTimetableController {
         return userRepository.findByUsername(authentication.getName()).orElseThrow();
     }
 
-    // Read Operation
-    // Opens the time table page
-
     @GetMapping
     public String builder(@RequestParam(required = false) String className, Authentication authentication, Model model) {
         model.addAttribute("user", currentUser(authentication));
         model.addAttribute("activeItem", "timetable");
 
-        // get all class names from database
         model.addAttribute("allClassNames", studentRepository.distinctClassNames());
 
-        // get all class names from database
         model.addAttribute("teachers", teacherRepository.findAll());
         model.addAttribute("bookableRooms", resourceRepository.findAllByOrderByTypeAscNameAsc().stream()
                 .filter(r -> r.getType() != ResourceType.EQUIPMENT).toList());
@@ -69,9 +64,6 @@ public class PrincipalTimetableController {
                            RedirectAttributes redirectAttributes) {
         try {
 
-            //   CREATE or UPDATE
-            //   Send form data to the service
-
             timetableService.upsertSlot(form);
             redirectAttributes.addFlashAttribute("success",
                     form.getSubject() + " saved for " + form.getDayOfWeek() + " period " + form.getPeriodNumber() + ".");
@@ -83,9 +75,6 @@ public class PrincipalTimetableController {
 
     @PostMapping("/slot/{id}/delete")
     public String deleteSlot(@PathVariable Long id, @RequestParam String className, RedirectAttributes redirectAttributes) {
-
-        //    DELETE:
-        //    Delete timetable slot using its ID
 
         timetableService.deleteSlot(id);
         redirectAttributes.addFlashAttribute("success", "Slot removed.");

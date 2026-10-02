@@ -14,11 +14,6 @@ import org.springframework.web.server.ResponseStatusException;
 import java.time.LocalDateTime;
 import java.util.Optional;
 
-/**
- * Student assignment submission (report FR-10, TC-06, business rule 4): late
- * submissions are marked, never silently blocked, unless the teacher has explicitly
- * closed the assignment.
- */
 @Service
 public class SubmissionService {
 
@@ -32,11 +27,6 @@ public class SubmissionService {
         return submissionRepository.findByAssignment_IdAndStudent_StudentId(assignmentId, studentId);
     }
 
-    /**
-     * Submits (or resubmits, replacing the previous answer) as of right now. Status is
-     * computed fresh every time from submittedAt vs. the assignment's dueDate — TC-06:
-     * anything submitted after the due date is automatically LATE, not blocked.
-     */
     @Transactional
     public AssignmentSubmission submit(Assignment assignment, Student student, String content) {
         if (assignment.isSubmissionsClosed()) {

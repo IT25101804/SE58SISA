@@ -88,8 +88,6 @@
                         </select>
                     </div>
                     <div class="field">
-                        <!-- Not part of the ResourceForm DTO — sent as a plain request param and read
-                             by ResourceCatalogController#save via @RequestParam(name="studentBookable"). -->
                         <label for="studentBookable">Student may book?</label>
                         <select id="studentBookable" name="studentBookable">
                             <option value="false">No — staff/Principal only</option>
@@ -105,7 +103,6 @@
 </div>
 <script th:src="@{/js/main.js}"></script>
 <script th:inline="javascript">
-    /*<![CDATA[*/
     document.querySelectorAll('.edit-resource-btn').forEach(function (btn) {
         btn.addEventListener('click', function () {
             document.getElementById('id').value = btn.dataset.id;
@@ -135,7 +132,6 @@
             document.getElementById('resourceFormTitle').innerHTML = '<i class="bi bi-plus-circle-fill"></i> Add a Resource';
         });
     }
-    /*]]>*/
 </script>
 </body>
 </html>

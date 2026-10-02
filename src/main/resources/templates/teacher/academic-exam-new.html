@@ -55,10 +55,6 @@
 </div>
 <script th:src="@{/js/main.js}"></script>
 <script th:inline="javascript" th:if="${not #maps.isEmpty(classOptions)}">
-    /*<![CDATA[*/
-    // Class -> Subjects, straight from the same rule the server enforces (MarksEntryService
-    // .classSubjectOptionsFor / requireSubjectAccess), so Subject only ever offers a choice
-    // that will actually be accepted on submit.
     var classSubjectOptions = /*[[${classOptions}]]*/ {};
     var previousSubject = /*[[${form.subject}]]*/ '';
 
@@ -92,7 +88,6 @@
 
     document.getElementById('className').addEventListener('change', populateSubjects);
     populateSubjects();
-    /*]]>*/
 </script>
 </body>
 </html>

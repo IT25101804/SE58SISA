@@ -53,7 +53,6 @@
         <div class="card" style="margin-bottom:18px;" th:if="${chart != null and not #lists.isEmpty(chart.labels())}">
             <canvas id="reportChart" height="220"></canvas>
             <script th:inline="javascript">
-                /*<![CDATA[*/
                 (function () {
                     var chart = /*[[${chart}]]*/ {};
                     new Chart(document.getElementById('reportChart'), {
@@ -72,7 +71,6 @@
                         options: { plugins: { legend: { display: false } } }
                     });
                 })();
-                /*]]>*/
             </script>
         </div>
 

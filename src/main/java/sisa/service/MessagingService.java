@@ -12,13 +12,6 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.util.*;
 
-/**
- * Direct 1:1 messaging (report FR-11, business rule 3): Teachers can message
- * Students, Parents, other Teachers, or the Principal; Students and Parents can
- * only message a Teacher; the Principal can message a Teacher (so a Teacher's
- * message to the Principal can be replied to). Registrar doesn't use direct
- * messaging here — it broadcasts instead (see AnnouncementService).
- */
 @Service
 public class MessagingService {
 
@@ -61,7 +54,6 @@ public class MessagingService {
         return messageRepository.threadBetween(userId, partnerId);
     }
 
-    /** Marks every message sent TO userId FROM partnerId as read — called when userId opens that thread. */
     @Transactional
     public void markThreadRead(String userId, String partnerId) {
         for (Message m : messageRepository.threadBetween(userId, partnerId)) {
@@ -74,7 +66,6 @@ public class MessagingService {
 
     public record ThreadSummary(String partnerUserId, String partnerName, Message lastMessage, long unreadCount) {}
 
-    /** One row per conversation partner, newest message first — the inbox-style thread list. */
     public List<ThreadSummary> threadsFor(String userId) {
         List<Message> all = messageRepository.findAllInvolving(userId);
         Map<String, List<Message>> byPartner = new LinkedHashMap<>();
@@ -85,7 +76,7 @@ public class MessagingService {
         List<ThreadSummary> summaries = new ArrayList<>();
         for (var entry : byPartner.entrySet()) {
             String partnerId = entry.getKey();
-            Message last = entry.getValue().get(0); // findAllInvolving is already newest-first
+            Message last = entry.getValue().get(0);
             long unread = entry.getValue().stream().filter(m -> m.getToUserId().equals(userId) && !m.isRead()).count();
             User partner = userRepository.findById(partnerId).orElse(null);
             summaries.add(new ThreadSummary(partnerId, partner != null ? partner.getFullName() : partnerId, last, unread));

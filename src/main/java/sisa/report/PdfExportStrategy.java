@@ -9,7 +9,6 @@ import org.springframework.stereotype.Component;
 import java.awt.Color;
 import java.io.ByteArrayOutputStream;
 
-/** Concrete Strategy: renders a ReportData as a simple one-table PDF (OpenPDF). */
 @Component
 public class PdfExportStrategy implements ReportExportStrategy {
 
@@ -32,7 +31,7 @@ public class PdfExportStrategy implements ReportExportStrategy {
             Font headerFont = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 10);
             for (String column : data.columns()) {
                 PdfPCell cell = new PdfPCell(new Phrase(column, headerFont));
-                cell.setBackgroundColor(new Color(0x0B, 0x2E, 0x4F)); // var(--navy)
+                cell.setBackgroundColor(new Color(0x11, 0x35, 0x6F));
                 cell.setPadding(6);
                 table.addCell(cell);
             }

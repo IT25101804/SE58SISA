@@ -8,7 +8,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 
-/** Thin wrapper so AttendanceService doesn't depend on Spring's eventing API directly. */
 @Service
 public class AttendanceEventPublisher {
 

@@ -16,12 +16,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-/**
- * Resource catalog management (report FR-13, business rule 2): the Registrar assigns
- * classrooms and keeps records up to date; the Principal can too. Access is already
- * scoped to PRINCIPAL/REGISTRAR by SecurityConfig's existing /registrar/** rule —
- * no security changes needed for this controller.
- */
 @Controller
 @RequestMapping("/registrar/resources")
 public class ResourceCatalogController {

@@ -43,7 +43,6 @@
                         <option value="GUARDIANS">One Parent</option>
                     </select>
                 </div>
-                <!-- Only shown for "One Student" / "One Parent" (see script below). -->
                 <div class="field" data-scope="ONE_STUDENT GUARDIANS">
                     <label for="studentId" id="studentIdLabel">Student ID</label>
                     <input id="studentId" type="text" th:field="*{studentId}" placeholder="S2600001"/>
@@ -64,7 +63,7 @@
                 var show = field.dataset.scope.split(' ').indexOf(scope.value) !== -1;
                 field.style.display = show ? '' : 'none';
                 field.querySelectorAll('input, select').forEach(function (input) {
-                    input.disabled = !show;   // hidden fields aren't submitted
+                    input.disabled = !show;
                     input.required = show;
                 });
             });

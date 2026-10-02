@@ -7,7 +7,6 @@ import lombok.Setter;
 
 import java.time.LocalDateTime;
 
-/** A Student's dispute of an AttendanceRecord (business rule 5) — the Class Teacher approves/rejects it. */
 @Entity
 @Table(name = "attendance_correction_requests")
 @Getter

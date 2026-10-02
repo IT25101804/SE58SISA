@@ -25,9 +25,6 @@ public class RegistrarTimetableController {
         this.timetableService = timetableService;
     }
 
-    // Read Operation
-    // Registrar can view the timetable.
-    
     @GetMapping("/registrar/timetable")
     public String view(@RequestParam(required = false) String className, Authentication authentication, Model model) {
         User user = userRepository.findByUsername(authentication.getName()).orElseThrow();

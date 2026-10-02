@@ -25,7 +25,7 @@ import java.util.stream.Collectors;
 public class TeacherAssignmentController {
 
     private final UserRepository userRepository;
-    private final AttendanceService attendanceService; // owns requireTeacher(user), reused from Module 3
+    private final AttendanceService attendanceService;
     private final TimetableService timetableService;
     private final AssignmentService assignmentService;
 
@@ -53,8 +53,6 @@ public class TeacherAssignmentController {
 
     @GetMapping("/teacher/timetable")
 
-    // READ - TEACHER TIMETABLE
-
     public String myTimetable(Authentication authentication, Model model) {
         User user = currentUser(authentication);
         model.addAttribute("user", user);
@@ -68,8 +66,6 @@ public class TeacherAssignmentController {
         return "teacher/timetable";
     }
 
-    // Teacher can see all assignments created by the teacher.
-
     @GetMapping("/teacher/assignments")
     public String list(Authentication authentication, Model model) {
         User user = currentUser(authentication);
@@ -80,10 +76,6 @@ public class TeacherAssignmentController {
         model.addAttribute("assignments", assignmentService.listForTeacher(teacher.getTeacherId()));
         return "teacher/assignments";
     }
-
-    // CREATE - SHOW FORM
-    // This only opens the assignment form.
-    // It does NOT save the assignment yet.
 
     @GetMapping("/teacher/assignments/new")
     public String newForm(Authentication authentication, Model model) {
@@ -100,9 +92,6 @@ public class TeacherAssignmentController {
         model.addAttribute("classNames", classNames);
         return "teacher/assignment-new";
     }
-
-    //CREATE - SAVE ASSIGNMENT
-    // POST = send assignment data to server.
 
     @PostMapping("/teacher/assignments/new")
     public String create(@ModelAttribute("form") AssignmentForm form, Authentication authentication, Model model) {

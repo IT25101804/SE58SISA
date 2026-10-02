@@ -11,6 +11,6 @@ public class ExamForm {
     private String className;
     private String subject;
     private String examName;
-    private String examDate; // yyyy-MM-dd
+    private String examDate;
     private double maxMarks = 100;
 }

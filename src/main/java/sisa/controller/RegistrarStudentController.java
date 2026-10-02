@@ -16,12 +16,6 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-/**
- * Registrar (and Principal) desk for Student Information Management —
- * registration, profile edits, guardian management, transfers and archiving
- * (report FR-03, FR-04, section 6.3). Access is already scoped to
- * PRINCIPAL/REGISTRAR by SecurityConfig's /registrar/** rule.
- */
 @Controller
 @RequestMapping("/registrar/students")
 public class RegistrarStudentController {
@@ -97,8 +91,6 @@ public class RegistrarStudentController {
         model.addAttribute("student", student);
         model.addAttribute("guardian", studentRegistrationService.getGuardianOrNull(student));
         model.addAttribute("classOptions", studentRegistrationService.classOptions());
-        // Student Information Management's "discipline records" (System Functions doc,
-        // Principal) — read-only here, added by the Teacher via /teacher/academic/report-cards/{id}/notes.
         model.addAttribute("behaviourNotes", behaviourNoteRepository.findByStudent_StudentIdOrderByCreatedAtDesc(id));
         return "registrar/student-detail";
     }
@@ -165,7 +157,6 @@ public class RegistrarStudentController {
         return "redirect:/registrar/students/" + id;
     }
 
-    /** Hard delete — only for a student registered in error (no school records yet); see AccountDeletionService. */
     @PostMapping("/{id}/delete")
     public String delete(@PathVariable String id, Authentication authentication, RedirectAttributes redirectAttributes) {
         try {

@@ -20,13 +20,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-/**
- * Communication module (System Functions doc, Student: "Participate in class
- * discussions"). Not under /student/**, /teacher/** etc. — it falls through to
- * SecurityConfig's anyRequest().authenticated() rule, since a Student's own class
- * Teacher also needs to post here; resolveClassName below is what actually decides
- * who may read/post which board.
- */
 @Controller
 @RequestMapping("/discussions")
 public class ClassDiscussionController {
@@ -49,7 +42,6 @@ public class ClassDiscussionController {
         return userRepository.findByUsername(authentication.getName()).orElseThrow();
     }
 
-    /** A Student sees their own class's board; that class's Class Teacher may also post to it. Anyone else: 403. */
     private String resolveClassName(User user) {
         if (user.getRole() == Role.STUDENT) {
             Student student = studentRepository.findById(user.getUserId())

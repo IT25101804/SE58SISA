@@ -1,12 +1,6 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <body>
-<!--
-  Administration & Reporting Management — "Saved reports" card shared by the Principal and
-  Registrar report pages. Create = save the filters on screen under a name; Read = the list +
-  Open (re-runs the report live); Update = rename and/or replace its filters with the ones on
-  screen; Delete = remove it. Expects: savedReports, savedBase, selectedType, from, to, className.
--->
 <div th:fragment="card">
     <div th:if="${success}" class="alert success"><i class="bi bi-check-circle-fill"></i> <span th:text="${success}">Done</span></div>
     <div th:if="${error}" class="alert error"><i class="bi bi-exclamation-circle-fill"></i> <span th:text="${error}">Error</span></div>

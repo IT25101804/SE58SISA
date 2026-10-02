@@ -13,14 +13,6 @@ import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.web.util.UriComponentsBuilder;
 
-/**
- * Administration & Reporting Management — Create / Update / Delete for saved reports
- * (Read is the "Saved reports" card on the Principal/Registrar report pages, and
- * "Open" re-runs the report live with the saved filters). Mapped under both
- * /principal/reports/saved and /registrar/reports/saved so SecurityConfig's existing
- * prefix rules keep the right roles on each; redirects go back to whichever report
- * page the request came from.
- */
 @Controller
 @RequestMapping({"/principal/reports/saved", "/registrar/reports/saved"})
 public class SavedReportController {
@@ -41,7 +33,6 @@ public class SavedReportController {
         return request.getRequestURI().contains("/principal/") ? "/principal/reports" : "/registrar/reports";
     }
 
-    /** Redirect back to the report page showing the given filters. */
     private static String redirectTo(String base, ReportType type, String from, String to, String className) {
         UriComponentsBuilder uri = UriComponentsBuilder.fromPath(base);
         if (type != null) uri.queryParam("type", type);

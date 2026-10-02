@@ -66,7 +66,6 @@
 </div>
 <script th:src="@{/js/main.js}"></script>
 <script th:inline="javascript">
-    /*<![CDATA[*/
     document.querySelectorAll('.delete-broadcast-form').forEach(function (form) {
         form.addEventListener('submit', function (e) {
             if (!confirm(form.dataset.confirm || 'Delete this scheduled message?')) {
@@ -74,7 +73,6 @@
             }
         });
     });
-    /*]]>*/
 </script>
 </body>
 </html>

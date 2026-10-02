@@ -12,18 +12,11 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.util.Map;
 
-/**
- * Friendly "this module isn't built yet" placeholders for every sidebar link, so
- * nothing 404s while the 8 module branches are still being developed. Each module
- * branch replaces its own entry here with real controllers/pages (see the branch
- * prompts in WSIMS-Branch-Prompts.zip).
- */
 @Controller
 public class ModuleController {
 
     private final UserRepository userRepository;
 
-    // key used in the URL/sidebar -> [display name, icon, branch name]
     private static final Map<String, String[]> MODULES = Map.of(
         "academic",   new String[]{"Academic Management", "bi-mortarboard-fill", "feature/05-academic-management"},
         "students",   new String[]{"Student Information Management", "bi-person-vcard-fill", "feature/02-student-information"},

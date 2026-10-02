@@ -16,13 +16,6 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.time.LocalDate;
 
-/**
- * Booking (report FR-13). Staff (Teacher/Registrar/Principal) can view and book any
- * resource. Student and Parent (System Functions doc: Student "Search library
- * resources; view lab schedules", "Book a study room, if allowed"; Parent "View
- * facility schedules and closures") can now reach /resources/** too — Parent is
- * view-only, and Student may only book resources flagged studentBookable.
- */
 @Controller
 @RequestMapping("/resources")
 public class BookingController {
@@ -74,9 +67,6 @@ public class BookingController {
         form.setBookingDate(effectiveDate);
         if (period != null) form.setPeriodNumber(period);
         model.addAttribute("form", form);
-        // Thymeleaf's th:field/BindStatus renders a bound LocalDate with a locale date
-        // style (e.g. "9/12/26") which HTML5 <input type="date"> rejects — expose a plain
-        // ISO string outside the bound object so the date input's th:value stays yyyy-MM-dd.
         model.addAttribute("bookingDateIso", effectiveDate.toString());
         return "resources/book";
     }
@@ -102,8 +92,6 @@ public class BookingController {
                     "Booking request for " + form.getBookingDate() + " period " + form.getPeriodNumber() + " submitted.");
             return "redirect:/resources/availability?date=" + form.getBookingDate();
         } catch (RuntimeException ex) {
-            // Redirect back to the same form (not the grid) so the conflict message sits
-            // right next to what the requester just typed, ready to be corrected.
             redirectAttributes.addFlashAttribute("error", ex.getMessage());
             redirectAttributes.addAttribute("resourceId", form.getResourceId());
             redirectAttributes.addAttribute("date", form.getBookingDate());

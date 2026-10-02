@@ -17,16 +17,9 @@ import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
-/**
- * Attendance Management (report FR-05, FR-06, section 6.4). Owns roster marking/editing,
- * the attendance-percentage math shared by every "view history" page, the "often absent"
- * report, and correction-request review. Publishes AttendanceMarkedEvent for the
- * Observer-pattern notification side (see {@code sisa.event}/{@code observer}).
- */
 @Service
 public class AttendanceService {
 
-    /** Below this percentage a student is flagged as "often absent" (business rule 6). */
     private static final double OFTEN_ABSENT_THRESHOLD = 80.0;
 
     private final AttendanceRecordRepository attendanceRecordRepository;
@@ -50,8 +43,6 @@ public class AttendanceService {
         this.auditLogService = auditLogService;
     }
 
-    // ---------- roster / marking ----------
-
     public Teacher requireTeacher(User user) {
         return teacherRepository.findById(user.getUserId())
                 .orElseThrow(() -> new IllegalStateException("No teacher record for " + user.getUserId()));
@@ -69,7 +60,6 @@ public class AttendanceService {
         return recordsByStudentFor(className, LocalDate.now());
     }
 
-    /** Same as todaysRecordsByStudent, but for any date — backs the Attendance page's date picker. */
     public Map<String, AttendanceRecord> recordsByStudentFor(String className, LocalDate date) {
         return attendanceRecordRepository.findByClassNameAndAttendanceDate(className, date).stream()
                 .collect(Collectors.toMap(r -> r.getStudent().getStudentId(), r -> r));
@@ -85,7 +75,6 @@ public class AttendanceService {
                 .count();
     }
 
-    /** School-wide, for the Principal dashboard's "Today's Attendance %" card. Null until someone marks today. */
     public Double todaysSchoolWidePercentage() {
         List<AttendanceRecord> today = attendanceRecordRepository.findByAttendanceDate(LocalDate.now());
         if (today.isEmpty()) return null;
@@ -93,25 +82,11 @@ public class AttendanceService {
         return attended * 100.0 / today.size();
     }
 
-    /** Back-compat wrapper — always operated on today before the date picker existed. */
     @Transactional
     public void markOrUpdateToday(String className, AttendanceMarkForm form, User actingUser) {
         markOrUpdate(className, LocalDate.now(), form, actingUser);
     }
 
-    /**
-     * Marks, edits, or clears one class's roster for any date, in a single transaction —
-     * full CRUD: a row with no existing record and a real status is Created, an existing
-     * record whose status changed is Updated (with an audit trail, rule 4), and a row
-     * submitted with a blank/"not marked" status Deletes that day's record entirely if one
-     * exists. Reading the roster for a date is AttendanceService#rosterFor +
-     * #recordsByStudentFor, used by the controller to render the page.
-     * Only the Class Teacher for that exact class may call this (business rules 1 & 2) —
-     * anyone else gets a 403, including a Subject Teacher and the Principal (view-only,
-     * rule 6). Future dates are refused — attendance can only be recorded for today or
-     * earlier. Every ABSENT/LATE row touched (new or edited) is published for the parent
-     * notification observer (rule 3).
-     */
     @Transactional
     public void markOrUpdate(String className, LocalDate date, AttendanceMarkForm form, User actingUser) {
         requireClassTeacherFor(className, actingUser);
@@ -133,7 +108,6 @@ public class AttendanceService {
             String rawStatus = entry.getStatus();
 
             if (rawStatus == null || rawStatus.isBlank()) {
-                // Delete: clearing a row to "— Not marked —" removes that day's record, if any.
                 if (existing.isPresent()) {
                     AttendanceRecord record = existing.get();
                     AttendanceStatus old = record.getStatus();
@@ -188,13 +162,10 @@ public class AttendanceService {
         return teacher;
     }
 
-    // ---------- history / percentage ----------
-
     public List<AttendanceRecord> historyFor(String studentId) {
         return attendanceRecordRepository.findByStudent_StudentIdOrderByAttendanceDateDesc(studentId);
     }
 
-    /** percentage is null when there is no attendance history yet, rather than a misleading 0 or 100. */
     public record AttendanceSummary(long totalDays, long presentDays, long lateDays, long absentDays, Double percentage) {}
 
     public AttendanceSummary summaryFor(String studentId) {
@@ -209,11 +180,8 @@ public class AttendanceService {
 
     public record ChildAttendance(Student student, List<AttendanceRecord> records, AttendanceSummary summary) {}
 
-    // ---------- "often absent" (business rule 6) ----------
-
     public record OftenAbsentEntry(Student student, AttendanceSummary summary) {}
 
-    /** classNameOrNull = null means "every class" — the Principal's view; a Teacher only ever passes their own. */
     public List<OftenAbsentEntry> oftenAbsent(String classNameOrNull) {
         List<Student> pool = classNameOrNull != null
                 ? studentRepository.findByClassNameAndStatusOrderByUser_FullNameAsc(classNameOrNull, StudentStatus.ACTIVE)
@@ -229,8 +197,6 @@ public class AttendanceService {
         result.sort(Comparator.comparing(e -> e.summary().percentage()));
         return result;
     }
-
-    // ---------- correction requests (business rule 5) ----------
 
     @Transactional
     public void requestCorrection(String studentId, Long attendanceRecordId, AttendanceStatus requestedStatus, String reason) {
@@ -258,7 +224,6 @@ public class AttendanceService {
         return correctionRequestRepository.findByRequestedByStudentIdOrderByRequestedAtDesc(studentId);
     }
 
-    /** Only the Class Teacher of the affected class may review — not the Principal (rule 5: "for the teacher to review"). */
     @Transactional
     public void reviewCorrection(Long requestId, boolean approve, String note, User reviewer) {
         AttendanceCorrectionRequest request = correctionRequestRepository.findById(requestId)

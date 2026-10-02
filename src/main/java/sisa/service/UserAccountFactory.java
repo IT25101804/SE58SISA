@@ -46,9 +46,6 @@ public class UserAccountFactory {
             case PRINCIPAL -> throw new IllegalArgumentException("The Principal account is seeded once and cannot be recreated.");
         };
 
-        // Username = the auto-generated ID, not a freely-typed value: the ID is already
-        // guaranteed unique (IdGeneratorService + the userId primary key), so this is the
-        // one login identifier that can never collide between two people, unlike a name.
         User user = new User();
         user.setUserId(userId);
         user.setUsername(userId);

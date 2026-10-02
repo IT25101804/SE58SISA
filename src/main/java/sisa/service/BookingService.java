@@ -23,12 +23,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-/**
- * School Resources & Facilities Management (report FR-13). Create/approve/reject
- * booking requests, and build the availability grid — see BookingConflictChecker for
- * the actual double-booking rule (business rule 3) shared with Module 4's timetable
- * (business rule 4).
- */
 @Service
 public class BookingService {
 
@@ -48,8 +42,6 @@ public class BookingService {
         this.conflictChecker = conflictChecker;
     }
 
-    // ---------- catalog (Principal/Registrar, business rule 2) ----------
-
     public List<Resource> allResources() {
         return resourceRepository.findAllByOrderByTypeAscNameAsc();
     }
@@ -58,17 +50,10 @@ public class BookingService {
         return type == null ? allResources() : resourceRepository.findByTypeOrderByNameAsc(type);
     }
 
-    /** School Resources & Facilities Management (System Functions doc, Student: "Book a study room, if allowed"). */
     public List<Resource> studentBookableResources() {
         return allResources().stream().filter(Resource::isStudentBookable).toList();
     }
 
-    /**
-     * Live active-enrollment headcount for every catalogued CLASSROOM, keyed by class
-     * name — lets the Labs & Classrooms Availability page show each class's real
-     * occupancy (not just its capacity), the same figure StudentRegistrationService
-     * enforces at registration.
-     */
     public Map<String, Long> classroomEnrollmentCounts() {
         return resourceRepository.findByTypeOrderByNameAsc(ResourceType.CLASSROOM).stream()
                 .collect(Collectors.toMap(Resource::getName,
@@ -86,9 +71,6 @@ public class BookingService {
                 ? resourceRepository.findById(form.getId()).orElseThrow(() -> new IllegalArgumentException("No such resource: " + form.getId()))
                 : new Resource();
         ResourceType type = ResourceType.valueOf(form.getType());
-        // A CLASSROOM's name is what students get registered into (see StudentRegistrationService)
-        // — two classes with the same name would make that lookup ambiguous, so names must be unique
-        // among classrooms (unrelated to ROOM/LAB/EQUIPMENT, which were never uniqueness-checked).
         if (type == ResourceType.CLASSROOM) {
             resourceRepository.findByTypeAndNameIgnoreCase(ResourceType.CLASSROOM, form.getName())
                     .filter(duplicate -> !duplicate.getId().equals(resource.getId()))
@@ -105,13 +87,6 @@ public class BookingService {
         return resourceRepository.save(resource);
     }
 
-    /**
-     * Deletes a catalog entry (Principal/Registrar, business rule 2). Refused — rather
-     * than silently orphaning records or failing on a raw FK-constraint error — when the
-     * resource still has booking history or a timetable slot pointing at it; the caller
-     * (ResourceCatalogController) surfaces the message as a normal inline form error.
-     * Returns the deleted resource's name for the confirmation message.
-     */
     @Transactional
     public String deleteResource(Long resourceId) {
         Resource resource = resourceRepository.findById(resourceId)
@@ -140,13 +115,6 @@ public class BookingService {
         return name;
     }
 
-    // ---------- booking requests (staff, business rule 1) ----------
-
-    /**
-     * The double-booking rule (business rule 3): rejects with a message naming the
-     * existing booking/slot if this resource is already taken for this date+period.
-     * Auto-approve resources (business rule 2) skip straight to APPROVED.
-     */
     @Transactional
     public ResourceBooking requestBooking(BookingRequestForm form, String requestingUserId) {
         Resource resource = resourceRepository.findById(form.getResourceId())
@@ -176,8 +144,6 @@ public class BookingService {
         return resourceBookingRepository.save(booking);
     }
 
-    // ---------- approvals (Principal, business rule 2) ----------
-
     public List<ResourceBooking> pendingApprovals() {
         return resourceBookingRepository.findByStatusOrderByRequestedAtAsc(BookingStatus.REQUESTED);
     }
@@ -202,29 +168,21 @@ public class BookingService {
         return resourceBookingRepository.save(booking);
     }
 
-    // ---------- availability grid (report FR-13: "resource rows x period columns") ----------
-
     public enum CellState {
         FREE, REQUESTED, BOOKED, TIMETABLED;
 
-        /** Reuses the existing .status colour classes (report FR-13: "colour-coded free/booked"). */
         public String cssClass() {
             return switch (this) {
-                case FREE -> "approved";       // green
-                case REQUESTED -> "pending";   // orange
-                case BOOKED -> "rejected";     // red
-                case TIMETABLED -> "disabled"; // grey
+                case FREE -> "approved";
+                case REQUESTED -> "pending";
+                case BOOKED -> "rejected";
+                case TIMETABLED -> "disabled";
             };
         }
     }
 
     public record Cell(CellState state, String label) {}
 
-    /**
-     * resource -> period -> cell state, for one date. A period shows BOOKED/REQUESTED if
-     * an active ResourceBooking covers it, or TIMETABLED if a recurring TimetableSlot
-     * uses that room on the matching day-of-week (business rule 4) — otherwise FREE.
-     */
     public Map<Resource, Map<Integer, Cell>> availabilityGrid(LocalDate date, ResourceType type) {
         List<Resource> resources = resourcesByType(type);
         List<ResourceBooking> activeBookings = resourceBookingRepository.findByBookingDateAndStatusNot(date, BookingStatus.REJECTED);

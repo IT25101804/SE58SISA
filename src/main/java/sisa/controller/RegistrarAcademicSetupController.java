@@ -15,11 +15,6 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.time.LocalDate;
 
-/**
- * Academic Management module (System Functions doc, Registrar: "Register subjects",
- * "Manage academic calendar/terms"). Already scoped to PRINCIPAL/REGISTRAR by
- * SecurityConfig's /registrar/** rule.
- */
 @Controller
 @RequestMapping("/registrar/academic-setup")
 public class RegistrarAcademicSetupController {
@@ -98,7 +93,6 @@ public class RegistrarAcademicSetupController {
         return "redirect:/registrar/academic-setup";
     }
 
-    /** Subjects carry no foreign key elsewhere (TimetableSlot/Exam store subject as free text — see Subject's javadoc), so this is a plain delete. */
     @PostMapping("/subjects/{id}/delete")
     public String deleteSubject(@PathVariable Long id, RedirectAttributes redirectAttributes) {
         Subject subject = subjectRepository.findById(id).orElse(null);
@@ -111,7 +105,6 @@ public class RegistrarAcademicSetupController {
         return "redirect:/registrar/academic-setup";
     }
 
-    /** Refuses to delete whichever term is flagged current, so the school is never left without one — set another term current first. */
     @PostMapping("/terms/{id}/delete")
     public String deleteTerm(@PathVariable Long id, RedirectAttributes redirectAttributes) {
         AcademicTerm term = academicTermRepository.findById(id).orElse(null);

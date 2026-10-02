@@ -11,20 +11,6 @@ import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 
-/**
- * Administration & Reporting Management (report FR-12, sections 6.2/6.3). Builds both
- * the Principal dashboard's live stat cards and every report picker's table + chart
- * data, all the way down to one ReportData shape so the on-screen table, the PDF
- * strategy and the Excel strategy show exactly the same numbers.
- *
- * The Attendance/Mark/Exam repositories are injected as Optional so this service —
- * and the dashboard that depends on it — never hard-fails just because a later
- * module's table isn't in this checkout yet (business rule 3): each read here has its
- * own null check and degrades to an empty/placeholder result instead of throwing.
- * This is a deliberately independent, simpler read path from Modules 3/5's own
- * services, which have hard constructor dependencies on those same repositories and
- * would fail to even start up without them.
- */
 @Service
 public class ReportingAggregationService {
 
@@ -33,10 +19,10 @@ public class ReportingAggregationService {
     private final StudentRepository studentRepository;
     private final UserRepository userRepository;
     private final TeacherRepository teacherRepository;
-    private final AttendanceRecordRepository attendanceRecordRepository; // nullable
-    private final MarkRepository markRepository; // nullable
-    private final ExamRepository examRepository; // nullable
-    private final ResourceBookingRepository resourceBookingRepository; // nullable
+    private final AttendanceRecordRepository attendanceRecordRepository;
+    private final MarkRepository markRepository;
+    private final ExamRepository examRepository;
+    private final ResourceBookingRepository resourceBookingRepository;
 
     public ReportingAggregationService(StudentRepository studentRepository, UserRepository userRepository,
                                        TeacherRepository teacherRepository,
@@ -53,8 +39,6 @@ public class ReportingAggregationService {
         this.resourceBookingRepository = resourceBookingRepository.orElse(null);
     }
 
-    // ---------- Principal dashboard stat cards (business rule 3) ----------
-
     public long totalEnrolledStudents() {
         return studentRepository.countByStatus(StudentStatus.ACTIVE);
     }
@@ -63,7 +47,6 @@ public class ReportingAggregationService {
         return userRepository.findByStatus(AccountStatus.PENDING).size();
     }
 
-    /** Null (renders as "—") if the Attendance module's repository isn't available, or nobody's marked today yet. */
     public Double todaysAttendancePercentageOrNull() {
         if (attendanceRecordRepository == null) return null;
         List<AttendanceRecord> today = attendanceRecordRepository.findByAttendanceDate(LocalDate.now());
@@ -72,14 +55,11 @@ public class ReportingAggregationService {
         return attended * 100.0 / today.size();
     }
 
-    /** Null (renders as "—") only if Module 8's repository isn't available (business rule 3/5). */
     public Long roomsBookedTodayOrNull() {
         if (resourceBookingRepository == null) return null;
         return resourceBookingRepository.countByBookingDateAndStatusAndResource_Type(
                 LocalDate.now(), BookingStatus.APPROVED, ResourceType.ROOM);
     }
-
-    // ---------- report picker (business rule 4 + section 6.3) ----------
 
     public record ChartSeries(List<String> labels, List<Double> values, String seriesLabel, String chartType) {}
     public record Report(ReportData data, ChartSeries chart) {}
@@ -226,7 +206,6 @@ public class ReportingAggregationService {
         return new Report(new ReportData("Staff Directory", columns, rows), chart);
     }
 
-    /** Administration & Reporting Management's "staff-pay reports" (System Functions doc, Principal only — never offered to the Registrar, whose ALLOWED_TYPES whitelist in RegistrarReportingController excludes STAFF_PAY). */
     private Report staffPayReport() {
         List<Teacher> teachers = teacherRepository.findAll();
         List<String> columns = List.of("Teacher ID", "Name", "Subject Specialty", "Monthly Salary");

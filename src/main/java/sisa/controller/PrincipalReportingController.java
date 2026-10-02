@@ -15,12 +15,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import java.time.LocalDate;
 
-/**
- * The Principal's full report picker (report FR-12, business rule 1: full access) —
- * every ReportType, any date range, an on-screen table + chart, and Export as
- * PDF/Excel buttons pointing at ReportExportController. Access is already scoped to
- * PRINCIPAL by SecurityConfig's /principal/** rule.
- */
 @Controller
 @RequestMapping("/principal/reports")
 public class PrincipalReportingController {

@@ -34,9 +34,6 @@
                     </select>
                 </div>
                 <div class="field"><label for="bookingDate">Date</label>
-                    <!-- bookingDateIso (a plain String, not *{bookingDate}) so the HTML5 date input gets
-                         yyyy-MM-dd — reading the bound LocalDate through th:object here renders a locale
-                         date style instead (e.g. "9/12/26"), which browsers reject. -->
                     <input id="bookingDate" name="bookingDate" type="date" th:value="${bookingDateIso}" required/>
                 </div>
                 <div class="field">

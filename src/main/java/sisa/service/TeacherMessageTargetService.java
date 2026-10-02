@@ -9,14 +9,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.*;
 
-/**
- * Who a teacher's "New Message" goes to, chosen from a "Send To" list instead of typing a
- * user ID: the Principal, every student in a class they teach, one student, or one student's
- * parent. Students/parents are limited to classes the teacher actually teaches (their own
- * class as Class Teacher, plus every class on their timetable). Each resolved recipient gets
- * an ordinary one-to-one message through MessagingService, which still makes the final
- * role check.
- */
 @Service
 public class TeacherMessageTargetService {
 
@@ -33,7 +25,6 @@ public class TeacherMessageTargetService {
         this.userRepository = userRepository;
     }
 
-    /** The Class Teacher's own class plus every class on this teacher's timetable, A-Z. */
     public List<String> classesTaughtBy(String teacherUserId) {
         Teacher teacher = teacherRepository.findById(teacherUserId)
                 .orElseThrow(() -> new IllegalStateException("No teacher record for " + teacherUserId));
@@ -44,7 +35,6 @@ public class TeacherMessageTargetService {
         return new ArrayList<>(classes);
     }
 
-    /** User IDs to message for the chosen target. */
     public List<String> resolve(User teacher, String sendTo, String className, String studentId) {
         if (sendTo == null || sendTo.isBlank()) {
             throw new IllegalArgumentException("Choose who to send this to.");

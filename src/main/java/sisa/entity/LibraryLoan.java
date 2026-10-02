@@ -7,12 +7,6 @@ import lombok.Setter;
 
 import java.time.LocalDate;
 
-/**
- * One student's borrow of one LibraryItem (System Functions doc, Parent: "View
- * library due dates for their child"). Issued/returned by the Registrar via
- * LibraryController; availableCopies on the linked LibraryItem is kept in sync in
- * LibraryController's @Transactional issue/return handlers.
- */
 @Entity
 @Table(name = "library_loans")
 @Getter

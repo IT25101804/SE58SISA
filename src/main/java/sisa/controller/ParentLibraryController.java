@@ -12,11 +12,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 
 import java.util.List;
 
-/**
- * School Resources & Facilities Management module (System Functions doc, Parent:
- * "View library due dates for their child"). Read-only. Already scoped to
- * PRINCIPAL/PARENT by SecurityConfig's /parent/** rule.
- */
 @Controller
 public class ParentLibraryController {
 

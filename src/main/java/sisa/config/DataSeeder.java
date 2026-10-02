@@ -29,17 +29,6 @@ import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
 
-/**
- * Seeds the one permanent Principal account, plus a full set of ready-to-use demo
- * accounts for every stakeholder role (Registrar, Teacher, Student, Parent) so the
- * app can be explored end-to-end immediately after a fresh boot, with no manual
- * registration/approval steps first. Every seeded account is pre-approved — real
- * accounts created afterwards through the UI still go through the normal Pending ->
- * Approved workflow untouched.
- *
- * Credentials are also listed on the login page (login.html) and in README.md —
- * keep all three in sync if this list changes.
- */
 @Component
 public class DataSeeder implements CommandLineRunner {
 
@@ -103,7 +92,7 @@ public class DataSeeder implements CommandLineRunner {
     public void run(String... args) {
         User principal = seedPrincipal();
         if (principal == null) {
-            return; // already seeded on a previous boot (persistent DB) - skip the rest too
+            return;
         }
 
         User firstRegistrar = null;
@@ -120,8 +109,6 @@ public class DataSeeder implements CommandLineRunner {
             assignment.setClassTeacher(seed.classTeacher());
             assignment.setAssignedClassName(seed.className());
             teacherManagementService.updateAssignment(teacherUser.getUserId(), assignment, principal);
-            // Administration & Reporting Management's "staff-pay reports" (System Functions
-            // doc, Principal) needs at least a few teachers with a salary set to be useful.
             teacherManagementService.updateSalary(teacherUser.getUserId(), seed.monthlySalary());
         }
 
@@ -139,7 +126,6 @@ public class DataSeeder implements CommandLineRunner {
                 + TEACHERS.length + " Teacher(s), " + STUDENTS.length + " Student(s) and their Parents — see README.md for logins.");
     }
 
-    /** Academic Management module (System Functions doc, Registrar: subjects + academic calendar). */
     private void seedAcademicSetup() {
         for (String name : new String[]{"Mathematics", "Science", "English", "History"}) {
             if (!subjectRepository.existsByNameIgnoreCase(name)) {
@@ -159,7 +145,6 @@ public class DataSeeder implements CommandLineRunner {
         }
     }
 
-    /** School Resources & Facilities Management module (System Functions doc, Student/Parent: library). */
     private void seedLibrary(String firstStudentId) {
         LibraryItem algebra = new LibraryItem();
         algebra.setTitle("Introduction to Algebra");
@@ -190,15 +175,6 @@ public class DataSeeder implements CommandLineRunner {
         }
     }
 
-    /**
-     * School Resources & Facilities Management module (System Functions doc, Student:
-     * "Book a study room, if allowed") — seeds a couple of ordinary staff-only resources
-     * plus one flagged studentBookable so the feature is visible on first boot. Also
-     * seeds a CLASSROOM entry for each class already used above (Grade 6 - A, Grade 7 - A)
-     * so the "Class" dropdown at student registration is populated from first boot —
-     * new classes beyond these are created by the Principal/Registrar from Labs &
-     * Classrooms Availability.
-     */
     private void seedFacilities() {
         if (resourceRepository.count() > 0) {
             return;
@@ -231,7 +207,6 @@ public class DataSeeder implements CommandLineRunner {
         }
     }
 
-    /** Returns the seeded Principal, or null if a Principal account already exists (seeding already happened). */
     private User seedPrincipal() {
         if (userRepository.findByUsername("principal").isPresent()) {
             return null;
@@ -250,12 +225,10 @@ public class DataSeeder implements CommandLineRunner {
         return principal;
     }
 
-    /** Turns a full name into a safe, lowercase email local-part ("Rashmika Jayawardena" -> "rashmika.jayawardena"). */
     private static String emailSlug(String fullName) {
         return fullName.toLowerCase().replace(".", "").replace(" ", ".");
     }
 
-    /** Creates a Registrar/Teacher account via the normal factory, then force-approves it for demo convenience. */
     private User createApproved(Role role, String fullName, User createdBy) {
         CreateAccountRequest req = new CreateAccountRequest();
         req.setFullName(fullName);
@@ -281,8 +254,6 @@ public class DataSeeder implements CommandLineRunner {
         req.setAddress("Colombo, Sri Lanka");
         req.setEmergencyContact("0770000000");
 
-        // guardianUsername is left unset: each seeded student gets its own brand new
-        // guardian (auto-generated ID), not linked to another seeded student's parent.
         req.setGuardianFullName(seed.guardianName());
         req.setGuardianEmail(emailSlug(seed.guardianName()) + "@sisa.edu");
         req.setGuardianRawPassword("Parent@123");

@@ -7,7 +7,6 @@ import lombok.Setter;
 
 import java.time.LocalDateTime;
 
-/** A Student's answer to one Assignment (report FR-10, business rules 4 & 5). One row per (assignment, student) — resubmitting replaces it. */
 @Entity
 @Table(name = "assignment_submissions",
         uniqueConstraints = @UniqueConstraint(name = "uk_submission_assignment_student", columnNames = {"assignment_id", "student_id"}))
@@ -38,7 +37,6 @@ public class AssignmentSubmission {
     @Column(nullable = false, length = 10)
     private SubmissionStatus status;
 
-    /** A free-form mark ("18/20", "A+", "85") — no fixed grading scale exists yet (that's Module 5). */
     private String grade;
     private String feedback;
     private String gradedBy;

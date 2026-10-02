@@ -18,13 +18,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-/**
- * Account creation (Student and Parent alike) is the Registrar's job alone (report
- * section 6.2/6.3) — the Principal's role in User & Access is to approve/reject/
- * disable/reset accounts, never to create them. The Principal keeps full read/list/
- * edit access to /registrar/students otherwise; only the two creation endpoints are
- * off-limits.
- */
 @SpringBootTest
 @AutoConfigureMockMvc
 @Transactional

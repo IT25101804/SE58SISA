@@ -16,7 +16,6 @@ public interface StudentRepository extends JpaRepository<Student, String> {
 
     long countByStatus(StudentStatus status);
 
-    /** Active-enrollment headcount for one class — the classroom-capacity check (business rule: a CLASSROOM resource's capacity should not be exceeded). */
     long countByClassNameIgnoreCaseAndStatus(String className, StudentStatus status);
 
     List<Student> findByClassNameAndStatusOrderByUser_FullNameAsc(String className, StudentStatus status);
@@ -24,7 +23,6 @@ public interface StudentRepository extends JpaRepository<Student, String> {
     @Query("select distinct s.className from Student s where s.className is not null and s.className <> '' order by s.className")
     List<String> distinctClassNames();
 
-    /** Registrar/Principal search: free-text over name/ID, optional status filter. Either may be null. */
     @Query("select s from Student s where "
             + "(:q is null or lower(s.user.fullName) like lower(concat('%', :q, '%')) "
             + "          or lower(s.studentId) like lower(concat('%', :q, '%')) "
@@ -33,6 +31,5 @@ public interface StudentRepository extends JpaRepository<Student, String> {
             + "order by s.user.fullName asc")
     List<Student> search(@Param("q") String q, @Param("status") StudentStatus status);
 
-    /** Guards AccountDeletionService — a Parent still linked to a student can't be deleted. */
     boolean existsByParent_UserId(String parentUserId);
 }

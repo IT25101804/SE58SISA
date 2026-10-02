@@ -12,14 +12,6 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 
-/**
- * Standalone Parent account creation (System Functions doc, User & Access:
- * Registrar "Create student, teacher, and parent accounts" — listed as three
- * separate capabilities). Registering a student already auto-creates/links a
- * Parent (StudentRegistrationService); this covers creating one on its own,
- * e.g. ahead of linking them to a student record. Access is already scoped to
- * PRINCIPAL/REGISTRAR by SecurityConfig's /registrar/** rule.
- */
 @Controller
 @RequestMapping("/registrar/accounts")
 public class RegistrarAccountController {

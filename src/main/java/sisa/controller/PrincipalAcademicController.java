@@ -10,12 +10,6 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
-/**
- * Principal's read-only results comparison views (report business rule 2, section
- * 6.2): class rankings, per-subject pass rates, best teacher per subject, and
- * students needing extra help. Nothing here is editable — Principal-only per
- * SecurityConfig's /principal/** rule.
- */
 @Controller
 public class PrincipalAcademicController {
 

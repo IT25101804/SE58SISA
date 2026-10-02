@@ -17,11 +17,6 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.time.LocalDate;
 
-/**
- * School Resources & Facilities Management module (System Functions doc, Registrar:
- * library catalog + loan upkeep). Already scoped to PRINCIPAL/REGISTRAR by
- * SecurityConfig's /registrar/** rule.
- */
 @Controller
 @RequestMapping("/registrar/library")
 public class LibraryController {

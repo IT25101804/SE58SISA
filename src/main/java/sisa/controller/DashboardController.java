@@ -65,8 +65,6 @@ public class DashboardController {
         if (user.getRole() == Role.PRINCIPAL) {
             model.addAttribute("pendingAccounts",
                     userRepository.findTop5ByStatusOrderByCreatedAtDesc(AccountStatus.PENDING));
-            // The 4 stat cards (business rule 3) read through ReportingAggregationService, which
-            // never throws even if a downstream module's repository isn't available yet.
             model.addAttribute("pendingCount", reportingAggregationService.pendingApprovalsCount());
             model.addAttribute("totalEnrolledStudents", reportingAggregationService.totalEnrolledStudents());
             model.addAttribute("todaysAttendancePercentage", reportingAggregationService.todaysAttendancePercentageOrNull());

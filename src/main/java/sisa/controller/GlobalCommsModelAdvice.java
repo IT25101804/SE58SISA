@@ -8,11 +8,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ModelAttribute;
 
-/**
- * Puts the current user's unread count (notifications + messages) into every page's
- * model, so layout/topbar.html's bell badge (business rule 5) works everywhere without
- * every controller in every module having to add it themselves.
- */
 @ControllerAdvice
 public class GlobalCommsModelAdvice {
 

@@ -17,17 +17,9 @@ import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 
-/**
- * Academic Management: exams, marks entry, grading and report cards (report FR-07,
- * FR-08, business rule 1). A Class Teacher may act on any subject in their own class;
- * a Subject Teacher only on the exact class+subject they're assigned to via a
- * TimetableSlot (Module 4) — the same restriction pattern as Module 3's attendance
- * rule, and it surfaces the same way: a 403 for anyone else.
- */
 @Service
 public class MarksEntryService {
 
-    /** Percentage boundaries for the letter grade — simple and fixed, no per-subject curve. */
     private static final Map<Grade, Integer> GRADE_POINTS = Map.of(
             Grade.A, 4, Grade.B, 3, Grade.C, 2, Grade.D, 1, Grade.F, 0);
 
@@ -49,8 +41,6 @@ public class MarksEntryService {
         this.subjectRepository = subjectRepository;
     }
 
-    // ---------- grading math ----------
-
     public static Grade gradeFor(double marksObtained, double maxMarks) {
         double pct = maxMarks <= 0 ? 0 : (marksObtained / maxMarks) * 100.0;
         if (pct >= 75) return Grade.A;
@@ -60,7 +50,6 @@ public class MarksEntryService {
         return Grade.F;
     }
 
-    /** Null when the student has no marks yet, rather than a misleading 0.0. */
     public Double gpaFor(String studentId) {
         List<Mark> marks = markRepository.findByStudent_StudentIdOrderByExam_ExamDateDesc(studentId);
         if (marks.isEmpty()) return null;
@@ -68,14 +57,11 @@ public class MarksEntryService {
         return totalPoints / (double) marks.size();
     }
 
-    // ---------- authorization ----------
-
     public Teacher requireTeacher(User user) {
         return teacherRepository.findById(user.getUserId())
                 .orElseThrow(() -> new IllegalStateException("No teacher record for " + user.getUserId()));
     }
 
-    /** Class Teacher of this class (any subject), or the Subject Teacher assigned to this exact class+subject. */
     private Teacher requireSubjectAccess(String className, String subject, User user) {
         if (user.getRole() != Role.TEACHER) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Only a teacher can manage exams and marks.");
@@ -91,7 +77,6 @@ public class MarksEntryService {
         return teacher;
     }
 
-    /** Only the Class Teacher — report cards span every subject, which a Subject Teacher must not see (rule 1). */
     private Teacher requireClassTeacherFor(String className, User user) {
         if (user.getRole() != Role.TEACHER) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Only the Class Teacher can generate report cards.");
@@ -104,16 +89,6 @@ public class MarksEntryService {
         return teacher;
     }
 
-    // ---------- exams ----------
-
-    /**
-     * Valid Class -> Subjects choices for the "New Exam" form, kept exactly in sync with
-     * {@link #requireSubjectAccess}: the Class Teacher's own class (any subject, since a
-     * Class Teacher may set an exam in their class for any subject), plus every class+subject
-     * this teacher is actually assigned to teach via the timetable (Module 4). Driving the
-     * form's dropdowns from this same source is what stops someone typing a class/subject
-     * that then gets rejected as "not assigned to teach it" (a 403) after they hit submit.
-     */
     public LinkedHashMap<String, List<String>> classSubjectOptionsFor(Teacher teacher) {
         LinkedHashMap<String, LinkedHashSet<String>> options = new LinkedHashMap<>();
 
@@ -150,7 +125,6 @@ public class MarksEntryService {
         return examRepository.findByClassNameOrderByExamDateDesc(className);
     }
 
-    /** Every exam this teacher may act on: their own class (any subject) plus any subject they're assigned elsewhere. */
     public List<Exam> listForTeacher(Teacher teacher) {
         List<Exam> ownClass = teacher.getAssignedClassName() != null && teacher.isClassTeacher()
                 ? examRepository.findByClassNameOrderByExamDateDesc(teacher.getAssignedClassName())
@@ -162,10 +136,6 @@ public class MarksEntryService {
         return new ArrayList<>(byId.values());
     }
 
-    /**
-     * Same access rule as entering marks (requireSubjectAccess). Marks reference the exam via
-     * a foreign key, so they're removed first, then the exam itself.
-     */
     @Transactional
     public void deleteExam(Long examId, User actingUser) {
         Exam exam = getOrThrow(examId);
@@ -178,8 +148,6 @@ public class MarksEntryService {
         return examRepository.findById(examId)
                 .orElseThrow(() -> new IllegalArgumentException("No such exam: " + examId));
     }
-
-    // ---------- marks entry ----------
 
     public Map<String, Mark> marksByStudent(Long examId) {
         Map<String, Mark> result = new HashMap<>();
@@ -197,11 +165,6 @@ public class MarksEntryService {
 
             Optional<Mark> existing = markRepository.findByExam_IdAndStudent_StudentId(examId, entry.getStudentId());
 
-            // A field left blank on save means "clear this mark" (undoing a wrong entry),
-            // not "leave whatever's there alone" — previously this was silently ignored, so
-            // a teacher who entered a mark for the wrong student, say, had no way to un-enter
-            // it. A student who was simply never graded has no existing row, so this is a
-            // harmless no-op for them.
             if (entry.getMarksObtained() == null || entry.getMarksObtained().isBlank()) {
                 existing.ifPresent(markRepository::delete);
                 continue;
@@ -222,9 +185,6 @@ public class MarksEntryService {
             Student student = studentRepository.findById(entry.getStudentId())
                     .orElseThrow(() -> new IllegalArgumentException("No such student: " + entry.getStudentId()));
 
-            // Same row every time for this (exam, student) pair — correcting a typo just
-            // overwrites marksObtained/grade on the row already found above, it never creates
-            // a second one (the DB's uk_marks_exam_student constraint backs this up too).
             Mark mark = existing.orElseGet(Mark::new);
             mark.setExam(exam);
             mark.setStudent(student);
@@ -235,8 +195,6 @@ public class MarksEntryService {
             markRepository.save(mark);
         }
     }
-
-    // ---------- report cards ----------
 
     public record ReportCardEntry(String subject, String examName, LocalDate examDate, double marksObtained, double maxMarks, Grade grade) {}
     public record ReportCard(Student student, List<ReportCardEntry> entries, Double gpa) {}
@@ -251,19 +209,11 @@ public class MarksEntryService {
         return new ReportCard(student, entries, gpaFor(studentId));
     }
 
-    /** Only the Class Teacher for this class may call this (see requireClassTeacherFor). */
     public ReportCard reportCardForAsClassTeacher(String studentId, String className, User actingTeacher) {
         requireClassTeacherFor(className, actingTeacher);
         return reportCardFor(studentId);
     }
 
-    // ---------- term-over-term trend (business rule 3) ----------
-
-    /**
-     * No Term/Semester entity exists yet (that's a natural fit for Module 7's reporting),
-     * so this buckets by exam month as the closest honest approximation of "term" available
-     * from the data modeled today.
-     */
     public record GpaTrendPoint(String label, double gpa) {}
 
     public List<GpaTrendPoint> monthlyGpaTrend(String studentId) {
@@ -276,7 +226,7 @@ public class MarksEntryService {
             double avg = marks.stream().mapToInt(m -> GRADE_POINTS.get(m.getGrade())).average().orElse(0);
             trend.add(new GpaTrendPoint(label, avg));
         });
-        Collections.reverse(trend); // oldest month first, for a left-to-right chart
+        Collections.reverse(trend);
         return trend;
     }
 }

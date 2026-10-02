@@ -16,7 +16,6 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
-/** Learning material / homework (report FR-10, business rules 3 & 5). */
 @Service
 public class AssignmentService {
 
@@ -66,7 +65,6 @@ public class AssignmentService {
         assignmentRepository.save(assignment);
     }
 
-    /** Grades one student's submission — only the Teacher who set the assignment may (business rule 5). */
     @Transactional
     public void grade(Long assignmentId, Long submissionId, String grade, String feedback, Teacher actingTeacher) {
         requireOwnedBy(assignmentId, actingTeacher);

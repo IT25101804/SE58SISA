@@ -7,12 +7,6 @@ import lombok.Setter;
 
 import java.time.LocalDateTime;
 
-/**
- * Communication module (System Functions doc, Student: "Participate in class
- * discussions"). One shared board per class name — any Student in the class, or
- * that class's Teacher/Class Teacher, may post; see ClassDiscussionController for
- * the exact access rule.
- */
 @Entity
 @Table(name = "class_discussion_posts")
 @Getter

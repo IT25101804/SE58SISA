@@ -8,9 +8,6 @@
   </a>
 
   <div class="nav-section-label">Modules</div>
-  <!-- Every item below is shown only to roles that have a real page for it — per
-       report §6.1's access matrix, a role with no capability in a module gets no
-       link at all, instead of a dead "coming soon" placeholder. -->
   <a th:if="${user != null and user.role.name() != 'REGISTRAR'}"
      th:href="${user.role.name() == 'PRINCIPAL'} ? @{/principal/results-overview}
               : (${user.role.name() == 'TEACHER'} ? @{/teacher/academic}

@@ -14,12 +14,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-/**
- * Covers the business rules unique to Module 2 (report FR-03, FR-04, section 6.3):
- * auto-generated + auto-linked Parent accounts, guardian reuse for siblings, and
- * archiving as a soft-delete. Each test runs in its own rolled-back transaction, so
- * IdGeneratorService's sequential counters stay isolated between tests.
- */
 @SpringBootTest
 @Transactional
 class StudentRegistrationServiceTest {
@@ -45,12 +39,6 @@ class StudentRegistrationServiceTest {
         return userRepository.save(u);
     }
 
-    /**
-     * @param tag                used only to keep each test's email addresses distinct/readable
-     * @param existingGuardianId an existing guardian's ID to reuse (report section 6.3's sibling
-     *                           case), or null/blank to create a brand new guardian. Usernames are
-     *                           never chosen — every account's username is its auto-generated ID.
-     */
     private StudentRegistrationRequest baseRequest(String tag, String existingGuardianId) {
         StudentRegistrationRequest req = new StudentRegistrationRequest();
         req.setFullName("Alex Student");
@@ -80,7 +68,6 @@ class StudentRegistrationServiceTest {
 
         Student student = studentRepository.findById(result.studentId()).orElseThrow();
         assertThat(student.getUser().getStatus()).isEqualTo(AccountStatus.PENDING);
-        // Username is never chosen — it's the auto-generated ID itself, since that's unique.
         assertThat(student.getUser().getUsername()).isEqualTo(result.studentId());
         assertThat(student.getParent().getUserId()).isEqualTo(result.parentId());
 
@@ -95,8 +82,6 @@ class StudentRegistrationServiceTest {
 
         StudentRegistrationResult firstResult =
                 studentRegistrationService.register(baseRequest("first.child", null), registrar);
-        // The Registrar links the sibling to the same guardian by typing in the guardian's ID
-        // from the first registration — there's no "chosen username" to reuse anymore.
         StudentRegistrationResult secondResult =
                 studentRegistrationService.register(baseRequest("second.child", firstResult.parentId()), registrar);
 

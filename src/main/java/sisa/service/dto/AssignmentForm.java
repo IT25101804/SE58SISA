@@ -13,5 +13,5 @@ public class AssignmentForm {
     private String title;
     private String description;
     private String materialUrl;
-    private String dueDate; // yyyy-MM-dd
+    private String dueDate;
 }

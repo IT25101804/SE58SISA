@@ -11,14 +11,6 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-/**
- * Update for Communication & Notification Management: edit the subject/body of an
- * announcement or notice that was already posted. Shared by the Principal, Registrar
- * and Teacher (one template, like CommsInboxController) — AnnouncementService enforces
- * that only the Principal or the broadcast's own sender may edit it. Falls under
- * SecurityConfig's anyRequest().authenticated() rule; Students/Parents never send
- * broadcasts, so the ownership check rejects them.
- */
 @Controller
 @RequestMapping("/comms/broadcasts/{broadcastId}")
 public class BroadcastEditController {
@@ -35,7 +27,6 @@ public class BroadcastEditController {
         return userRepository.findByUsername(authentication.getName()).orElseThrow();
     }
 
-    /** Where each sender role's "sent" log lives. */
     private static String logUrl(User user) {
         return switch (user.getRole()) {
             case PRINCIPAL -> "/principal/comms";
@@ -58,7 +49,6 @@ public class BroadcastEditController {
     @PostMapping("/edit")
     public String update(@PathVariable String broadcastId,
                          @RequestParam(required = false) String subject, @RequestParam String body,
-                         // Only present on the form while the broadcast is still scheduled (not yet sent).
                          @RequestParam(required = false) String scheduledFor,
                          Authentication authentication, RedirectAttributes redirectAttributes) {
         User user = currentUser(authentication);

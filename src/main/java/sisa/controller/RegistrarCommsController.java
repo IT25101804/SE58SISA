@@ -11,13 +11,6 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
-/**
- * Registrar desk for Communication & Notification Management (report FR-11, business
- * rule 2): admission confirmations, registration reminders, and office notices — the
- * same fan-out machinery as the Principal's, minus scheduling and scoped to the
- * Registrar's own sent log. Access is already scoped to PRINCIPAL/REGISTRAR by
- * SecurityConfig's /registrar/** rule.
- */
 @Controller
 @RequestMapping("/registrar/comms")
 public class RegistrarCommsController {

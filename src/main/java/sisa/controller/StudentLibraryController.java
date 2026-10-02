@@ -10,11 +10,6 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
-/**
- * School Resources & Facilities Management module (System Functions doc, Student:
- * "Search library resources"). Read-only. Already scoped to PRINCIPAL/STUDENT by
- * SecurityConfig's /student/** rule.
- */
 @Controller
 public class StudentLibraryController {
 

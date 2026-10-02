@@ -20,7 +20,6 @@
                 <h1>Teachers</h1>
                 <p>Create Teacher accounts and assign each one a subject specialty and, if they're a Class Teacher, a class.</p>
             </div>
-            <!-- Only the Registrar creates accounts — the Principal's role here is to approve them (report section 6.2). -->
             <a th:if="${user.role.name() == 'REGISTRAR'}" th:href="@{/registrar/teachers/new}" class="btn btn-primary"><i class="bi bi-person-plus-fill"></i> New Teacher</a>
         </div>
 

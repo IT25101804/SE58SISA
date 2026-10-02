@@ -9,10 +9,6 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 
-/**
- * Read-only Student Information views for the Student and Parent roles (business rule 5):
- * a Student sees only their own profile, a Parent sees only their own child/children's.
- */
 @Controller
 public class StudentProfileController {
 
@@ -35,7 +31,6 @@ public class StudentProfileController {
         model.addAttribute("activeItem", "students");
 
         if (user.getRole() != Role.STUDENT) {
-            // e.g. the Principal, who is allowed onto /student/** but has no Student record.
             model.addAttribute("notice", "Only Student accounts have a profile here.");
             return "student/profile";
         }

@@ -12,17 +12,6 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
-/**
- * The double-booking rule (report FR-13 business rule 3), checked from both
- * directions so a room has exactly one source of truth (report section 7, item 10):
- *   - an ad-hoc ResourceBooking conflicts with another active ResourceBooking for the
- *     same resource/date/period, AND with any recurring TimetableSlot that uses that
- *     room on the matching day-of-week/period;
- *   - a recurring TimetableSlot conflicts with another slot using the same room on the
- *     same day/period, AND with any active ResourceBooking whose date falls on that
- *     day-of-week at that period.
- * REJECTED bookings never block anything (report business rule 3's own test case).
- */
 @Service
 public class BookingConflictChecker {
 
@@ -35,7 +24,6 @@ public class BookingConflictChecker {
         this.timetableSlotRepository = timetableSlotRepository;
     }
 
-    /** A conflict that blocked a booking or timetable slot, with a message naming what caused it. */
     public sealed interface BookingConflict permits BookingConflict.WithBooking, BookingConflict.WithTimetableSlot {
 
         String describe();
@@ -57,7 +45,6 @@ public class BookingConflictChecker {
         }
     }
 
-    /** For BookingService.requestBooking(): is this resource free on this exact date+period? */
     public Optional<BookingConflict> conflictForBooking(Long resourceId, LocalDate bookingDate, int periodNumber, Long excludingBookingId) {
         List<ResourceBooking> clashing = resourceBookingRepository
                 .findByResource_IdAndBookingDateAndPeriodNumberAndStatusNot(resourceId, bookingDate, periodNumber, BookingStatus.REJECTED);
@@ -76,7 +63,6 @@ public class BookingConflictChecker {
         return Optional.empty();
     }
 
-    /** For TimetableService.upsertSlot(): is this room free every <dayOfWeek> at this period? */
     public Optional<BookingConflict> conflictForTimetableSlot(Long roomResourceId, DayOfWeek dayOfWeek, int periodNumber, Long excludingSlotId) {
         if (roomResourceId == null) return Optional.empty();
 

@@ -15,14 +15,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
-/**
- * Hibernate creates a CHECK constraint listing the allowed values when it first creates
- * an enum column, but ddl-auto=update never changes it afterwards. So on any SQL Server
- * database created before NotificationScope gained TEACHER / ONE_STUDENT / GUARDIANS,
- * saving a notice with one of those scopes would be rejected. On startup this replaces
- * that outdated constraint with one listing every current NotificationScope value.
- * It does nothing on other databases (e.g. H2) or when the constraint is already current.
- */
 @Component
 @Order(Ordered.HIGHEST_PRECEDENCE)
 public class NotificationScopeConstraintFix implements ApplicationRunner {

@@ -20,13 +20,6 @@ import java.time.LocalDate;
 import java.util.EnumSet;
 import java.util.Set;
 
-/**
- * The Registrar's partial report picker (report section 6.3, business rule 1):
- * enrolment/admission, transfer, class-list and a plain staff directory only —
- * never attendance or academic pass-rate, and never the performance-enriched staff
- * view. Access is already scoped to PRINCIPAL/REGISTRAR by SecurityConfig's
- * /registrar/** rule; the type whitelist below narrows it further for a Registrar.
- */
 @Controller
 @RequestMapping("/registrar/reports")
 public class RegistrarReportingController {

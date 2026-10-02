@@ -24,20 +24,13 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Teacher desk for Academic Management (report FR-07/FR-08, business rule 1): create
- * exams, enter marks, and generate report cards for the Class Teacher's own class.
- * Access is already scoped to PRINCIPAL/TEACHER by SecurityConfig's /teacher/** rule;
- * the finer "assigned to this exact class+subject" check lives in MarksEntryService
- * and surfaces here as a 403.
- */
 @Controller
 @RequestMapping("/teacher/academic")
 public class TeacherAcademicController {
 
     private final UserRepository userRepository;
     private final MarksEntryService marksEntryService;
-    private final AttendanceService attendanceService; // owns rosterFor(className), reused from Module 3
+    private final AttendanceService attendanceService;
     private final BehaviourNoteRepository behaviourNoteRepository;
     private final StudentRepository studentRepository;
 
@@ -86,11 +79,6 @@ public class TeacherAcademicController {
             Exam created = marksEntryService.createExam(form, user);
             return "redirect:/teacher/academic/" + created.getId();
         } catch (RuntimeException ex) {
-            // Covers both plain validation errors and the "not assigned to teach this
-            // class+subject" 403 (ResponseStatusException) — shown inline on the form instead
-            // of the blunt global 403 page. The Class/Subject dropdowns are now built from the
-            // same rule (see classSubjectOptionsFor), so this should only ever fire if someone
-            // tampers with the submitted values directly.
             model.addAttribute("error", ex instanceof ResponseStatusException rse ? rse.getReason() : ex.getMessage());
             model.addAttribute("form", form);
             model.addAttribute("classOptions", marksEntryService.classSubjectOptionsFor(marksEntryService.requireTeacher(user)));
@@ -178,7 +166,6 @@ public class TeacherAcademicController {
 
         Teacher teacher = marksEntryService.requireTeacher(user);
         model.addAttribute("reportCard", marksEntryService.reportCardForAsClassTeacher(studentId, teacher.getAssignedClassName(), user));
-        // Student Information Management's "Add behaviour notes" (System Functions doc, Teacher).
         model.addAttribute("behaviourNotes", behaviourNoteRepository.findByStudent_StudentIdOrderByCreatedAtDesc(studentId));
         model.addAttribute("behaviourCategories", BehaviourCategory.values());
         return "teacher/academic-report-card-view";
@@ -189,7 +176,6 @@ public class TeacherAcademicController {
                                    @RequestParam(defaultValue = "NEUTRAL") BehaviourCategory category,
                                    Authentication authentication, RedirectAttributes redirectAttributes) {
         User user = currentUser(authentication);
-        // Same "Class Teacher of this student's class" boundary as the report card itself.
         Teacher teacher = marksEntryService.requireTeacher(user);
         Student student = studentRepository.findById(studentId)
                 .orElseThrow(() -> new IllegalArgumentException("No such student: " + studentId));

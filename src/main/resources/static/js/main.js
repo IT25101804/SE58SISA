@@ -1,6 +1,3 @@
-// WSIMS shared front-end behaviour.
-// Keep this file small: each module branch should add its own page-specific
-// script (e.g. attendance.js, timetable.js) rather than growing this one.
 
 (function () {
   const STORAGE_KEY = 'wsims-theme';
@@ -16,9 +13,6 @@
   }
 
   function initTheme() {
-    // Always start on the light/white theme by default — dark mode is opt-in
-    // only, via the toggle button (previously this matched the OS/browser
-    // dark-mode setting automatically, which is why it looked all-dark).
     const saved = localStorage.getItem(STORAGE_KEY) || 'light';
     applyTheme(saved);
 
@@ -58,7 +52,6 @@
     });
   }
 
-  // Small reusable toast helper: window.wsimsToast('Saved successfully', 'success')
   window.wsimsToast = function (message, type) {
     let stack = document.querySelector('.toast-stack');
     if (!stack) {

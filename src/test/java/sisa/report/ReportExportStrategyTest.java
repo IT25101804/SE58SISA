@@ -13,12 +13,6 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-/**
- * The Strategy pattern's promise (report section 4.5): the exact same ReportData
- * produces a valid file via either strategy, with no reporting code needing to know
- * which one is in play. Plain unit tests — no Spring context needed, since neither
- * strategy has any dependency.
- */
 class ReportExportStrategyTest {
 
     private ReportData sampleData() {

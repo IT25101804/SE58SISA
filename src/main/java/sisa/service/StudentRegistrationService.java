@@ -15,11 +15,6 @@ import sisa.service.dto.*;
 import java.time.LocalDate;
 import java.util.List;
 
-/**
- * Student Information Management (report FR-03, FR-04, section 6.3).
- * Owns the "register student + auto-create/link parent" transaction, plus
- * profile edits, transfers and archiving.
- */
 @Service
 public class StudentRegistrationService {
 
@@ -44,16 +39,10 @@ public class StudentRegistrationService {
         this.resourceRepository = resourceRepository;
     }
 
-    /**
-     * One selectable class for the registration/edit "Class" dropdown — sourced from
-     * Resource entries of type CLASSROOM (created by the Principal/Registrar from Labs
-     * & Classrooms Availability), not free text. A null capacity means unlimited.
-     */
     public record ClassOption(String name, Integer capacity, long enrolled) {
         public boolean isFull() { return capacity != null && enrolled >= capacity; }
     }
 
-    /** The school's real, catalogued classes, each with its live enrollment vs. capacity. */
     public List<ClassOption> classOptions() {
         return resourceRepository.findByTypeOrderByNameAsc(ResourceType.CLASSROOM).stream()
                 .map(r -> new ClassOption(r.getName(), r.getCapacity(),
@@ -61,15 +50,6 @@ public class StudentRegistrationService {
                 .toList();
     }
 
-    /**
-     * Capacity guard (business rule: a class shouldn't take more students than the
-     * Principal set it up for). Only applies when the submitted class name matches a
-     * CLASSROOM resource from the catalog — a blank class, or a class name nobody has
-     * catalogued yet, passes through untouched, so this never blocks legacy/free-text
-     * data or an as-yet-uncatalogued class. studentIdBeingEdited excludes that student's
-     * own current seat from the headcount so re-saving their existing class never trips
-     * the limit.
-     */
     private void assertClassHasSpace(String className, String studentIdBeingEdited) {
         if (!StringUtils.hasText(className)) return;
         String trimmed = className.trim();
@@ -91,12 +71,6 @@ public class StudentRegistrationService {
         });
     }
 
-    /**
-     * Registers a new Student and auto-generates/links their Parent, per report section 6.3:
-     * "When assign student id automatically generate parent id too." Both accounts are created
-     * PENDING (business rule 3) — approval remains Module 1's job. A guardian username that
-     * already belongs to a PARENT account is reused rather than duplicated.
-     */
     @Transactional
     public StudentRegistrationResult register(StudentRegistrationRequest req, User registeredBy) {
         requireRegistrarOrPrincipal(registeredBy);
@@ -246,7 +220,6 @@ public class StudentRegistrationService {
                         + (StringUtils.hasText(note) ? " — " + note : ""));
     }
 
-    /** Soft-delete only — the row (and every other module's history against it) is kept. */
     @Transactional
     public void archive(String studentId, String note, User actingUser) {
         requireRegistrarOrPrincipal(actingUser);

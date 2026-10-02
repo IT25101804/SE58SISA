@@ -14,15 +14,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-/**
- * Business rule 3: the dashboard must never hard-fail just because a later module's
- * table isn't in this checkout. AttendanceRecordRepository/MarkRepository/
- * ExamRepository are constructed as Optional.empty() here — exactly what Spring would
- * inject if those beans didn't exist — and every read must degrade to a placeholder
- * instead of throwing. Plain unit test with mocked required repositories, so no Spring
- * context (and no chance of Spring's auto-configuration finding those repositories
- * anyway) is involved.
- */
 class ReportingAggregationServiceTest {
 
     private ReportingAggregationService serviceWithNoDownstreamModules() {
@@ -68,7 +59,7 @@ class ReportingAggregationServiceTest {
 
         ReportingAggregationService.Report staff = service.build(ReportType.STAFF, null, null, null, true);
         assertThat(staff.data()).isNotNull();
-        assertThat(staff.data().rows()).isEmpty(); // no teachers mocked, but no exception either
+        assertThat(staff.data().rows()).isEmpty();
 
         ReportingAggregationService.Report enrolment = service.build(ReportType.ENROLMENT, null, null, null, true);
         assertThat(enrolment.data()).isNotNull();

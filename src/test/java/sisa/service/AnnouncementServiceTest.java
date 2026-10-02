@@ -17,12 +17,6 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-/**
- * Covers the business rules unique to Module 6 (report FR-11, business rules 1 & 4):
- * "whole school" fan-out reaches every enabled user, "one class" fan-out reaches that
- * class's students and their linked parents (and nobody else), and a scheduled
- * announcement stays invisible to recipients until it's due.
- */
 @SpringBootTest
 @Transactional
 class AnnouncementServiceTest {
@@ -52,7 +46,6 @@ class AnnouncementServiceTest {
         return userRepository.save(u);
     }
 
-    /** Student.parent is a reference to the guardian's User row, not the Parent entity, so that's all this needs to create. */
     private User createParent(String parentId, String username) {
         return createUser(parentId, username, Role.PARENT);
     }
@@ -86,7 +79,6 @@ class AnnouncementServiceTest {
         User teacher = createUser("T2699401", "teacher401", Role.TEACHER);
         User student = createUser("S2699401", "student401", Role.STUDENT);
         User parent = createUser("P2699401", "parent401", Role.PARENT);
-        // a disabled account must NOT receive it
         User disabled = createUser("S2699402", "student402", Role.STUDENT);
         disabled.setStatus(AccountStatus.DISABLED);
         userRepository.save(disabled);
@@ -106,10 +98,10 @@ class AnnouncementServiceTest {
     void classAnnouncementReachesOnlyThatClasssStudentsAndTheirParents() {
         User parentA = createParent("P2699403", "parentA403");
         Student studentA1 = createStudent("S2699403", "studentA1_403", "9A", parentA);
-        Student studentA2 = createStudent("S2699404", "studentA2_404", "9A", parentA); // sibling, same parent
+        Student studentA2 = createStudent("S2699404", "studentA2_404", "9A", parentA);
 
         User parentB = createParent("P2699405", "parentB405");
-        Student studentB = createStudent("S2699405", "studentB405", "9B", parentB); // different class
+        Student studentB = createStudent("S2699405", "studentB405", "9B", parentB);
 
         User unrelatedTeacher = createUser("T2699405", "teacher405", Role.TEACHER);
 
@@ -121,7 +113,6 @@ class AnnouncementServiceTest {
                 .filter(n -> "Test Subject".equals(n.getSubject()))
                 .map(Notification::getRecipientUserId).toList();
 
-        // sibling dedup: parentA appears once even though they have two children in 9A
         assertThat(reached).isEqualTo(3);
         assertThat(recipientIds).containsExactlyInAnyOrder(
                 studentA1.getStudentId(), studentA2.getStudentId(), parentA.getUserId());
@@ -142,11 +133,8 @@ class AnnouncementServiceTest {
         assertThat(visibleBeforeDue).isEmpty();
 
         List<Notification> allForStudent = notificationRepository.findByRecipientUserIdOrderByCreatedAtDesc(student.getStudentId());
-        assertThat(allForStudent).hasSize(1); // it was created, just not sent yet
+        assertThat(allForStudent).hasSize(1);
 
-        // Simulate time having passed on that same still-pending notification: the poller — not
-        // create() itself, which already sends anything due at creation time — is what's under
-        // test here, so mutate the existing row directly rather than creating a new one.
         Notification pending = allForStudent.get(0);
         pending.setScheduledFor(LocalDateTime.now().minusMinutes(1));
         notificationRepository.save(pending);

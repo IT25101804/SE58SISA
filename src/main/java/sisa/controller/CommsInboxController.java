@@ -17,13 +17,6 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-/**
- * The shared Inbox + direct-messaging surface every role uses (report business rule 4/5)
- * — one Thymeleaf template per concern, reused across roles via role-based query
- * differences here rather than five near-identical controllers. Deliberately outside
- * every /principal|registrar|teacher|student|parent/** prefix so SecurityConfig's final
- * anyRequest().authenticated() rule covers it for every role without change.
- */
 @Controller
 public class CommsInboxController {
 
@@ -50,14 +43,12 @@ public class CommsInboxController {
         return userRepository.findByUsername(authentication.getName()).orElseThrow();
     }
 
-    /** Parents and students pick from their (children's) teachers by name + subject instead of typing a user ID. */
     private void addTeacherOptions(User user, Model model) {
         if (user.getRole() == Role.PARENT) {
             model.addAttribute("teacherOptions", parentTeacherContactService.teachersForParent(user.getUserId()));
         } else if (user.getRole() == Role.STUDENT) {
             model.addAttribute("teacherOptions", parentTeacherContactService.teachersForStudent(user.getUserId()));
         } else if (user.getRole() == Role.TEACHER) {
-            // Teachers choose "Send To" (Principal / a class / one student / one parent) instead.
             model.addAttribute("teacherClassOptions", teacherMessageTargetService.classesTaughtBy(user.getUserId()));
         }
     }
@@ -69,8 +60,6 @@ public class CommsInboxController {
         model.addAttribute("activeItem", "comm");
         model.addAttribute("notifications",
                 notificationRepository.findByRecipientUserIdAndSentAtIsNotNullOrderBySentAtDesc(user.getUserId()));
-        // The bell counts unread direct messages too, so they're listed here as well (one row per
-        // conversation where the latest message was sent to you, or that has unread messages).
         model.addAttribute("messageRows", messagingService.threadsFor(user.getUserId()).stream()
                 .filter(t -> t.unreadCount() > 0 || t.lastMessage().getToUserId().equals(user.getUserId()))
                 .toList());
@@ -99,7 +88,6 @@ public class CommsInboxController {
         return "comms/inbox-detail";
     }
 
-    /** Delete: remove one notification from your own inbox (only your copy). */
     @PostMapping("/inbox/{id}/delete")
     public String deleteFromInbox(@PathVariable Long id, Authentication authentication, RedirectAttributes redirectAttributes) {
         announcementService.deleteFromInbox(id, currentUser(authentication));
@@ -128,7 +116,6 @@ public class CommsInboxController {
 
     @PostMapping("/messages/new")
     public String startThread(@ModelAttribute("form") MessageForm form,
-                              // Teacher's "Send To" choice; other roles pick toUserId directly.
                               @RequestParam(required = false) String sendTo,
                               @RequestParam(required = false) String className,
                               @RequestParam(required = false) String studentId,

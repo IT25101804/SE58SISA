@@ -10,16 +10,6 @@ import sisa.entity.Student;
 import sisa.entity.User;
 import sisa.repository.*;
 
-/**
- * The hard-delete half of User & Access Management and Student Information Management.
- *
- * Deleting is only allowed for records that carry no school history — an account that
- * was rejected/disabled before it was ever used, or a student registered by mistake.
- * Anything with attendance, marks, submissions, loans, behaviour notes, exams,
- * assignments or timetable slots attached is refused with a clear message, so the
- * existing "disable" (accounts) and "archive" (students) soft-deletes stay the path for
- * real records. The permanent Principal account can never be deleted.
- */
 @Service
 public class AccountDeletionService {
 
@@ -71,11 +61,6 @@ public class AccountDeletionService {
         this.auditLogService = auditLogService;
     }
 
-    /**
-     * Principal: permanently delete a REJECTED or DISABLED account (User & Access
-     * Management). An APPROVED account must be disabled first, and a PENDING one
-     * approved or rejected first, so a live login is never removed by one click.
-     */
     @Transactional
     public void deleteAccount(String userId, User actingUser) {
         User user = userRepository.findById(userId)
@@ -122,12 +107,6 @@ public class AccountDeletionService {
                         + " (" + user.getFullName() + ")");
     }
 
-    /**
-     * Registrar/Principal: permanently delete a student registered by mistake (Student
-     * Information Management). Only allowed while the student has no school records;
-     * otherwise Archive is the correct action. The linked guardian account is kept, since
-     * it may be shared with siblings.
-     */
     @Transactional
     public void deleteStudent(String studentId, User actingUser) {
         if (actingUser.getRole() != Role.REGISTRAR && actingUser.getRole() != Role.PRINCIPAL) {
@@ -156,7 +135,6 @@ public class AccountDeletionService {
         }
     }
 
-    /** The user's own inbox rows, direct messages and saved reports go with the account; the audit log stays. */
     private void removeUserAndPersonalData(User user) {
         String userId = user.getUserId();
         notificationRepository.deleteByRecipientUserId(userId);

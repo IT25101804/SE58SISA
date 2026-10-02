@@ -12,10 +12,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-/**
- * Principal-only booking approval queue (report FR-13, business rule 2). Access is
- * already scoped to PRINCIPAL by SecurityConfig's /principal/** rule.
- */
 @Controller
 @RequestMapping("/principal/resources/approvals")
 public class PrincipalBookingApprovalController {

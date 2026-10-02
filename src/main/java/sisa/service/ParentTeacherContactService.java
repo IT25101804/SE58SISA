@@ -11,17 +11,9 @@ import org.springframework.stereotype.Service;
 
 import java.util.*;
 
-/**
- * The teachers a parent can message, for the "New Message" form: every teacher who
- * teaches one of the parent's children (from that class's timetable, with the subjects
- * they teach) plus the child's Class Teacher — so a parent picks "Mr. Perera — Maths"
- * instead of having to know a T-number. MessagingService still makes the final
- * PARENT -> TEACHER permission check when the message is sent.
- */
 @Service
 public class ParentTeacherContactService {
 
-    /** One dropdown option: who (userId to send to), their name, what they teach this child, and which child. */
     public record TeacherContact(String userId, String teacherName, String subjects, String childName, String className) {}
 
     private final StudentRepository studentRepository;
@@ -43,17 +35,14 @@ public class ParentTeacherContactService {
         return contacts;
     }
 
-    /** Same list for a student messaging their own teachers. */
     public List<TeacherContact> teachersForStudent(String studentId) {
         return studentRepository.findById(studentId).map(this::teachersOf).orElse(List.of());
     }
 
-    /** The Class Teacher plus every timetabled teacher of this student's class, with the subjects each teaches there. */
     private List<TeacherContact> teachersOf(Student student) {
         String className = student.getClassName();
         if (className == null) return List.of();
 
-        // teacherId -> (teacher, subjects they teach in this class), in timetable order
         Map<String, Teacher> teachers = new LinkedHashMap<>();
         Map<String, Set<String>> subjects = new LinkedHashMap<>();
         for (Teacher classTeacher : teacherRepository.findByAssignedClassNameAndClassTeacherTrue(className)) {

@@ -22,11 +22,6 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-/**
- * Covers the business rules unique to Module 5 (report FR-07/FR-08, section 6.2):
- * the Subject Teacher assignment lockout, GPA math from a known set of grades, and
- * the "students needing extra help" (failing 2+ subjects) flag.
- */
 @SpringBootTest
 @AutoConfigureMockMvc
 @Transactional
@@ -106,7 +101,7 @@ class TeacherAcademicControllerTest {
     @Test
     void subjectTeacherCannotEnterMarksForAClassSubjectTheyArentAssignedTo() throws Exception {
         Student student = createStudent("S2699301", "student301", "6A");
-        Teacher subjectTeacher = createTeacher("T2699301", "subjectteacher301", null, false); // not assigned to 6A/History anywhere
+        Teacher subjectTeacher = createTeacher("T2699301", "subjectteacher301", null, false);
         Teacher classTeacher = createTeacher("T2699302", "classteacher302", "6A", true);
         Exam exam = createExam("6A", "History", classTeacher, 100);
 
@@ -123,7 +118,6 @@ class TeacherAcademicControllerTest {
         Student student = createStudent("S2699303", "student303", "6B");
         Teacher subjectTeacher = createTeacher("T2699303", "subjectteacher303", null, false);
 
-        // assign this teacher to 6B/Science via a timetable slot (Module 4)
         TimetableSlot slot = new TimetableSlot();
         slot.setClassName("6B");
         slot.setSubject("Science");
@@ -150,7 +144,6 @@ class TeacherAcademicControllerTest {
         Student student = createStudent("S2699304", "student304", "7A");
         Teacher teacher = createTeacher("T2699304", "classteacher304", "7A", true);
 
-        // A (90%) = 4 points, B (65%) = 3 points, C (55%) = 2 points -> average = 3.0
         createMark(createExam("7A", "Maths", teacher, 100), student, 90);
         createMark(createExam("7A", "Science", teacher, 100), student, 65);
         createMark(createExam("7A", "English", teacher, 100), student, 55);
@@ -169,12 +162,10 @@ class TeacherAcademicControllerTest {
         Exam scienceExam = createExam("8A", "Science", teacher, 100);
         Exam englishExam = createExam("8A", "English", teacher, 100);
 
-        // failingStudent fails Maths and Science (2 subjects) -> flagged
         createMark(mathsExam, failingStudent, 20);
         createMark(scienceExam, failingStudent, 25);
         createMark(englishExam, failingStudent, 90);
 
-        // okStudent fails only Maths (1 subject) -> not flagged
         createMark(mathsExam, okStudent, 20);
         createMark(scienceExam, okStudent, 80);
         createMark(englishExam, okStudent, 85);

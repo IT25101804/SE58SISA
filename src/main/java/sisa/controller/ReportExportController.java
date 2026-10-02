@@ -23,14 +23,6 @@ import java.time.LocalDate;
 import java.util.EnumSet;
 import java.util.Set;
 
-/**
- * Streams a report as a file download (report FR-12, business rule 2's Strategy
- * pattern): pick a ReportExportStrategy by format, hand it the same ReportData the
- * on-screen table renders. Two endpoints, not one shared unprefixed route, so
- * SecurityConfig's existing /principal/** and /registrar/** role rules do the access
- * control (business rule 1) without any config change — the Registrar's endpoint adds
- * one more check narrowing to its partial report subset.
- */
 @RestController
 public class ReportExportController {
 
@@ -73,7 +65,7 @@ public class ReportExportController {
 
     private ResponseEntity<byte[]> export(ReportType type, String format, String from, String to, String className,
                                           boolean includeStaffPerformance, Authentication authentication) {
-        currentUser(authentication); // just confirms the session resolves to a real account
+        currentUser(authentication);
         ReportingAggregationService.Report report = reportingAggregationService.build(
                 type, parseDate(from), parseDate(to), className, includeStaffPerformance);
         ReportExportStrategy strategy = reportExportService.strategyFor(format);

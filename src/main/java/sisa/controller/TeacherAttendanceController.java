@@ -17,12 +17,6 @@ import java.time.format.DateTimeParseException;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Teacher (and Principal, view-only) desk for Attendance Management (report FR-05/FR-06,
- * section 6.4). Access is already scoped to PRINCIPAL/TEACHER by SecurityConfig's
- * /teacher/** rule; fine-grained "only the Class Teacher for this exact class" enforcement
- * happens in AttendanceService and surfaces here as a 403.
- */
 @Controller
 @RequestMapping("/teacher/attendance")
 public class TeacherAttendanceController {
@@ -39,7 +33,7 @@ public class TeacherAttendanceController {
         return userRepository.findByUsername(authentication.getName()).orElseThrow();
     }
 
-    @GetMapping//R
+    @GetMapping
     public String view(@RequestParam(required = false) String className,
                        @RequestParam(required = false) String date,
                        Authentication authentication, Model model) {
@@ -91,7 +85,7 @@ public class TeacherAttendanceController {
         return "teacher/attendance";
     }
 
-    @PostMapping("/mark")//CUD — a row's status can create, update, or (submitted blank) delete that day's record
+    @PostMapping("/mark")
     public String mark(@RequestParam String className, @RequestParam(required = false) String date,
                        @ModelAttribute("form") AttendanceMarkForm form,
                        Authentication authentication, RedirectAttributes redirectAttributes) {
@@ -101,7 +95,7 @@ public class TeacherAttendanceController {
             attendanceService.markOrUpdate(className, resolvedDate, form, user);
             redirectAttributes.addFlashAttribute("success", "Attendance saved for " + className + " on " + resolvedDate + ".");
         } catch (ResponseStatusException rse) {
-            throw rse; // authorization failure — let it surface as its real HTTP status
+            throw rse;
         } catch (RuntimeException ex) {
             redirectAttributes.addFlashAttribute("error", ex.getMessage());
         }

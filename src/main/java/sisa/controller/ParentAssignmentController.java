@@ -16,10 +16,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-/**
- * Read-only for Parents: their child's class timetable, and assignment completion
- * status per child (report business rule 6 — view, never submit).
- */
 @Controller
 public class ParentAssignmentController {
 
