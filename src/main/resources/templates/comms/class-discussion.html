@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Class Discussion · WSIMS</title>
+    <link rel="icon" type="image/svg+xml" th:href="@{/images/logo.svg}"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"/>
+    <link rel="stylesheet" th:href="@{/css/styles.css}"/>
+</head>
+<body>
+<div class="app-shell">
+    <div th:replace="~{layout/sidebar :: sidebar('comm')}"></div>
+    <div th:replace="~{layout/topbar :: topbar}"></div>
+    <div th:replace="~{layout/sidebar :: backdrop}"></div>
+
+    <main class="content">
+        <div class="page-head">
+            <h1>Class Discussion</h1>
+            <p><span th:text="${className}">Class</span> &mdash; shared board for this class only.</p>
+        </div>
+
+        <div th:if="${success}" class="alert success"><i class="bi bi-check-circle-fill"></i> <span th:text="${success}">Done</span></div>
+        <div th:if="${error}" class="alert error"><i class="bi bi-exclamation-circle-fill"></i> <span th:text="${error}">Error</span></div>
+
+        <div class="card" style="margin-bottom:18px;">
+            <div th:each="p : ${posts}" style="padding:10px 0; border-bottom:1px solid var(--border, #e5e7eb);">
+                <strong th:text="${p.authorName}">Author</strong>
+                <span style="font-size:11px; opacity:.6;" th:text="' · ' + ${#temporals.format(p.postedAt, 'dd MMM yyyy HH:mm')}">· 01 Jan 2026 09:00</span>
+                <p style="margin:4px 0 0;" th:text="${p.body}">Message body</p>
+            </div>
+            <div class="empty-state" th:if="${#lists.isEmpty(posts)}">
+                <i class="bi bi-inbox"></i> No posts yet &mdash; be the first to say something.
+            </div>
+        </div>
+
+        <div class="card" style="max-width:600px;">
+            <form th:action="@{/discussions}" method="post">
+                <div class="field"><label for="body">Post a message</label>
+                    <textarea id="body" name="body" rows="3" placeholder="Say something to your class…" required></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary"><i class="bi bi-send-fill"></i> Post</button>
+            </form>
+        </div>
+    </main>
+</div>
+<script th:src="@{/js/main.js}"></script>
+</body>
+</html>

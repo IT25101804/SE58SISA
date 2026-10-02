@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>New Announcement · WSIMS</title>
+    <link rel="icon" type="image/svg+xml" th:href="@{/images/logo.svg}"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"/>
+    <link rel="stylesheet" th:href="@{/css/styles.css}"/>
+</head>
+<body>
+<div class="app-shell">
+    <div th:replace="~{layout/sidebar :: sidebar('comm')}"></div>
+    <div th:replace="~{layout/topbar :: topbar}"></div>
+    <div th:replace="~{layout/sidebar :: backdrop}"></div>
+
+    <main class="content">
+        <div class="page-head">
+            <h1>New Announcement</h1>
+            <p>Post to the whole school, one class, every teacher, or one student's guardians &mdash; optionally scheduled for later.</p>
+        </div>
+
+        <div th:if="${success}" class="alert success"><i class="bi bi-check-circle-fill"></i> <span th:text="${success}">Done</span></div>
+        <div th:if="${error}" class="alert error"><i class="bi bi-exclamation-circle-fill"></i> <span th:text="${error}">Error</span></div>
+
+        <div class="card" style="max-width:560px;">
+            <form th:action="@{/principal/comms/new}" th:object="${form}" method="post">
+                <div class="field">
+                    <label for="category">Category</label>
+                    <select id="category" th:field="*{category}">
+                        <option value="ANNOUNCEMENT">Announcement</option>
+                        <option value="ALERT">Emergency Alert</option>
+                        <option value="REMINDER">Reminder</option>
+                    </select>
+                </div>
+                <div class="field"><label for="subject">Subject</label><input id="subject" type="text" th:field="*{subject}" required/></div>
+                <div class="field"><label for="body">Message</label><textarea id="body" th:field="*{body}" rows="4" required></textarea></div>
+                <div class="field">
+                    <label for="targetScope">Send To</label>
+                    <select id="targetScope" th:field="*{targetScope}">
+                        <option value="SCHOOL">Whole School</option>
+                        <option value="CLASS">One Class</option>
+                        <option value="TEACHERS">All Teachers</option>
+                        <option value="STUDENT">One Student's Guardians</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label for="className">Class (only if "One Class")</label>
+                    <select id="className" th:field="*{className}">
+                        <option value="">—</option>
+                        <option th:each="c : ${allClassNames}" th:value="${c}" th:text="${c}">Class</option>
+                    </select>
+                </div>
+                <div class="field"><label for="studentId">Student ID (only if "One Student's Guardians")</label><input id="studentId" type="text" th:field="*{studentId}" placeholder="S2600001"/></div>
+                <div class="field" th:if="${canSchedule}">
+                    <label for="scheduledFor">Schedule For (optional — leave blank to send now)</label>
+                    <input id="scheduledFor" type="datetime-local" th:field="*{scheduledFor}"/>
+                </div>
+                <button type="submit" class="btn btn-primary"><i class="bi bi-send-fill"></i> Send</button>
+                <a th:href="@{/principal/comms}" class="btn btn-outline"><i class="bi bi-arrow-left"></i> Back</a>
+            </form>
+        </div>
+    </main>
+</div>
+<script th:src="@{/js/main.js}"></script>
+</body>
+</html>

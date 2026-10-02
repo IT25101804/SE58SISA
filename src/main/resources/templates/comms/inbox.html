@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Inbox · WSIMS</title>
+    <link rel="icon" type="image/svg+xml" th:href="@{/images/logo.svg}"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"/>
+    <link rel="stylesheet" th:href="@{/css/styles.css}"/>
+</head>
+<body>
+<div class="app-shell">
+    <div th:replace="~{layout/sidebar :: sidebar('comm')}"></div>
+    <div th:replace="~{layout/topbar :: topbar}"></div>
+    <div th:replace="~{layout/sidebar :: backdrop}"></div>
+
+    <main class="content">
+        <div class="page-head" style="display:flex; align-items:flex-end; justify-content:space-between; flex-wrap:wrap; gap:12px;">
+            <div>
+                <h1>Inbox</h1>
+                <p>Announcements, alerts and reminders sent to you.</p>
+            </div>
+            <div style="display:flex; gap:10px;">
+                <a th:if="${user != null and user.role.name() == 'STUDENT'}" th:href="@{/discussions}" class="btn btn-outline">
+                    <i class="bi bi-people-fill"></i> Class Discussion</a>
+                <a th:href="@{/messages}" class="btn btn-outline"><i class="bi bi-chat-dots-fill"></i> Messages</a>
+            </div>
+        </div>
+
+        <div th:if="${success}" class="alert success"><i class="bi bi-check-circle-fill"></i> <span th:text="${success}">Done</span></div>
+
+        <div class="card">
+            <table class="wsims-table">
+                <thead>
+                <tr><th></th><th>Subject</th><th>Category</th><th>From</th><th>Received</th></tr>
+                </thead>
+                <tbody>
+                <tr th:each="n : ${notifications}">
+                    <td><span class="status" th:classappend="${n.read} ? 'read' : 'unread'" th:text="${n.read} ? 'Read' : 'Unread'">Unread</span></td>
+                    <td><a th:href="@{/inbox/{id}(id=${n.id})}" th:text="${n.subject != null and n.subject != ''} ? ${n.subject} : '(no subject)'">Subject</a></td>
+                    <td th:text="${n.category}">CATEGORY</td>
+                    <td th:text="${n.senderUserId ?: 'System'}">Sender</td>
+                    <td th:text="${n.sentAt}">2026-01-01</td>
+                </tr>
+                <tr th:if="${#lists.isEmpty(notifications)}">
+                    <td colspan="5"><div class="empty-state"><i class="bi bi-inbox"></i> Nothing here yet.</div></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </main>
+</div>
+<script th:src="@{/js/main.js}"></script>
+</body>
+</html>

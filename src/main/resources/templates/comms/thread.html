@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Message Thread · WSIMS</title>
+    <link rel="icon" type="image/svg+xml" th:href="@{/images/logo.svg}"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"/>
+    <link rel="stylesheet" th:href="@{/css/styles.css}"/>
+</head>
+<body>
+<div class="app-shell">
+    <div th:replace="~{layout/sidebar :: sidebar('comm')}"></div>
+    <div th:replace="~{layout/topbar :: topbar}"></div>
+    <div th:replace="~{layout/sidebar :: backdrop}"></div>
+
+    <main class="content">
+        <div class="page-head" style="display:flex; align-items:flex-end; justify-content:space-between; flex-wrap:wrap; gap:12px;">
+            <div>
+                <h1 th:text="${partner != null} ? ${partner.fullName} : ${partnerId}">Partner</h1>
+                <p><span class="id-badge" th:text="${partnerId}">ID</span></p>
+            </div>
+            <a th:href="@{/messages}" class="btn btn-outline"><i class="bi bi-arrow-left"></i> Back to Messages</a>
+        </div>
+
+        <div th:if="${error}" class="alert error"><i class="bi bi-exclamation-circle-fill"></i> <span th:text="${error}">Error</span></div>
+
+        <div class="card" style="margin-bottom:18px;">
+            <div th:each="m : ${messages}" style="margin-bottom:14px; padding-bottom:14px; border-bottom:1px solid var(--azure-soft);">
+                <p style="margin:0 0 4px; font-size:12.5px; opacity:.6;">
+                    <strong th:text="${m.fromUserId == user.userId} ? 'You' : ${partner != null ? partner.fullName : partnerId}">Sender</strong>
+                    &middot; <span th:text="${m.sentAt}">2026-01-01</span>
+                </p>
+                <p style="margin:0;" th:text="${m.body}">Body</p>
+            </div>
+            <div th:if="${#lists.isEmpty(messages)}" class="empty-state"><i class="bi bi-inbox"></i> No messages yet — say hello below.</div>
+        </div>
+
+        <div class="card">
+            <form th:action="@{/messages/{id}(id=${partnerId})}" th:object="${form}" method="post">
+                <div class="field"><label for="body">Reply</label><textarea id="body" th:field="*{body}" rows="3" required></textarea></div>
+                <button type="submit" class="btn btn-primary"><i class="bi bi-send-fill"></i> Send</button>
+            </form>
+        </div>
+    </main>
+</div>
+<script th:src="@{/js/main.js}"></script>
+</body>
+</html>
