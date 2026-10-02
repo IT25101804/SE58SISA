@@ -37,7 +37,30 @@
                        th:text="${user.role.name() == 'PARENT'} ? 'No teachers found for your child\'s class yet.' : 'No teachers found for your class yet.'">
                         No teachers found for your class yet.</p>
                 </div>
-                <div class="field" th:if="${teacherOptions == null}"><label for="toUserId">Recipient User ID</label><input id="toUserId" type="text" th:field="*{toUserId}" placeholder="T2600001" required/></div>
+                <!-- Teachers: choose who to send to, like the Principal's New Announcement form. -->
+                <th:block th:if="${teacherClassOptions != null}">
+                    <div class="field">
+                        <label for="sendTo">Send To</label>
+                        <select id="sendTo" name="sendTo">
+                            <option value="PRINCIPAL" th:selected="${sendTo == 'PRINCIPAL'}">Principal</option>
+                            <option value="CLASS" th:selected="${sendTo == 'CLASS'}" th:if="${not #lists.isEmpty(teacherClassOptions)}">One Class (every student)</option>
+                            <option value="STUDENT" th:selected="${sendTo == 'STUDENT'}">One Student</option>
+                            <option value="PARENT" th:selected="${sendTo == 'PARENT'}">One Parent</option>
+                        </select>
+                    </div>
+                    <div class="field" data-send-to="CLASS">
+                        <label for="className">Class</label>
+                        <select id="className" name="className">
+                            <option value="">— Choose a class —</option>
+                            <option th:each="c : ${teacherClassOptions}" th:value="${c}" th:text="${c}" th:selected="${c == className}">Class</option>
+                        </select>
+                    </div>
+                    <div class="field" data-send-to="STUDENT PARENT">
+                        <label for="studentId" id="studentIdLabel">Student ID</label>
+                        <input id="studentId" type="text" name="studentId" th:value="${studentId}" placeholder="S2600001"/>
+                    </div>
+                </th:block>
+                <div class="field" th:if="${teacherOptions == null and teacherClassOptions == null}"><label for="toUserId">Recipient User ID</label><input id="toUserId" type="text" th:field="*{toUserId}" placeholder="T2600001" required/></div>
                 <div class="field"><label for="body">Message</label><textarea id="body" th:field="*{body}" rows="4" required></textarea></div>
                 <button type="submit" class="btn btn-primary"><i class="bi bi-send-fill"></i> Send</button>
                 <a th:href="@{/messages}" class="btn btn-outline"><i class="bi bi-arrow-left"></i> Back</a>
@@ -46,5 +69,27 @@
     </main>
 </div>
 <script th:src="@{/js/main.js}"></script>
+<script>
+    (function () {
+        var sendTo = document.getElementById('sendTo');
+        if (!sendTo) return; // only the teacher form has "Send To"
+        var label = document.getElementById('studentIdLabel');
+        function sync() {
+            document.querySelectorAll('[data-send-to]').forEach(function (field) {
+                var show = field.dataset.sendTo.split(' ').indexOf(sendTo.value) !== -1;
+                field.style.display = show ? '' : 'none';
+                field.querySelectorAll('input, select').forEach(function (input) {
+                    input.disabled = !show;   // hidden fields aren't submitted
+                    input.required = show;
+                });
+            });
+            label.textContent = sendTo.value === 'PARENT'
+                ? 'Student ID (the parent linked to this student gets the message)'
+                : 'Student ID';
+        }
+        sendTo.addEventListener('change', sync);
+        sync();
+    })();
+</script>
 </body>
 </html>

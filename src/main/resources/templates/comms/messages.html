@@ -26,6 +26,8 @@
             </div>
         </div>
 
+        <div th:if="${success}" class="alert success"><i class="bi bi-check-circle-fill"></i> <span th:text="${success}">Done</span></div>
+
         <div class="card">
             <table class="wsims-table">
                 <thead><tr><th></th><th>With</th><th>Last Message</th><th>Sent</th><th></th></tr></thead>

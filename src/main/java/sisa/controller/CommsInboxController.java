@@ -8,6 +8,7 @@ import sisa.repository.UserRepository;
 import sisa.service.AnnouncementService;
 import sisa.service.MessagingService;
 import sisa.service.ParentTeacherContactService;
+import sisa.service.TeacherMessageTargetService;
 import sisa.service.dto.MessageForm;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
@@ -31,15 +32,18 @@ public class CommsInboxController {
     private final MessagingService messagingService;
     private final AnnouncementService announcementService;
     private final ParentTeacherContactService parentTeacherContactService;
+    private final TeacherMessageTargetService teacherMessageTargetService;
 
     public CommsInboxController(UserRepository userRepository, NotificationRepository notificationRepository,
                                 MessagingService messagingService, AnnouncementService announcementService,
-                                ParentTeacherContactService parentTeacherContactService) {
+                                ParentTeacherContactService parentTeacherContactService,
+                                TeacherMessageTargetService teacherMessageTargetService) {
         this.userRepository = userRepository;
         this.notificationRepository = notificationRepository;
         this.messagingService = messagingService;
         this.announcementService = announcementService;
         this.parentTeacherContactService = parentTeacherContactService;
+        this.teacherMessageTargetService = teacherMessageTargetService;
     }
 
     private User currentUser(Authentication authentication) {
@@ -52,6 +56,9 @@ public class CommsInboxController {
             model.addAttribute("teacherOptions", parentTeacherContactService.teachersForParent(user.getUserId()));
         } else if (user.getRole() == Role.STUDENT) {
             model.addAttribute("teacherOptions", parentTeacherContactService.teachersForStudent(user.getUserId()));
+        } else if (user.getRole() == Role.TEACHER) {
+            // Teachers choose "Send To" (Principal / a class / one student / one parent) instead.
+            model.addAttribute("teacherClassOptions", teacherMessageTargetService.classesTaughtBy(user.getUserId()));
         }
     }
 
@@ -115,9 +122,21 @@ public class CommsInboxController {
     }
 
     @PostMapping("/messages/new")
-    public String startThread(@ModelAttribute("form") MessageForm form, Authentication authentication, Model model) {
+    public String startThread(@ModelAttribute("form") MessageForm form,
+                              // Teacher's "Send To" choice; other roles pick toUserId directly.
+                              @RequestParam(required = false) String sendTo,
+                              @RequestParam(required = false) String className,
+                              @RequestParam(required = false) String studentId,
+                              Authentication authentication, Model model, RedirectAttributes redirectAttributes) {
         User user = currentUser(authentication);
         try {
+            if (user.getRole() == Role.TEACHER && sendTo != null) {
+                java.util.List<String> recipients = teacherMessageTargetService.resolve(user, sendTo, className, studentId);
+                for (String recipient : recipients) messagingService.send(user, recipient, form.getBody());
+                if (recipients.size() == 1) return "redirect:/messages/" + recipients.get(0);
+                redirectAttributes.addFlashAttribute("success", "Message sent to " + recipients.size() + " people.");
+                return "redirect:/messages";
+            }
             messagingService.send(user, form.getToUserId(), form.getBody());
             return "redirect:/messages/" + form.getToUserId();
         } catch (ResponseStatusException rse) {
@@ -127,6 +146,9 @@ public class CommsInboxController {
             model.addAttribute("activeItem", "comm");
             model.addAttribute("error", ex.getMessage());
             model.addAttribute("form", form);
+            model.addAttribute("sendTo", sendTo);
+            model.addAttribute("className", className);
+            model.addAttribute("studentId", studentId);
             addTeacherOptions(user, model);
             return "comms/message-new";
         }
