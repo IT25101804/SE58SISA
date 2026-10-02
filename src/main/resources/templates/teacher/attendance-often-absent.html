@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Often Absent · SISA</title>
+    <link rel="icon" type="image/svg+xml" th:href="@{/images/logo.svg}"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"/>
+    <link rel="stylesheet" th:href="@{/css/styles.css}"/>
+</head>
+<body>
+<div class="app-shell">
+    <div th:replace="~{layout/sidebar :: sidebar('attendance')}"></div>
+    <div th:replace="~{layout/topbar :: topbar}"></div>
+    <div th:replace="~{layout/sidebar :: backdrop}"></div>
+
+    <main class="content">
+        <div class="page-head" style="display:flex; align-items:flex-end; justify-content:space-between; flex-wrap:wrap; gap:12px;">
+            <div>
+                <h1>Often Absent</h1>
+                <p>Students under 80% attendance<span th:if="${className}"> in <span th:text="${className}">Class</span></span><span th:unless="${className}"> across every class</span>.</p>
+            </div>
+            <a th:href="@{/teacher/attendance}" class="btn btn-outline"><i class="bi bi-arrow-left"></i> Back to Attendance</a>
+        </div>
+
+        <div class="card">
+            <table class="wsims-table">
+                <thead>
+                <tr><th>Name</th><th>Student ID</th><th>Class</th><th>Present</th><th>Late</th><th>Absent</th><th>Attendance %</th></tr>
+                </thead>
+                <tbody>
+                <tr th:each="e : ${entries}">
+                    <td th:text="${e.student().user.fullName}">Name</td>
+                    <td><span class="id-badge" th:text="${e.student().studentId}">S2600001</span></td>
+                    <td th:text="${e.student().className}">Class</td>
+                    <td th:text="${e.summary().presentDays()}">0</td>
+                    <td th:text="${e.summary().lateDays()}">0</td>
+                    <td th:text="${e.summary().absentDays()}">0</td>
+                    <td><span class="status absent" th:text="${#numbers.formatDecimal(e.summary().percentage(),1,1)} + '%'">0%</span></td>
+                </tr>
+                <tr th:if="${#lists.isEmpty(entries)}">
+                    <td colspan="7"><div class="empty-state"><i class="bi bi-inbox"></i> No student is currently below 80% attendance.</div></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </main>
+</div>
+<script th:src="@{/js/main.js}"></script>
+</body>
+</html>

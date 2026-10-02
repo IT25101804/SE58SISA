@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Child's Attendance · WSIMS</title>
+    <link rel="icon" type="image/svg+xml" th:href="@{/images/logo.svg}"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"/>
+    <link rel="stylesheet" th:href="@{/css/styles.css}"/>
+</head>
+<body>
+<div class="app-shell">
+    <div th:replace="~{layout/sidebar :: sidebar('attendance')}"></div>
+    <div th:replace="~{layout/topbar :: topbar}"></div>
+    <div th:replace="~{layout/sidebar :: backdrop}"></div>
+
+    <main class="content">
+        <div class="page-head">
+            <h1>Child's Attendance</h1>
+            <p>Read-only history for each of your children.</p>
+        </div>
+
+        <div th:if="${notice}" class="card"><div class="empty-state"><i class="bi bi-inbox"></i> <span th:text="${notice}">Notice</span></div></div>
+        <div th:if="${children != null and #lists.isEmpty(children)}" class="card">
+            <div class="empty-state"><i class="bi bi-inbox"></i> No children are linked to your account yet.</div>
+        </div>
+
+        <div th:each="c : ${children}" class="card" style="margin-bottom:18px;">
+            <h3><i class="bi bi-person-vcard-fill"></i> <span th:text="${c.student().user.fullName}">Student Name</span>
+                &nbsp;<span class="id-badge" th:text="${c.student().studentId}">S2600001</span></h3>
+
+            <div class="grid grid-3" style="margin-bottom:18px;">
+                <div class="card stat-card">
+                    <div class="stat-icon"><i class="bi bi-percent"></i></div>
+                    <div class="stat-value" th:text="${c.summary().percentage() != null} ? ${#numbers.formatDecimal(c.summary().percentage(),1,1)} + '%' : '—'">—</div>
+                    <div class="stat-label">Attendance %</div>
+                </div>
+                <div class="card stat-card">
+                    <div class="stat-icon"><i class="bi bi-calendar2-check-fill"></i></div>
+                    <div class="stat-value" th:text="${c.summary().presentDays()}">0</div>
+                    <div class="stat-label">Present Days</div>
+                </div>
+                <div class="card stat-card">
+                    <div class="stat-icon"><i class="bi bi-calendar2-x-fill"></i></div>
+                    <div class="stat-value" th:text="${c.summary().absentDays()}">0</div>
+                    <div class="stat-label">Absent Days</div>
+                </div>
+            </div>
+
+            <table class="wsims-table">
+                <thead><tr><th>Date</th><th>Status</th></tr></thead>
+                <tbody>
+                <tr th:each="r : ${c.records()}">
+                    <td th:text="${r.attendanceDate}">2026-01-01</td>
+                    <td><span class="status" th:classappend="${#strings.toLowerCase(r.status)}" th:text="${r.status}">STATUS</span></td>
+                </tr>
+                <tr th:if="${#lists.isEmpty(c.records())}">
+                    <td colspan="2"><div class="empty-state"><i class="bi bi-inbox"></i> No attendance recorded yet.</div></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </main>
+</div>
+<script th:src="@{/js/main.js}"></script>
+</body>
+</html>

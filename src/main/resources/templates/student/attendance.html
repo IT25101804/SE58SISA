@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>My Attendance · WSIMS</title>
+    <link rel="icon" type="image/svg+xml" th:href="@{/images/logo.svg}"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"/>
+    <link rel="stylesheet" th:href="@{/css/styles.css}"/>
+</head>
+<body>
+<div class="app-shell">
+    <div th:replace="~{layout/sidebar :: sidebar('attendance')}"></div>
+    <div th:replace="~{layout/topbar :: topbar}"></div>
+    <div th:replace="~{layout/sidebar :: backdrop}"></div>
+
+    <main class="content">
+        <div class="page-head">
+            <h1>My Attendance</h1>
+            <p>Your full history. Spot a mistake? Request a correction and your teacher will review it.</p>
+        </div>
+
+        <div th:if="${notice}" class="card"><div class="empty-state"><i class="bi bi-inbox"></i> <span th:text="${notice}">Notice</span></div></div>
+        <div th:if="${success}" class="alert success"><i class="bi bi-check-circle-fill"></i> <span th:text="${success}">Done</span></div>
+        <div th:if="${error}" class="alert error"><i class="bi bi-exclamation-circle-fill"></i> <span th:text="${error}">Error</span></div>
+
+        <div th:if="${summary}" class="grid grid-3" style="margin-bottom:20px;">
+            <div class="card stat-card">
+                <div class="stat-icon"><i class="bi bi-percent"></i></div>
+                <div class="stat-value" th:text="${summary.percentage() != null} ? ${#numbers.formatDecimal(summary.percentage(),1,1)} + '%' : '—'">—</div>
+                <div class="stat-label">Attendance %</div>
+            </div>
+            <div class="card stat-card">
+                <div class="stat-icon"><i class="bi bi-calendar2-check-fill"></i></div>
+                <div class="stat-value" th:text="${summary.presentDays()}">0</div>
+                <div class="stat-label">Present Days</div>
+            </div>
+            <div class="card stat-card">
+                <div class="stat-icon"><i class="bi bi-calendar2-x-fill"></i></div>
+                <div class="stat-value" th:text="${summary.absentDays()}">0</div>
+                <div class="stat-label">Absent Days</div>
+            </div>
+        </div>
+
+        <div th:if="${records != null}" class="card" style="margin-bottom:18px;">
+            <table class="wsims-table">
+                <thead>
+                <tr><th>Date</th><th>Status</th><th>Marked By</th><th>Last Edited</th><th>Request Correction</th></tr>
+                </thead>
+                <tbody>
+                <tr th:each="r : ${records}">
+                    <td th:text="${r.attendanceDate}">2026-01-01</td>
+                    <td><span class="status" th:classappend="${#strings.toLowerCase(r.status)}" th:text="${r.status}">STATUS</span></td>
+                    <td th:text="${r.markedBy}">T2600001</td>
+                    <td th:text="${r.lastEditedAt != null} ? ${r.lastEditedBy} : '—'">—</td>
+                    <td>
+                        <form th:action="@{/student/attendance/correction-request}" method="post" style="display:flex; gap:6px; align-items:center; flex-wrap:wrap;">
+                            <input type="hidden" name="attendanceRecordId" th:value="${r.id}"/>
+                            <select name="requestedStatus" style="width:auto; padding:6px;">
+                                <option value="PRESENT">Present</option>
+                                <option value="ABSENT">Absent</option>
+                                <option value="LATE">Late</option>
+                            </select>
+                            <input type="text" name="reason" placeholder="Reason" style="width:auto; padding:6px;"/>
+                            <button type="submit" class="btn btn-outline" style="padding:6px 12px; font-size:12.5px;"><i class="bi bi-flag-fill"></i> Request</button>
+                        </form>
+                    </td>
+                </tr>
+                <tr th:if="${#lists.isEmpty(records)}">
+                    <td colspan="5"><div class="empty-state"><i class="bi bi-inbox"></i> No attendance recorded yet.</div></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div th:if="${correctionRequests != null and not #lists.isEmpty(correctionRequests)}" class="card">
+            <h3><i class="bi bi-flag-fill"></i> My Correction Requests</h3>
+            <table class="wsims-table">
+                <thead><tr><th>Date</th><th>Requested</th><th>Reason</th><th>Status</th></tr></thead>
+                <tbody>
+                <tr th:each="cr : ${correctionRequests}">
+                    <td th:text="${cr.attendanceRecord.attendanceDate}">2026-01-01</td>
+                    <td><span class="status" th:classappend="${#strings.toLowerCase(cr.requestedStatus)}" th:text="${cr.requestedStatus}">STATUS</span></td>
+                    <td th:text="${cr.reason}">Reason</td>
+                    <td><span class="status" th:classappend="${#strings.toLowerCase(cr.status)}" th:text="${cr.status}">STATUS</span></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </main>
+</div>
+<script th:src="@{/js/main.js}"></script>
+</body>
+</html>
