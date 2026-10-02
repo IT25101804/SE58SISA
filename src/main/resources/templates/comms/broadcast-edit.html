@@ -39,6 +39,11 @@
                     <label for="body">Message</label>
                     <textarea id="body" name="body" rows="8" maxlength="1000" required th:text="${broadcast.body()}">Body</textarea>
                 </div>
+                <div class="field" th:if="${broadcast.sentAt() == null}">
+                    <label for="scheduledFor">Scheduled For (leave blank to send now)</label>
+                    <input id="scheduledFor" type="datetime-local" name="scheduledFor"
+                           th:value="${broadcast.scheduledFor() != null} ? ${#temporals.format(broadcast.scheduledFor(), 'yyyy-MM-dd''T''HH:mm')} : ''"/>
+                </div>
                 <p style="font-size:12.5px; opacity:.65;">The corrected text replaces the original for every recipient, and is shown as unread again.
                     Category and recipients can't be changed &mdash; post a new notice for a different audience.</p>
                 <button type="submit" class="btn btn-primary"><i class="bi bi-save-fill"></i> Save Changes</button>

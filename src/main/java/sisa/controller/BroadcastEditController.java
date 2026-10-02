@@ -58,11 +58,13 @@ public class BroadcastEditController {
     @PostMapping("/edit")
     public String update(@PathVariable String broadcastId,
                          @RequestParam(required = false) String subject, @RequestParam String body,
+                         // Only present on the form while the broadcast is still scheduled (not yet sent).
+                         @RequestParam(required = false) String scheduledFor,
                          Authentication authentication, RedirectAttributes redirectAttributes) {
         User user = currentUser(authentication);
         String back = logUrl(user);
         try {
-            String updated = announcementService.updateBroadcast(broadcastId, subject, body, user);
+            String updated = announcementService.updateBroadcast(broadcastId, subject, body, scheduledFor, user);
             redirectAttributes.addFlashAttribute("success", "Updated \"" + updated + "\" for every recipient.");
             return "redirect:" + back;
         } catch (ResponseStatusException rse) {

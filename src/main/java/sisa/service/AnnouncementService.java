@@ -172,13 +172,46 @@ public class AnnouncementService {
      */
     @Transactional
     public String updateBroadcast(String broadcastId, String subject, String body, User requester) {
+        return updateBroadcast(broadcastId, subject, body, null, requester);
+    }
+
+    /**
+     * Same as above, plus rescheduling: while a broadcast is still waiting to go out
+     * (no recipient row sent yet), its date/time can be moved. {@code scheduledFor} null
+     * leaves the date alone; blank or a time that's already passed sends it right away,
+     * exactly like leaving the date empty on the "New Announcement" form. Once it has been
+     * sent the date is history and can no longer be changed.
+     */
+    @Transactional
+    public String updateBroadcast(String broadcastId, String subject, String body, String scheduledFor, User requester) {
         if (body == null || body.isBlank()) {
             throw new IllegalArgumentException("The message body can't be empty.");
         }
         List<Notification> rows = requireEditableRows(broadcastId, requester);
+
+        boolean reschedule = scheduledFor != null;
+        LocalDateTime newSchedule = null;
+        boolean sendNow = false;
+        LocalDateTime now = LocalDateTime.now();
+        if (reschedule) {
+            if (rows.stream().anyMatch(n -> n.getSentAt() != null)) {
+                throw new IllegalArgumentException("This broadcast has already been sent, so its date can no longer be changed.");
+            }
+            try {
+                newSchedule = parseScheduledFor(scheduledFor);
+            } catch (java.time.format.DateTimeParseException e) {
+                throw new IllegalArgumentException("\"" + scheduledFor + "\" isn't a valid date and time.");
+            }
+            sendNow = newSchedule == null || !newSchedule.isAfter(now);
+        }
+
         for (Notification n : rows) {
             n.setSubject(subject);
             n.setBody(body);
+            if (reschedule) {
+                n.setScheduledFor(newSchedule);
+                n.setSentAt(sendNow ? now : null);
+            }
             if (n.getSentAt() != null) n.setRead(false);
         }
         notificationRepository.saveAll(rows);
