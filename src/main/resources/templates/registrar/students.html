@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Students · WSIMS</title>
+    <link rel="icon" type="image/svg+xml" th:href="@{/images/logo.svg}"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"/>
+    <link rel="stylesheet" th:href="@{/css/styles.css}"/>
+</head>
+<body>
+<div class="app-shell">
+    <div th:replace="~{layout/sidebar :: sidebar('students')}"></div>
+    <div th:replace="~{layout/topbar :: topbar}"></div>
+    <div th:replace="~{layout/sidebar :: backdrop}"></div>
+
+    <main class="content">
+        <div class="page-head" style="display:flex; align-items:flex-end; justify-content:space-between; flex-wrap:wrap; gap:12px;">
+            <div>
+                <h1>Student Information</h1>
+                <p>Register, search and manage every student record in SISA.</p>
+            </div>
+            <!-- Only the Registrar creates accounts — the Principal's role here is to approve them (report section 6.2). -->
+            <div th:if="${user.role.name() == 'REGISTRAR'}" style="display:flex; gap:10px;">
+                <a th:href="@{/registrar/accounts/new-parent}" class="btn btn-outline"><i class="bi bi-person-plus-fill"></i> New Parent</a>
+                <a th:href="@{/registrar/students/new}" class="btn btn-primary"><i class="bi bi-person-plus-fill"></i> New Student</a>
+            </div>
+        </div>
+
+        <div th:if="${success}" class="alert success"><i class="bi bi-check-circle-fill"></i> <span th:text="${success}">Done</span></div>
+        <div th:if="${error}" class="alert error"><i class="bi bi-exclamation-circle-fill"></i> <span th:text="${error}">Error</span></div>
+
+        <div class="card" style="margin-bottom:18px;">
+            <form th:action="@{/registrar/students}" method="get" style="display:flex; gap:10px; flex-wrap:wrap; align-items:flex-end;">
+                <div class="field" style="margin-bottom:0; flex:1; min-width:220px;">
+                    <label for="q">Search</label>
+                    <input id="q" type="text" name="q" th:value="${q}" placeholder="Name, Student ID or class"/>
+                </div>
+                <div class="field" style="margin-bottom:0; min-width:180px;">
+                    <label for="status">Status</label>
+                    <select id="status" name="status">
+                        <option value="" th:selected="${selectedStatus == null or selectedStatus == ''}">All</option>
+                        <option th:each="s : ${statuses}" th:value="${s}" th:text="${s}"
+                                th:selected="${selectedStatus == s.name()}">STATUS</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-outline"><i class="bi bi-search"></i> Filter</button>
+            </form>
+        </div>
+
+        <div class="card">
+            <table class="wsims-table">
+                <thead>
+                <tr><th></th><th>Name</th><th>Student ID</th><th>Class</th><th>Status</th><th>Actions</th></tr>
+                </thead>
+                <tbody>
+                <tr th:each="s : ${students}">
+                    <td><span class="avatar-initials" th:text="${#strings.substring(s.user.fullName,0,1)}">A</span></td>
+                    <td th:text="${s.user.fullName}">Name</td>
+                    <td><span class="id-badge" th:text="${s.studentId}">S2600001</span></td>
+                    <td th:text="${s.className ?: '—'}">Class</td>
+                    <td><span class="status" th:classappend="${#strings.toLowerCase(s.status)}" th:text="${s.status}">STATUS</span></td>
+                    <td><a th:href="@{/registrar/students/{id}(id=${s.studentId})}" class="btn btn-outline" style="padding:6px 12px; font-size:12.5px;"><i class="bi bi-eye-fill"></i> View</a></td>
+                </tr>
+                <tr th:if="${#lists.isEmpty(students)}">
+                    <td colspan="6">
+                        <div class="empty-state"><i class="bi bi-inbox"></i> No students match this view yet.</div>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </main>
+</div>
+<script th:src="@{/js/main.js}"></script>
+</body>
+</html>

@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title th:text="${student.user.fullName} + ' · WSIMS'">Student · WSIMS</title>
+    <link rel="icon" type="image/svg+xml" th:href="@{/images/logo.svg}"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"/>
+    <link rel="stylesheet" th:href="@{/css/styles.css}"/>
+</head>
+<body>
+<div class="app-shell">
+    <div th:replace="~{layout/sidebar :: sidebar('students')}"></div>
+    <div th:replace="~{layout/topbar :: topbar}"></div>
+    <div th:replace="~{layout/sidebar :: backdrop}"></div>
+
+    <main class="content">
+        <div class="page-head" style="display:flex; align-items:flex-end; justify-content:space-between; flex-wrap:wrap; gap:12px;">
+            <div>
+                <h1 th:text="${student.user.fullName}">Student Name</h1>
+                <p>
+                    <span class="id-badge" th:text="${student.studentId}">S2600001</span>
+                    &nbsp;<span class="status" th:classappend="${#strings.toLowerCase(student.status)}" th:text="${student.status}">STATUS</span>
+                    &nbsp;<span class="status" th:classappend="${#strings.toLowerCase(student.user.status)}" th:text="'Login: ' + ${student.user.status}">Login: PENDING</span>
+                </p>
+            </div>
+            <a th:href="@{/registrar/students}" class="btn btn-outline"><i class="bi bi-arrow-left"></i> Back to Students</a>
+        </div>
+
+        <div th:if="${success}" class="alert success"><i class="bi bi-check-circle-fill"></i> <span th:text="${success}">Done</span></div>
+        <div th:if="${error}" class="alert error"><i class="bi bi-exclamation-circle-fill"></i> <span th:text="${error}">Error</span></div>
+        <div th:if="${student.statusNote}" class="alert" style="background:var(--azure-soft); color:var(--charcoal);">
+            <i class="bi bi-info-circle-fill"></i> Last status note: <span th:text="${student.statusNote}">note</span>
+        </div>
+
+        <div class="grid grid-2">
+            <div class="card">
+                <h3><i class="bi bi-person-vcard-fill"></i> Student Details</h3>
+                <form th:action="@{/registrar/students/{id}/edit(id=${student.studentId})}" method="post">
+                    <div class="field"><label for="fullName">Full Name</label><input id="fullName" name="fullName" type="text" th:value="${student.user.fullName}" required/></div>
+                    <div class="field"><label for="email">Email</label><input id="email" name="email" type="email" th:value="${student.user.email}" required/></div>
+                    <div class="field"><label for="dateOfBirth">Date of Birth</label><input id="dateOfBirth" name="dateOfBirth" type="date" th:value="${student.dateOfBirth}"/></div>
+                    <div class="field">
+                        <label for="gender">Gender</label>
+                        <select id="gender" name="gender">
+                            <option value="" th:selected="${student.gender == null}">Select…</option>
+                            <option value="Female" th:selected="${student.gender == 'Female'}">Female</option>
+                            <option value="Male" th:selected="${student.gender == 'Male'}">Male</option>
+                            <option value="Other" th:selected="${student.gender == 'Other'}">Other</option>
+                        </select>
+                    </div>
+                    <div class="field">
+                        <label for="className">Class</label>
+                        <select id="className" name="className">
+                            <option value="" th:selected="${student.className == null or student.className == ''}">Unassigned</option>
+                            <option th:if="${student.className != null and student.className != ''}"
+                                    th:value="${student.className}" th:selected="${student.className != null and student.className != ''}"
+                                    th:text="${student.className} + ' (current)'">Current class</option>
+                            <option th:each="c : ${classOptions}"
+                                    th:if="${student.className == null or not #strings.equalsIgnoreCase(c.name(), student.className)}"
+                                    th:value="${c.name()}" th:disabled="${c.isFull()}"
+                                    th:text="${c.name()} + ' (' + ${c.enrolled()} + (${c.capacity()} != null ? ('/' + ${c.capacity()}) : ' enrolled') + (${c.isFull()} ? ' — Full' : '') + ')'">Grade 10 - A</option>
+                        </select>
+                    </div>
+                    <div class="field"><label for="admissionYear">Admission Year</label><input id="admissionYear" name="admissionYear" type="text" th:value="${student.admissionYear}"/></div>
+                    <div class="field"><label for="address">Address</label><input id="address" name="address" type="text" th:value="${student.address}"/></div>
+                    <div class="field"><label for="emergencyContact">Emergency Contact</label><input id="emergencyContact" name="emergencyContact" type="text" th:value="${student.emergencyContact}"/></div>
+                    <p style="font-size:12.5px; opacity:.6;">Enrolled: <span th:text="${student.enrollmentDate}">2026-01-01</span></p>
+                    <button type="submit" class="btn btn-primary"><i class="bi bi-save-fill"></i> Save Details</button>
+                </form>
+            </div>
+
+            <div>
+                <div class="card" style="margin-bottom:18px;">
+                    <h3><i class="bi bi-people-fill"></i> Guardian</h3>
+                    <div th:if="${student.parent == null}" class="empty-state"><i class="bi bi-inbox"></i> No guardian linked.</div>
+                    <form th:if="${student.parent != null}" th:action="@{/registrar/students/{id}/guardian(id=${student.studentId})}" method="post">
+                        <p>
+                            <span th:text="${student.parent.fullName}">Guardian Name</span>
+                            &nbsp;<span class="id-badge" th:text="${student.parent.userId}">P2600001</span>
+                        </p>
+                        <div class="field"><label for="relationshipToStudent">Relationship</label>
+                            <select id="relationshipToStudent" name="relationshipToStudent">
+                                <option value="Mother" th:selected="${guardian != null and guardian.relationshipToStudent == 'Mother'}">Mother</option>
+                                <option value="Father" th:selected="${guardian != null and guardian.relationshipToStudent == 'Father'}">Father</option>
+                                <option value="Guardian" th:selected="${guardian != null and guardian.relationshipToStudent == 'Guardian'}">Guardian</option>
+                            </select>
+                        </div>
+                        <div class="field"><label for="contactNumber">Contact Number</label><input id="contactNumber" name="contactNumber" type="text" th:value="${guardian != null ? guardian.contactNumber : student.guardianContact}"/></div>
+                        <button type="submit" class="btn btn-outline"><i class="bi bi-save-fill"></i> Save Guardian</button>
+                    </form>
+                </div>
+
+                <div class="card">
+                    <h3><i class="bi bi-arrow-left-right"></i> Transfer &amp; Archive</h3>
+                    <p style="font-size:13px; opacity:.7;">Transferring or archiving keeps this record &mdash; it is
+                        never deleted (school records must be kept).</p>
+
+                    <form th:if="${student.status.name() == 'ACTIVE'}" th:action="@{/registrar/students/{id}/transfer-out(id=${student.studentId})}" method="post" style="margin-bottom:14px;">
+                        <div class="field"><label for="outNote">Transfer-out note</label><input id="outNote" name="note" type="text" placeholder="Moved to another school"/></div>
+                        <button type="submit" class="btn btn-outline"><i class="bi bi-box-arrow-right"></i> Transfer Out of SISA</button>
+                    </form>
+
+                    <form th:if="${student.status.name() == 'TRANSFERRED'}" th:action="@{/registrar/students/{id}/transfer-in(id=${student.studentId})}" method="post" style="margin-bottom:14px;">
+                        <div class="field"><label for="inNote">Transfer-in note</label><input id="inNote" name="note" type="text" placeholder="Re-enrolled"/></div>
+                        <button type="submit" class="btn btn-outline"><i class="bi bi-box-arrow-in-left"></i> Transfer Back Into SISA</button>
+                    </form>
+
+                    <form th:if="${student.status.name() != 'ARCHIVED'}" th:action="@{/registrar/students/{id}/archive(id=${student.studentId})}" method="post">
+                        <div class="field"><label for="archiveNote">Archive note</label><input id="archiveNote" name="note" type="text" placeholder="Graduated"/></div>
+                        <button type="submit" class="btn btn-primary"><i class="bi bi-archive-fill"></i> Archive (Graduated)</button>
+                    </form>
+                    <p th:if="${student.status.name() == 'ARCHIVED'}" style="opacity:.6; font-size:13px;">This student is archived.</p>
+                </div>
+
+                <div class="card">
+                    <h3><i class="bi bi-trash-fill"></i> Delete Record</h3>
+                    <p style="font-size:13px; opacity:.7;">Only for a student registered by mistake. Deletion is refused once the
+                        student has any attendance, marks, submissions, library loans or behaviour notes &mdash; archive them instead.
+                        The linked guardian account is kept.</p>
+                    <form th:action="@{/registrar/students/{id}/delete(id=${student.studentId})}" method="post" id="deleteStudentForm"
+                          th:data-confirm="'Permanently delete student ' + ${student.studentId} + ' and their login? This cannot be undone.'">
+                        <button type="submit" class="btn btn-danger"><i class="bi bi-trash-fill"></i> Delete Permanently</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="card" style="margin-top:18px;">
+            <h3><i class="bi bi-journal-text"></i> Behaviour &amp; Discipline Records</h3>
+            <p style="font-size:12.5px; opacity:.65; margin-top:-6px;">Read-only here &mdash; only the student's Class Teacher can add notes, from the report card page.</p>
+            <table class="wsims-table" th:if="${not #lists.isEmpty(behaviourNotes)}">
+                <thead><tr><th>Date</th><th>Category</th><th>Note</th><th>By</th></tr></thead>
+                <tbody>
+                <tr th:each="n : ${behaviourNotes}">
+                    <td th:text="${#temporals.format(n.createdAt, 'dd MMM yyyy')}">01 Jan 2026</td>
+                    <td><span class="status" th:classappend="${n.category.name() == 'POSITIVE'} ? 'approved' : (${n.category.name() == 'NEGATIVE'} ? 'rejected' : 'pending')"
+                               th:text="${n.category}">NEUTRAL</span></td>
+                    <td th:text="${n.note}">Note text</td>
+                    <td th:text="${n.authorName}">Teacher</td>
+                </tr>
+                </tbody>
+            </table>
+            <div class="empty-state" th:if="${#lists.isEmpty(behaviourNotes)}">
+                <i class="bi bi-inbox"></i> No behaviour notes recorded for this student yet.
+            </div>
+        </div>
+    </main>
+</div>
+<script th:src="@{/js/main.js}"></script>
+<script>
+    (function () {
+        var form = document.getElementById('deleteStudentForm');
+        if (form) form.addEventListener('submit', function (e) {
+            if (!confirm(form.dataset.confirm || 'Permanently delete this student?')) e.preventDefault();
+        });
+    })();
+</script>
+</body>
+</html>
