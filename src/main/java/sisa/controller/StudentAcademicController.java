@@ -9,11 +9,6 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 
-/**
- * Student's own results — grades, GPA, and a viewable/printable report card
- * (report FR-08, business rule 3). Access is already scoped to PRINCIPAL/STUDENT
- * by SecurityConfig's /student/** rule.
- */
 @Controller
 public class StudentAcademicController {
 
