@@ -19,7 +19,7 @@ body.login-body {
   inset: 0;
   z-index: 1;
   background:
-    linear-gradient(180deg, rgba(6,26,46,0.20) 0%, rgba(6,26,46,0.06) 30%, rgba(6,26,46,0.38) 100%);
+    linear-gradient(180deg, rgba(11,26,51,0.20) 0%, rgba(11,26,51,0.06) 30%, rgba(11,26,51,0.38) 100%);
 }
 
 .login-wrap {
@@ -43,10 +43,12 @@ body.login-body {
   -webkit-backdrop-filter: blur(22px) saturate(130%);
   border: 1px solid rgba(255,255,255,0.7);
   border-radius: 20px;
-  box-shadow: 0 30px 80px rgba(4,16,28,0.4), 0 2px 12px rgba(4,16,28,0.08);
+  box-shadow: 0 30px 80px rgba(6,13,26,0.4), 0 2px 12px rgba(6,13,26,0.08);
   padding: 44px 40px 36px;
 }
 
+/* SISA logo on a white plate so it reads clearly over the frosted card. */
+.login-logo { display: block; width: 220px; max-width: 80%; margin: 0 auto 18px; background: #FFFFFF; border-radius: 12px; padding: 6px 10px; }
 .login-card h2 { color: var(--navy); font-size: 21px; margin: 0 0 4px; text-align: center; }
 .login-card p.sub { color: var(--charcoal); opacity: .7; font-size: 13.5px; margin: 0 0 26px; text-align: center; }
 
@@ -60,13 +62,13 @@ body.login-body {
 .field label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; color: var(--navy); }
 .field input {
   width: 100%; padding: 11px 13px; border-radius: var(--radius-sm);
-  border: 1.5px solid rgba(220,231,238,0.9); font-family: var(--font-display); font-size: 14px;
+  border: 1.5px solid rgba(220,227,240,0.9); font-family: var(--font-display); font-size: 14px;
   background: rgba(255,255,255,0.85); color: var(--charcoal);
 }
 .field input::placeholder { color: var(--charcoal); opacity: .4; }
 .field input:focus {
   outline: none; background: #FFFFFF;
-  border-color: var(--orange); box-shadow: 0 0 0 3px rgba(232,132,60,0.18);
+  border-color: var(--orange); box-shadow: 0 0 0 3px rgba(241,133,31,0.18);
 }
 
 .login-card .btn-primary { width: 100%; justify-content: center; padding: 12px; font-size: 15px; margin-top: 6px; }
@@ -85,13 +87,13 @@ body.login-body {
   display: flex;
   align-items: center;
   gap: 8px;
-  background: rgba(11,46,79,0.55);
+  background: rgba(17,53,111,0.55);
   backdrop-filter: blur(14px) saturate(130%);
   -webkit-backdrop-filter: blur(14px) saturate(130%);
   border: 1px solid rgba(255,255,255,0.25);
   border-radius: 999px;
   padding: 6px 10px 6px 14px;
-  box-shadow: 0 10px 30px rgba(4,16,28,0.35);
+  box-shadow: 0 10px 30px rgba(6,13,26,0.35);
 }
 
 .demo-quick-login-label {
@@ -134,7 +136,7 @@ body.login-body {
 
 /* Principal is highlighted (it's the one fixed, permanent account); the two "P" chips
    (Principal / Parent) also differ in fill so they're not mistaken for each other. */
-.demo-chip--principal { background: rgba(232,132,60,0.85); border-color: rgba(232,132,60,0.9); }
+.demo-chip--principal { background: rgba(241,133,31,0.85); border-color: rgba(241,133,31,0.9); }
 .demo-chip--parent { background: rgba(255,255,255,0.22); }
 
 @media (max-width: 480px) {

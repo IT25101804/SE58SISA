@@ -1,4 +1,7 @@
 <aside th:fragment="sidebar(activeItem)" class="sidebar">
+  <a th:href="@{/dashboard}" class="sidebar-brand" aria-label="SISA home">
+    <img th:src="@{/images/sisa-logo.png}" alt="SISA — Learn · Grow · Build"/>
+  </a>
   <div class="nav-section-label">Overview</div>
   <a th:href="@{/dashboard}" class="nav-item" th:classappend="${activeItem == 'dashboard'} ? 'active'">
     <i class="bi bi-grid-1x2-fill"></i> Dashboard
