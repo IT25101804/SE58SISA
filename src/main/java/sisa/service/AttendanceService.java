@@ -78,8 +78,8 @@ public class AttendanceService {
     public Double todaysSchoolWidePercentage() {
         List<AttendanceRecord> today = attendanceRecordRepository.findByAttendanceDate(LocalDate.now());
         if (today.isEmpty()) return null;
-        long attended = today.stream().filter(r -> r.getStatus() != AttendanceStatus.ABSENT).count();
-        return attended * 100.0 / today.size();
+        long present = today.stream().filter(r -> r.getStatus() == AttendanceStatus.PRESENT).count();
+        return present * 100.0 / today.size();
     }
 
     @Transactional
@@ -174,7 +174,7 @@ public class AttendanceService {
         long present = records.stream().filter(r -> r.getStatus() == AttendanceStatus.PRESENT).count();
         long late = records.stream().filter(r -> r.getStatus() == AttendanceStatus.LATE).count();
         long absent = records.stream().filter(r -> r.getStatus() == AttendanceStatus.ABSENT).count();
-        Double percentage = total == 0 ? null : (present + late) * 100.0 / total;
+        Double percentage = total == 0 ? null : present * 100.0 / total;
         return new AttendanceSummary(total, present, late, absent, percentage);
     }
 
@@ -198,54 +198,32 @@ public class AttendanceService {
         return result;
     }
 
+    /** One class's attendance for one day: present = 1, absent = 0, late = 0. */
+    public record DaySummary(long total, long present, long absent, long late, Double percentage) {}
+
+    public DaySummary daySummary(String className, LocalDate date) {
+        List<AttendanceRecord> records = attendanceRecordRepository.findByClassNameAndAttendanceDate(className, date);
+        long present = records.stream().filter(r -> r.getStatus() == AttendanceStatus.PRESENT).count();
+        long absent = records.stream().filter(r -> r.getStatus() == AttendanceStatus.ABSENT).count();
+        long late = records.stream().filter(r -> r.getStatus() == AttendanceStatus.LATE).count();
+        Double percentage = records.isEmpty() ? null : present * 100.0 / records.size();
+        return new DaySummary(records.size(), present, absent, late, percentage);
+    }
+
+    /** Deletes a class's whole attendance for one day, so the Class Teacher can mark it again from scratch. */
     @Transactional
-    public void requestCorrection(String studentId, Long attendanceRecordId, AttendanceStatus requestedStatus, String reason) {
-        AttendanceRecord record = attendanceRecordRepository.findById(attendanceRecordId)
-                .orElseThrow(() -> new IllegalArgumentException("No such attendance record."));
-        if (!record.getStudent().getStudentId().equals(studentId)) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "That attendance record isn't yours to dispute.");
+    public int deleteDay(String className, LocalDate date, User actingUser) {
+        requireClassTeacherFor(className, actingUser);
+        List<AttendanceRecord> records = attendanceRecordRepository.findByClassNameAndAttendanceDate(className, date);
+        if (records.isEmpty()) {
+            throw new IllegalArgumentException("There is no attendance for " + className + " on " + date + " to delete.");
         }
-        AttendanceCorrectionRequest request = new AttendanceCorrectionRequest();
-        request.setAttendanceRecord(record);
-        request.setRequestedByStudentId(studentId);
-        request.setRequestedStatus(requestedStatus);
-        request.setReason(reason);
-        correctionRequestRepository.save(request);
-    }
-
-    public List<AttendanceCorrectionRequest> pendingCorrectionsFor(String classNameOrNull) {
-        return classNameOrNull == null
-                ? correctionRequestRepository.findByStatusOrderByRequestedAtDesc(CorrectionRequestStatus.PENDING)
-                : correctionRequestRepository.findByStatusAndAttendanceRecord_ClassNameOrderByRequestedAtDesc(
-                        CorrectionRequestStatus.PENDING, classNameOrNull);
-    }
-
-    public List<AttendanceCorrectionRequest> requestsByStudent(String studentId) {
-        return correctionRequestRepository.findByRequestedByStudentIdOrderByRequestedAtDesc(studentId);
-    }
-
-    @Transactional
-    public void reviewCorrection(Long requestId, boolean approve, String note, User reviewer) {
-        AttendanceCorrectionRequest request = correctionRequestRepository.findById(requestId)
-                .orElseThrow(() -> new IllegalArgumentException("No such correction request."));
-        AttendanceRecord record = request.getAttendanceRecord();
-        requireClassTeacherFor(record.getClassName(), reviewer);
-
-        request.setStatus(approve ? CorrectionRequestStatus.APPROVED : CorrectionRequestStatus.REJECTED);
-        request.setReviewedBy(reviewer.getUserId());
-        request.setReviewedAt(LocalDateTime.now());
-        request.setReviewNote(note);
-        correctionRequestRepository.save(request);
-
-        if (approve) {
-            AttendanceStatus old = record.getStatus();
-            record.setStatus(request.getRequestedStatus());
-            record.setLastEditedBy(reviewer.getUserId());
-            record.setLastEditedAt(LocalDateTime.now());
-            attendanceRecordRepository.save(record);
-            auditLogService.log(record.getStudent().getStudentId(), reviewer.getUserId(), "EDIT_ATTENDANCE",
-                    reviewer.getFullName() + " approved a correction for " + record.getAttendanceDate()
-                            + ": " + old + " -> " + request.getRequestedStatus());
-        }
+        List<Long> ids = records.stream().map(AttendanceRecord::getId).toList();
+        correctionRequestRepository.deleteAll(correctionRequestRepository.findByAttendanceRecord_IdIn(ids));
+        attendanceRecordRepository.deleteAll(records);
+        auditLogService.log(actingUser.getUserId(), actingUser.getUserId(), "DELETE_ATTENDANCE",
+                actingUser.getFullName() + " deleted the whole " + date + " attendance record for " + className
+                        + " (" + records.size() + " students)");
+        return records.size();
     }
 }

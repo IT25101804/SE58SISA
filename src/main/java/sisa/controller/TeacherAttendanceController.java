@@ -36,6 +36,7 @@ public class TeacherAttendanceController {
     @GetMapping
     public String view(@RequestParam(required = false) String className,
                        @RequestParam(required = false) String date,
+                       @RequestParam(defaultValue = "false") boolean edit,
                        Authentication authentication, Model model) {
         User user = currentUser(authentication);
         model.addAttribute("user", user);
@@ -79,9 +80,17 @@ public class TeacherAttendanceController {
             form.getEntries().add(entry);
         }
 
+        Map<String, String> statusByStudent = new java.util.HashMap<>();
+        onDate.forEach((studentId, record) -> statusByStudent.put(studentId, record.getStatus().name()));
+        boolean alreadyMarked = !onDate.isEmpty();
+
         model.addAttribute("roster", roster);
         model.addAttribute("form", form);
-        model.addAttribute("alreadyMarked", !onDate.isEmpty());
+        model.addAttribute("alreadyMarked", alreadyMarked);
+        // After submitting, the day is shown as a summary; "Edit" (or a day not marked yet) shows the tick boxes.
+        model.addAttribute("editing", canMark && (!alreadyMarked || edit));
+        model.addAttribute("statusByStudent", statusByStudent);
+        if (alreadyMarked) model.addAttribute("daySummary", attendanceService.daySummary(resolvedClassName, resolvedDate));
         return "teacher/attendance";
     }
 
@@ -94,6 +103,22 @@ public class TeacherAttendanceController {
         try {
             attendanceService.markOrUpdate(className, resolvedDate, form, user);
             redirectAttributes.addFlashAttribute("success", "Attendance saved for " + className + " on " + resolvedDate + ".");
+        } catch (ResponseStatusException rse) {
+            throw rse;
+        } catch (RuntimeException ex) {
+            redirectAttributes.addFlashAttribute("error", ex.getMessage());
+        }
+        return "redirect:/teacher/attendance?className=" + className + "&date=" + resolvedDate;
+    }
+
+    @PostMapping("/delete-day")
+    public String deleteDay(@RequestParam String className, @RequestParam String date,
+                            Authentication authentication, RedirectAttributes redirectAttributes) {
+        LocalDate resolvedDate = parseDateOrToday(date, LocalDate.now());
+        try {
+            int removed = attendanceService.deleteDay(className, resolvedDate, currentUser(authentication));
+            redirectAttributes.addFlashAttribute("success", "Deleted the " + resolvedDate + " attendance record for " + className
+                    + " (" + removed + " students). Please mark this day again.");
         } catch (ResponseStatusException rse) {
             throw rse;
         } catch (RuntimeException ex) {
@@ -121,41 +146,5 @@ public class TeacherAttendanceController {
         model.addAttribute("className", className);
         model.addAttribute("entries", attendanceService.oftenAbsent(className));
         return "teacher/attendance-often-absent";
-    }
-
-    @GetMapping("/corrections")
-    public String corrections(Authentication authentication, Model model) {
-        User user = currentUser(authentication);
-        model.addAttribute("user", user);
-        model.addAttribute("activeItem", "attendance");
-
-        String className = user.getRole() == Role.TEACHER ? attendanceService.requireTeacher(user).getAssignedClassName() : null;
-        model.addAttribute("canReview", user.getRole() == Role.TEACHER);
-        model.addAttribute("requests", attendanceService.pendingCorrectionsFor(className));
-        return "teacher/attendance-corrections";
-    }
-
-    @PostMapping("/corrections/{id}/approve")
-    public String approve(@PathVariable Long id, @RequestParam(required = false) String note,
-                          Authentication authentication, RedirectAttributes redirectAttributes) {
-        return review(id, true, note, authentication, redirectAttributes);
-    }
-
-    @PostMapping("/corrections/{id}/reject")
-    public String reject(@PathVariable Long id, @RequestParam(required = false) String note,
-                         Authentication authentication, RedirectAttributes redirectAttributes) {
-        return review(id, false, note, authentication, redirectAttributes);
-    }
-
-    private String review(Long id, boolean approve, String note, Authentication authentication, RedirectAttributes redirectAttributes) {
-        try {
-            attendanceService.reviewCorrection(id, approve, note, currentUser(authentication));
-            redirectAttributes.addFlashAttribute("success", approve ? "Correction approved." : "Correction rejected.");
-        } catch (ResponseStatusException rse) {
-            throw rse;
-        } catch (RuntimeException ex) {
-            redirectAttributes.addFlashAttribute("error", ex.getMessage());
-        }
-        return "redirect:/teacher/attendance/corrections";
     }
 }

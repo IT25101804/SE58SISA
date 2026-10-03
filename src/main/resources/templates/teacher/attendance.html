@@ -21,7 +21,6 @@
                 <p th:unless="${canMark}">Read-only &mdash; only the Class Teacher for this class can mark or edit attendance.</p>
             </div>
             <div style="display:flex; gap:10px;">
-                <a th:href="@{/teacher/attendance/corrections}" class="btn btn-outline"><i class="bi bi-flag-fill"></i> Correction Requests</a>
                 <a th:href="@{/teacher/attendance/often-absent}" class="btn btn-outline"><i class="bi bi-graph-down"></i> Often Absent</a>
             </div>
         </div>
@@ -54,17 +53,67 @@
             </div>
         </div>
 
-        <div class="card" th:if="${className != null and className != '' and not #lists.isEmpty(roster)}">
+        <!-- Summary of a submitted day (Edit re-opens the tick boxes; Delete removes the whole day). -->
+        <div class="card" th:if="${className != null and className != '' and not #lists.isEmpty(roster) and alreadyMarked and not editing}">
+            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:14px;">
+                <h3 style="margin:0;"><i class="bi bi-clipboard-check-fill"></i> Attendance for <span th:text="${date}">2026-10-03</span></h3>
+                <div th:if="${canMark}" style="display:flex; gap:8px;">
+                    <a th:href="@{/teacher/attendance(className=${className}, date=${date}, edit=true)}" class="btn btn-outline"><i class="bi bi-pencil-fill"></i> Edit</a>
+                    <form th:action="@{/teacher/attendance/delete-day}" method="post" style="margin:0;"
+                          th:data-confirm="|Delete the whole ${date} attendance record for ${className}? You will need to mark this day again.|">
+                        <input type="hidden" name="className" th:value="${className}"/>
+                        <input type="hidden" name="date" th:value="${date}"/>
+                        <button type="submit" class="btn btn-danger"><i class="bi bi-trash-fill"></i> Delete Record</button>
+                    </form>
+                </div>
+            </div>
+            <div class="grid grid-4" style="margin-bottom:18px;">
+                <div class="card stat-card">
+                    <div class="stat-icon tone-blue"><i class="bi bi-percent"></i></div>
+                    <div class="stat-value" th:text="${daySummary.percentage() != null} ? ${#numbers.formatDecimal(daySummary.percentage(),1,1)} + '%' : '—'">—</div>
+                    <div class="stat-label">Attendance (present only)</div>
+                </div>
+                <div class="card stat-card">
+                    <div class="stat-icon tone-green"><i class="bi bi-check-circle-fill"></i></div>
+                    <div class="stat-value" th:text="${daySummary.present()} + ' / ' + ${daySummary.total()}">0</div>
+                    <div class="stat-label">Present</div>
+                </div>
+                <div class="card stat-card">
+                    <div class="stat-icon" style="background:#FBE7E4; color:#B8412A;"><i class="bi bi-x-circle-fill"></i></div>
+                    <div class="stat-value" th:text="${daySummary.absent()}">0</div>
+                    <div class="stat-label">Absent</div>
+                </div>
+                <div class="card stat-card">
+                    <div class="stat-icon tone-amber"><i class="bi bi-clock-fill"></i></div>
+                    <div class="stat-value" th:text="${daySummary.late()}">0</div>
+                    <div class="stat-label">Late</div>
+                </div>
+            </div>
+            <table class="wsims-table">
+                <thead><tr><th></th><th>Name</th><th>Student ID</th><th>Status</th></tr></thead>
+                <tbody>
+                <tr th:each="student : ${roster}" th:with="st=${statusByStudent[student.studentId]}">
+                    <td><span class="avatar-initials" th:text="${#strings.substring(student.user.fullName,0,1)}">A</span></td>
+                    <td th:text="${student.user.fullName}">Student Name</td>
+                    <td><span class="id-badge" th:text="${student.studentId}">S2600001</span></td>
+                    <td><span class="status" th:classappend="${st != null} ? ${#strings.toLowerCase(st)} : 'read'"
+                              th:text="${st != null} ? ${#strings.capitalize(#strings.toLowerCase(st))} : 'Not marked'">Present</span></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Marking with three tick boxes: green = Present, red = Absent, orange = Late. -->
+        <div class="card" th:if="${className != null and className != '' and not #lists.isEmpty(roster) and editing}">
             <p th:if="${alreadyMarked}" style="font-size:13px; opacity:.7; margin-top:0;">
-                <i class="bi bi-check-circle-fill"></i> Attendance for <span th:text="${date}">2026-09-14</span> has already been
-                submitted for this class.
+                <i class="bi bi-pencil-square"></i> Editing the attendance already submitted for <span th:text="${date}">2026-09-14</span>.
             </p>
             <form th:action="@{/teacher/attendance/mark}" th:object="${form}" method="post">
                 <input type="hidden" name="className" th:value="${className}"/>
                 <input type="hidden" name="date" th:value="${date}"/>
                 <table class="wsims-table">
                     <thead>
-                    <tr><th></th><th>Name</th><th>Student ID</th><th>Status</th></tr>
+                    <tr><th></th><th>Name</th><th>Student ID</th><th>Present / Absent / Late</th></tr>
                     </thead>
                     <tbody>
                     <tr th:each="student, iStat : ${roster}">
@@ -73,20 +122,27 @@
                         <td><span class="id-badge" th:text="${student.studentId}">S2600001</span></td>
                         <td>
                             <input type="hidden" th:field="*{entries[__${iStat.index}__].studentId}"/>
-                            <select th:field="*{entries[__${iStat.index}__].status}" th:disabled="${!canMark}" style="width:auto; min-width:170px;">
-                                <option value="PRESENT">Present</option>
-                                <option value="ABSENT">Absent</option>
-                                <option value="LATE">Late</option>
-                                <option value="">&mdash; Not marked (clear) &mdash;</option>
-                            </select>
+                            <div class="att-choices">
+                                <label class="att-choice present"><input type="radio" th:field="*{entries[__${iStat.index}__].status}" value="PRESENT"/><span><i class="bi bi-check-lg"></i></span> Present</label>
+                                <label class="att-choice absent"><input type="radio" th:field="*{entries[__${iStat.index}__].status}" value="ABSENT"/><span><i class="bi bi-check-lg"></i></span> Absent</label>
+                                <label class="att-choice late"><input type="radio" th:field="*{entries[__${iStat.index}__].status}" value="LATE"/><span><i class="bi bi-check-lg"></i></span> Late</label>
+                            </div>
                         </td>
                     </tr>
                     </tbody>
                 </table>
-                <button type="submit" class="btn btn-primary" th:if="${canMark}" style="margin-top:16px;">
-                    <i class="bi bi-check2-square"></i> <span th:text="${alreadyMarked} ? 'Save Changes' : 'Submit Attendance'">Submit</span>
-                </button>
+                <div style="display:flex; gap:10px; margin-top:16px;">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-check2-square"></i> <span th:text="${alreadyMarked} ? 'Save Changes' : 'Submit Attendance'">Submit</span>
+                    </button>
+                    <a th:if="${alreadyMarked}" th:href="@{/teacher/attendance(className=${className}, date=${date})}" class="btn btn-outline">Cancel</a>
+                </div>
             </form>
+        </div>
+
+        <!-- Read-only view (e.g. the Principal) for a day nobody has marked yet. -->
+        <div class="card" th:if="${className != null and className != '' and not #lists.isEmpty(roster) and not alreadyMarked and not editing}">
+            <div class="empty-state"><i class="bi bi-inbox"></i> No attendance has been marked for <span th:text="${date}">this day</span> yet.</div>
         </div>
 
         <div class="card" th:if="${className != null and className != '' and #lists.isEmpty(roster)}">

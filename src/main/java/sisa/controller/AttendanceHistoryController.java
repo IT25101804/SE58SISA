@@ -1,20 +1,15 @@
 package sisa.controller;
 
-import sisa.entity.AttendanceStatus;
 import sisa.entity.Role;
 import sisa.entity.Student;
 import sisa.entity.User;
 import sisa.repository.StudentRepository;
 import sisa.repository.UserRepository;
 import sisa.service.AttendanceService;
-import sisa.service.dto.AttendanceCorrectionForm;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.List;
 
@@ -48,23 +43,7 @@ public class AttendanceHistoryController {
         }
         model.addAttribute("records", attendanceService.historyFor(user.getUserId()));
         model.addAttribute("summary", attendanceService.summaryFor(user.getUserId()));
-        model.addAttribute("correctionRequests", attendanceService.requestsByStudent(user.getUserId()));
-        model.addAttribute("correctionForm", new AttendanceCorrectionForm());
         return "student/attendance";
-    }
-
-    @PostMapping("/student/attendance/correction-request")
-    public String requestCorrection(@ModelAttribute AttendanceCorrectionForm form,
-                                    Authentication authentication, RedirectAttributes redirectAttributes) {
-        User user = currentUser(authentication);
-        try {
-            attendanceService.requestCorrection(user.getUserId(), form.getAttendanceRecordId(),
-                    AttendanceStatus.valueOf(form.getRequestedStatus()), form.getReason());
-            redirectAttributes.addFlashAttribute("success", "Correction request submitted for your teacher to review.");
-        } catch (RuntimeException ex) {
-            redirectAttributes.addFlashAttribute("error", ex.getMessage());
-        }
-        return "redirect:/student/attendance";
     }
 
     @GetMapping("/parent/child-attendance")

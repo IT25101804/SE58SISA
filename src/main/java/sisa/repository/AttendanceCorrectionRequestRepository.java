@@ -11,4 +11,5 @@ public interface AttendanceCorrectionRequestRepository extends JpaRepository<Att
     List<AttendanceCorrectionRequest> findByStatusAndAttendanceRecord_ClassNameOrderByRequestedAtDesc(
             CorrectionRequestStatus status, String className);
     List<AttendanceCorrectionRequest> findByRequestedByStudentIdOrderByRequestedAtDesc(String studentId);
+    List<AttendanceCorrectionRequest> findByAttendanceRecord_IdIn(java.util.Collection<Long> attendanceRecordIds);
 }

@@ -17,7 +17,7 @@
     <main class="content">
         <div class="page-head">
             <h1>My Attendance</h1>
-            <p>Your full history. Spot a mistake? Request a correction and your teacher will review it.</p>
+            <p>Your full history. Attendance % counts present days only (late and absent count as 0).</p>
         </div>
 
         <div th:if="${notice}" class="card"><div class="empty-state"><i class="bi bi-inbox"></i> <span th:text="${notice}">Notice</span></div></div>
@@ -45,7 +45,7 @@
         <div th:if="${records != null}" class="card" style="margin-bottom:18px;">
             <table class="wsims-table">
                 <thead>
-                <tr><th>Date</th><th>Status</th><th>Marked By</th><th>Last Edited</th><th>Request Correction</th></tr>
+                <tr><th>Date</th><th>Status</th><th>Marked By</th><th>Last Edited</th></tr>
                 </thead>
                 <tbody>
                 <tr th:each="r : ${records}">
@@ -53,40 +53,14 @@
                     <td><span class="status" th:classappend="${#strings.toLowerCase(r.status)}" th:text="${r.status}">STATUS</span></td>
                     <td th:text="${r.markedBy}">T2600001</td>
                     <td th:text="${r.lastEditedAt != null} ? ${r.lastEditedBy} : '—'">—</td>
-                    <td>
-                        <form th:action="@{/student/attendance/correction-request}" method="post" style="display:flex; gap:6px; align-items:center; flex-wrap:wrap;">
-                            <input type="hidden" name="attendanceRecordId" th:value="${r.id}"/>
-                            <select name="requestedStatus" style="width:auto; padding:6px;">
-                                <option value="PRESENT">Present</option>
-                                <option value="ABSENT">Absent</option>
-                                <option value="LATE">Late</option>
-                            </select>
-                            <input type="text" name="reason" placeholder="Reason" style="width:auto; padding:6px;"/>
-                            <button type="submit" class="btn btn-outline" style="padding:6px 12px; font-size:12.5px;"><i class="bi bi-flag-fill"></i> Request</button>
-                        </form>
-                    </td>
                 </tr>
                 <tr th:if="${#lists.isEmpty(records)}">
-                    <td colspan="5"><div class="empty-state"><i class="bi bi-inbox"></i> No attendance recorded yet.</div></td>
+                    <td colspan="4"><div class="empty-state"><i class="bi bi-inbox"></i> No attendance recorded yet.</div></td>
                 </tr>
                 </tbody>
             </table>
         </div>
 
-        <div th:if="${correctionRequests != null and not #lists.isEmpty(correctionRequests)}" class="card">
-            <h3><i class="bi bi-flag-fill"></i> My Correction Requests</h3>
-            <table class="wsims-table">
-                <thead><tr><th>Date</th><th>Requested</th><th>Reason</th><th>Status</th></tr></thead>
-                <tbody>
-                <tr th:each="cr : ${correctionRequests}">
-                    <td th:text="${cr.attendanceRecord.attendanceDate}">2026-01-01</td>
-                    <td><span class="status" th:classappend="${#strings.toLowerCase(cr.requestedStatus)}" th:text="${cr.requestedStatus}">STATUS</span></td>
-                    <td th:text="${cr.reason}">Reason</td>
-                    <td><span class="status" th:classappend="${#strings.toLowerCase(cr.status)}" th:text="${cr.status}">STATUS</span></td>
-                </tr>
-                </tbody>
-            </table>
-        </div>
     </main>
 </div>
 <script th:src="@{/js/main.js}"></script>
