@@ -82,12 +82,7 @@ public class AccountDeletionService {
                 studentRepository.findById(userId).ifPresent(studentRepository::delete);
             }
             case TEACHER -> {
-                if (examRepository.existsByCreatedBy_TeacherId(userId)
-                        || assignmentRepository.existsByTeacher_TeacherId(userId)
-                        || timetableSlotRepository.existsByTeacher_TeacherId(userId)) {
-                    throw new IllegalStateException("Teacher " + userId + " has exams, assignments or timetable slots "
-                            + "on record, so the account can only stay disabled.");
-                }
+                assertTeacherHasNoRecords(userId, "so the account can only stay disabled.");
                 teacherRepository.findById(userId).ifPresent(teacherRepository::delete);
             }
             case PARENT -> {
@@ -122,6 +117,33 @@ public class AccountDeletionService {
         auditLogService.log(studentId, actingUser.getUserId(), "DELETE_STUDENT",
                 actingUser.getFullName() + " permanently deleted student " + studentId
                         + " (" + user.getFullName() + ") — registered in error");
+    }
+
+    @Transactional
+    public void deleteTeacher(String teacherId, User actingUser) {
+        if (actingUser.getRole() != Role.REGISTRAR && actingUser.getRole() != Role.PRINCIPAL) {
+            throw new IllegalStateException("Only the Registrar or Principal can delete teacher accounts.");
+        }
+        Teacher teacher = teacherRepository.findById(teacherId)
+                .orElseThrow(() -> new IllegalArgumentException("No such teacher: " + teacherId));
+        assertTeacherHasNoRecords(teacherId,
+                "so it can't be deleted. Remove their timetable periods, exams and assignments first, or ask the Principal to disable the account.");
+
+        User user = teacher.getUser();
+        teacherRepository.delete(teacher);
+        removeUserAndPersonalData(user);
+        auditLogService.log(teacherId, actingUser.getUserId(), "DELETE_ACCOUNT",
+                actingUser.getFullName() + " permanently deleted TEACHER account " + teacherId
+                        + " (" + user.getFullName() + ")");
+    }
+
+    private void assertTeacherHasNoRecords(String teacherId, String consequence) {
+        if (examRepository.existsByCreatedBy_TeacherId(teacherId)
+                || assignmentRepository.existsByTeacher_TeacherId(teacherId)
+                || timetableSlotRepository.existsByTeacher_TeacherId(teacherId)) {
+            throw new IllegalStateException("Teacher " + teacherId + " has exams, assignments or timetable slots "
+                    + "on record, " + consequence);
+        }
     }
 
     private void assertStudentHasNoRecords(String studentId) {

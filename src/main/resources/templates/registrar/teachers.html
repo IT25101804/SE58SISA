@@ -23,6 +23,9 @@
             <a th:if="${user.role.name() == 'REGISTRAR'}" th:href="@{/registrar/teachers/new}" class="btn btn-primary"><i class="bi bi-person-plus-fill"></i> New Teacher</a>
         </div>
 
+        <div th:if="${success}" class="alert success"><i class="bi bi-check-circle-fill"></i> <span th:text="${success}">Done</span></div>
+        <div th:if="${error}" class="alert error"><i class="bi bi-exclamation-circle-fill"></i> <span th:text="${error}">Error</span></div>
+
         <div class="card">
             <table class="wsims-table" th:if="${not #lists.isEmpty(teachers)}">
                 <thead><tr><th>ID</th><th>Name</th><th>Subject Specialty</th><th>Class Teacher Of</th><th>Login</th><th></th></tr></thead>
@@ -33,7 +36,17 @@
                     <td th:text="${t.subjectSpecialty} ?: '—'">Subject</td>
                     <td th:text="${t.classTeacher and t.assignedClassName != null} ? ${t.assignedClassName} : '—'">Class</td>
                     <td><span class="status" th:classappend="${#strings.toLowerCase(t.user.status)}" th:text="${t.user.status}">STATUS</span></td>
-                    <td><a th:href="@{/registrar/teachers/{id}(id=${t.teacherId})}" class="btn btn-outline" style="padding:5px 10px; font-size:12px;"><i class="bi bi-pencil-fill"></i> Assign</a></td>
+                    <td>
+                        <div style="display:flex; gap:8px; justify-content:flex-end;">
+                            <a th:href="@{/registrar/teachers/{id}(id=${t.teacherId})}" class="btn btn-outline" style="padding:5px 10px; font-size:12px;"><i class="bi bi-pencil-fill"></i> Assign</a>
+                            <form th:action="@{/registrar/teachers/{id}/delete(id=${t.teacherId})}" method="post" style="margin:0;" class="confirm-delete"
+                                  th:data-confirm="|Permanently delete teacher ${t.teacherId} (${t.user.fullName})? This cannot be undone.|">
+                                <button type="submit" class="btn btn-danger" style="padding:5px 10px; font-size:12px;">
+                                    <i class="bi bi-trash-fill"></i> Delete
+                                </button>
+                            </form>
+                        </div>
+                    </td>
                 </tr>
                 </tbody>
             </table>
@@ -44,5 +57,12 @@
     </main>
 </div>
 <script th:src="@{/js/main.js}"></script>
+<script>
+    document.querySelectorAll('form.confirm-delete').forEach(function (form) {
+        form.addEventListener('submit', function (e) {
+            if (!confirm(form.dataset.confirm || 'Permanently delete this teacher?')) e.preventDefault();
+        });
+    });
+</script>
 </body>
 </html>

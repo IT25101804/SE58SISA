@@ -5,6 +5,7 @@ import sisa.entity.User;
 import sisa.repository.StudentRepository;
 import sisa.repository.UserRepository;
 import sisa.service.AccountAdminService;
+import sisa.service.AccountDeletionService;
 import sisa.service.TeacherManagementService;
 import sisa.service.dto.CreateAccountRequest;
 import sisa.service.dto.TeacherAssignmentRequest;
@@ -22,14 +23,17 @@ public class RegistrarTeacherController {
     private final StudentRepository studentRepository;
     private final AccountAdminService accountAdminService;
     private final TeacherManagementService teacherManagementService;
+    private final AccountDeletionService accountDeletionService;
 
     public RegistrarTeacherController(UserRepository userRepository, StudentRepository studentRepository,
                                       AccountAdminService accountAdminService,
-                                      TeacherManagementService teacherManagementService) {
+                                      TeacherManagementService teacherManagementService,
+                                      AccountDeletionService accountDeletionService) {
         this.userRepository = userRepository;
         this.studentRepository = studentRepository;
         this.accountAdminService = accountAdminService;
         this.teacherManagementService = teacherManagementService;
+        this.accountDeletionService = accountDeletionService;
     }
 
     private User currentUser(Authentication authentication) {
@@ -42,6 +46,17 @@ public class RegistrarTeacherController {
         model.addAttribute("activeItem", "access");
         model.addAttribute("teachers", teacherManagementService.listAll());
         return "registrar/teachers";
+    }
+
+    @PostMapping("/{id}/delete")
+    public String delete(@PathVariable String id, Authentication authentication, RedirectAttributes redirectAttributes) {
+        try {
+            accountDeletionService.deleteTeacher(id, currentUser(authentication));
+            redirectAttributes.addFlashAttribute("success", "Teacher account " + id + " was deleted.");
+        } catch (IllegalStateException | IllegalArgumentException ex) {
+            redirectAttributes.addFlashAttribute("error", ex.getMessage());
+        }
+        return "redirect:/registrar/teachers";
     }
 
     @GetMapping("/new")
