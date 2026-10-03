@@ -18,11 +18,10 @@
         <div class="page-head" style="display:flex; align-items:flex-end; justify-content:space-between; flex-wrap:wrap; gap:12px;">
             <div>
                 <h1>Messages</h1>
-                <p>Direct conversations with teachers, students and parents.</p>
+                <p>Earlier conversations. To write to someone, use New Message in your Inbox.</p>
             </div>
             <div style="display:flex; gap:10px;">
                 <a th:href="@{/inbox}" class="btn btn-outline"><i class="bi bi-inbox-fill"></i> Inbox</a>
-                <a th:href="@{/messages/new}" class="btn btn-primary"><i class="bi bi-plus-circle-fill"></i> New Message</a>
             </div>
         </div>
 
@@ -40,7 +39,16 @@
                     </td>
                     <td th:text="${t.lastMessage().body}">Message preview</td>
                     <td th:text="${t.lastMessage().sentAt}">2026-01-01</td>
-                    <td><a th:href="@{/messages/{id}(id=${t.partnerUserId()})}" class="btn btn-outline" style="padding:6px 12px; font-size:12.5px;"><i class="bi bi-chat-dots-fill"></i> Open</a></td>
+                    <td>
+                        <div style="display:flex; gap:6px; justify-content:flex-end;">
+                        <a th:href="@{/messages/{id}(id=${t.partnerUserId()})}" class="btn btn-outline" style="padding:6px 12px; font-size:12.5px;"><i class="bi bi-chat-dots-fill"></i> Open</a>
+                        <form th:action="@{/messages/{id}/delete(id=${t.partnerUserId()})}" method="post" style="margin:0;"
+                              data-confirm="Delete this whole conversation? It will be removed for both of you. This cannot be undone.">
+                            <input type="hidden" name="back" value="/messages"/>
+                            <button type="submit" class="btn btn-danger" style="padding:4px 10px; font-size:12px;"><i class="bi bi-trash-fill"></i> Delete</button>
+                        </form>
+                        </div>
+                    </td>
                 </tr>
                 <tr th:if="${#lists.isEmpty(threads)}">
                     <td colspan="5"><div class="empty-state"><i class="bi bi-inbox"></i> No conversations yet.</div></td>

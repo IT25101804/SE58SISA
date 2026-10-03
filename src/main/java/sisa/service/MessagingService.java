@@ -87,4 +87,14 @@ public class MessagingService {
     public long unreadMessageCount(String userId) {
         return messageRepository.countByToUserIdAndReadFalse(userId);
     }
+
+    /** Deletes a whole conversation between two people (it is shared, so it goes for both of them). Returns how many messages. */
+    @Transactional
+    public int deleteConversation(String userId, String partnerId) {
+        List<Message> conversation = messageRepository.findAllInvolving(userId).stream()
+                .filter(m -> m.getFromUserId().equals(partnerId) || m.getToUserId().equals(partnerId))
+                .toList();
+        messageRepository.deleteAll(conversation);
+        return conversation.size();
+    }
 }

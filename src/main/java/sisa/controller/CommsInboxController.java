@@ -104,14 +104,25 @@ public class CommsInboxController {
         return "comms/messages";
     }
 
+    /** Everyone writes through the one "New Message" page for their role now. */
     @GetMapping("/messages/new")
-    public String newThreadForm(Authentication authentication, Model model) {
-        User user = currentUser(authentication);
-        model.addAttribute("user", user);
-        model.addAttribute("activeItem", "comm");
-        addTeacherOptions(user, model);
-        model.addAttribute("form", new MessageForm());
-        return "comms/message-new";
+    public String newThreadForm(Authentication authentication) {
+        return switch (currentUser(authentication).getRole()) {
+            case PRINCIPAL -> "redirect:/principal/comms/new";
+            case REGISTRAR -> "redirect:/registrar/comms/new";
+            case TEACHER -> "redirect:/teacher/comms/new";
+            default -> "redirect:/comms/new";
+        };
+    }
+
+    /** Delete a whole conversation (shared by both people) from the Inbox or the Messages list. */
+    @PostMapping("/messages/{partnerId}/delete")
+    public String deleteConversation(@PathVariable String partnerId,
+                                     @RequestParam(defaultValue = "/inbox") String back,
+                                     Authentication authentication, RedirectAttributes redirectAttributes) {
+        int removed = messagingService.deleteConversation(currentUser(authentication).getUserId(), partnerId);
+        redirectAttributes.addFlashAttribute("success", removed > 0 ? "Conversation deleted." : "That conversation was already empty.");
+        return "/messages".equals(back) ? "redirect:/messages" : "redirect:/inbox";
     }
 
     @PostMapping("/messages/new")
