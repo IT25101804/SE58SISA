@@ -72,6 +72,7 @@ public class PrincipalCommsController {
         model.addAttribute("allTeachers", announcementService.activeTeachers());
         model.addAttribute("canSchedule", true);
         try {
+            form.setCategory("MESSAGE"); // these forms only send messages, there is no category to choose
             int reached = announcementService.create(form, user);
             model.addAttribute("success", "Sent to " + reached + " recipient(s).");
             model.addAttribute("form", new AnnouncementForm());

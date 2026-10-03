@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>New Announcement · WSIMS</title>
+    <title>New Message · WSIMS</title>
     <link rel="icon" type="image/svg+xml" th:href="@{/images/logo.svg}"/>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"/>
     <link rel="stylesheet" th:href="@{/css/styles.css}"/>
@@ -16,7 +16,7 @@
 
     <main class="content">
         <div class="page-head">
-            <h1>New Announcement</h1>
+            <h1>New Message</h1>
             <p>Post to the whole school, one class, every teacher or just one, one student, or one student's guardians &mdash; optionally scheduled for later.</p>
         </div>
 
@@ -25,14 +25,6 @@
 
         <div class="card" style="max-width:560px;">
             <form th:action="@{/principal/comms/new}" th:object="${form}" method="post">
-                <div class="field">
-                    <label for="category">Category</label>
-                    <select id="category" th:field="*{category}">
-                        <option value="ANNOUNCEMENT">Announcement</option>
-                        <option value="ALERT">Emergency Alert</option>
-                        <option value="REMINDER">Reminder</option>
-                    </select>
-                </div>
                 <div class="field"><label for="subject">Subject</label><input id="subject" type="text" th:field="*{subject}" required/></div>
                 <div class="field"><label for="body">Message</label><textarea id="body" th:field="*{body}" rows="4" required></textarea></div>
                 <div class="field">
