@@ -30,10 +30,22 @@
         <div th:if="${error}" class="alert error"><i class="bi bi-exclamation-circle-fill"></i> <span th:text="${error}">Error</span></div>
 
         <div class="card" style="margin-bottom:18px;">
-            <div style="display:flex; gap:8px; flex-wrap:wrap;">
-                <a th:href="@{/principal/accounts}" class="btn" th:classappend="${selectedRole == null} ? 'btn-primary' : 'btn-outline'">All</a>
-                <a th:each="r : ${roles}" th:href="@{/principal/accounts(role=${r})}"
-                   class="btn" th:classappend="${selectedRole == r.name()} ? 'btn-primary' : 'btn-outline'" th:text="${r}">ROLE</a>
+            <div style="display:flex; gap:12px; flex-wrap:wrap; align-items:center; justify-content:space-between;">
+                <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                    <a th:href="@{/principal/accounts(q=${q})}" class="btn" th:classappend="${selectedRole == null} ? 'btn-primary' : 'btn-outline'">All</a>
+                    <a th:each="r : ${roles}" th:href="@{/principal/accounts(role=${r}, q=${q})}"
+                       class="btn" th:classappend="${selectedRole == r.name()} ? 'btn-primary' : 'btn-outline'" th:text="${r}">ROLE</a>
+                </div>
+                <form th:action="@{/principal/accounts}" method="get" role="search" style="display:flex; gap:8px; margin:0; flex:1 1 280px; max-width:420px;">
+                    <input th:if="${selectedRole != null}" type="hidden" name="role" th:value="${selectedRole}"/>
+                    <div style="position:relative; flex:1;">
+                        <i class="bi bi-search" style="position:absolute; left:12px; top:50%; transform:translateY(-50%); color:var(--navy); opacity:.5;"></i>
+                        <input type="search" name="q" th:value="${q}" placeholder="Search by ID, name, username or email" aria-label="Search accounts"
+                               style="width:100%; padding:10px 12px 10px 36px; border-radius:var(--radius-sm); border:1.5px solid var(--azure); font-family:inherit; font-size:14px; background:var(--white); color:var(--charcoal);"/>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Search</button>
+                    <a th:if="${q != ''}" th:href="@{/principal/accounts(role=${selectedRole})}" class="btn btn-outline" title="Clear search">Clear</a>
+                </form>
             </div>
         </div>
 
@@ -75,7 +87,7 @@
                 </tr>
                 <tr th:if="${#lists.isEmpty(accounts)}">
                     <td colspan="7">
-                        <div class="empty-state"><i class="bi bi-inbox"></i> No accounts in this view yet.</div>
+                        <div class="empty-state"><i class="bi bi-inbox"></i> <span th:text="${q != ''} ? 'No accounts match: ' + ${q} : 'No accounts in this view yet.'">No accounts in this view yet.</span></div>
                     </td>
                 </tr>
                 </tbody>

@@ -40,8 +40,13 @@ public class PrincipalAccessController {
         return userRepository.findByUsername(authentication.getName()).orElseThrow();
     }
 
+    private static boolean contains(String value, String search) {
+        return value != null && value.toLowerCase().contains(search);
+    }
+
     @GetMapping("/accounts")
     public String accounts(@RequestParam(required = false) String role,
+                           @RequestParam(required = false) String q,
                            Authentication authentication, Model model) {
         model.addAttribute("user", currentUser(authentication));
         model.addAttribute("activeItem", "access");
@@ -50,7 +55,17 @@ public class PrincipalAccessController {
                 ? accountAdminService.listAll()
                 : userRepository.findByRole(Role.valueOf(role.toUpperCase()));
 
+        // Search by ID, name, username or email (case-insensitive), on top of the role filter.
+        String search = q == null ? "" : q.trim().toLowerCase();
+        if (!search.isEmpty()) {
+            accounts = accounts.stream()
+                    .filter(a -> contains(a.getUserId(), search) || contains(a.getFullName(), search)
+                            || contains(a.getUsername(), search) || contains(a.getEmail(), search))
+                    .toList();
+        }
+
         model.addAttribute("accounts", accounts);
+        model.addAttribute("q", q == null ? "" : q.trim());
         model.addAttribute("selectedRole", role);
         model.addAttribute("roles", Role.values());
         return "principal/accounts";
