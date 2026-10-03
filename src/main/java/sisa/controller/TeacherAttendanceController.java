@@ -108,7 +108,9 @@ public class TeacherAttendanceController {
         } catch (RuntimeException ex) {
             redirectAttributes.addFlashAttribute("error", ex.getMessage());
         }
-        return "redirect:/teacher/attendance?className=" + className + "&date=" + resolvedDate;
+        redirectAttributes.addAttribute("className", className);
+        redirectAttributes.addAttribute("date", resolvedDate.toString());
+        return "redirect:/teacher/attendance";
     }
 
     @PostMapping("/delete-day")
@@ -124,7 +126,9 @@ public class TeacherAttendanceController {
         } catch (RuntimeException ex) {
             redirectAttributes.addFlashAttribute("error", ex.getMessage());
         }
-        return "redirect:/teacher/attendance?className=" + className + "&date=" + resolvedDate;
+        redirectAttributes.addAttribute("className", className);
+        redirectAttributes.addAttribute("date", resolvedDate.toString());
+        return "redirect:/teacher/attendance";
     }
 
     private LocalDate parseDateOrToday(String raw, LocalDate fallback) {

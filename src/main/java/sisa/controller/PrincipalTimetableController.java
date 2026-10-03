@@ -95,10 +95,13 @@ public class PrincipalTimetableController {
         } catch (RuntimeException ex) {
             redirectAttributes.addFlashAttribute("error", ex.getMessage());
             if (form.getSlotId() != null) {
-                return "redirect:/principal/timetable?className=" + form.getClassName() + "&edit=" + form.getSlotId();
+                redirectAttributes.addAttribute("className", form.getClassName());
+                redirectAttributes.addAttribute("edit", form.getSlotId());
+                return "redirect:/principal/timetable";
             }
         }
-        return "redirect:/principal/timetable?className=" + form.getClassName();
+        redirectAttributes.addAttribute("className", form.getClassName());
+        return "redirect:/principal/timetable";
     }
 
     @PostMapping("/slot/{id}/delete")
@@ -106,7 +109,8 @@ public class PrincipalTimetableController {
 
         timetableService.deleteSlot(id);
         redirectAttributes.addFlashAttribute("success", "Slot removed.");
-        return "redirect:/principal/timetable?className=" + className;
+        redirectAttributes.addAttribute("className", className);
+        return "redirect:/principal/timetable";
     }
 
     static java.util.List<Integer> periodRange() {
