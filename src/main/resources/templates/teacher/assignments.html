@@ -26,6 +26,9 @@
             </div>
         </div>
 
+        <div th:if="${success}" class="alert success"><i class="bi bi-check-circle-fill"></i> <span th:text="${success}">Done</span></div>
+        <div th:if="${error}" class="alert error"><i class="bi bi-exclamation-circle-fill"></i> <span th:text="${error}">Error</span></div>
+
         <div class="card">
             <table class="wsims-table">
                 <thead>
@@ -39,7 +42,16 @@
                     <td th:text="${a.dueDate}">2026-01-01</td>
                     <td><span class="status" th:classappend="${a.submissionsClosed} ? 'disabled' : 'active'"
                               th:text="${a.submissionsClosed} ? 'Closed' : 'Open'">Open</span></td>
-                    <td><a th:href="@{/teacher/assignments/{id}(id=${a.id})}" class="btn btn-outline" style="padding:6px 12px; font-size:12.5px;"><i class="bi bi-eye-fill"></i> View</a></td>
+                    <td>
+                        <div style="display:flex; gap:6px; flex-wrap:wrap;">
+                            <a th:href="@{/teacher/assignments/{id}(id=${a.id})}" class="btn btn-outline" style="padding:6px 12px; font-size:12.5px;"><i class="bi bi-eye-fill"></i> View</a>
+                            <a th:href="@{/teacher/assignments/{id}/edit(id=${a.id})}" class="btn btn-outline" style="padding:6px 12px; font-size:12.5px;"><i class="bi bi-pencil-square"></i> Edit</a>
+                            <form th:action="@{/teacher/assignments/{id}/delete(id=${a.id})}" method="post" style="margin:0;"
+                                  th:attr="data-confirm=${'Delete this assignment? Any student submissions for it will be removed too.'}">
+                                <button type="submit" class="btn btn-outline" style="padding:6px 12px; font-size:12.5px;"><i class="bi bi-trash"></i> Delete</button>
+                            </form>
+                        </div>
+                    </td>
                 </tr>
                 <tr th:if="${#lists.isEmpty(assignments)}">
                     <td colspan="6"><div class="empty-state"><i class="bi bi-inbox"></i> No assignments posted yet.</div></td>

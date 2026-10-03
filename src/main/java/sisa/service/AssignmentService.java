@@ -41,6 +41,28 @@ public class AssignmentService {
         return assignmentRepository.save(assignment);
     }
 
+    @Transactional
+    public Assignment update(Long assignmentId, AssignmentForm form, Teacher actingTeacher) {
+        Assignment assignment = requireOwnedBy(assignmentId, actingTeacher);
+        assignment.setClassName(form.getClassName());
+        assignment.setTitle(form.getTitle());
+        assignment.setDescription(form.getDescription());
+        assignment.setMaterialUrl(form.getMaterialUrl());
+        assignment.setDueDate(LocalDate.parse(form.getDueDate()));
+        return assignmentRepository.save(assignment);
+    }
+
+    @Transactional
+    public void delete(Long assignmentId, Teacher actingTeacher) {
+        Assignment assignment = requireOwnedBy(assignmentId, actingTeacher);
+        submissionRepository.deleteAll(submissionRepository.findByAssignment_IdOrderByStudent_User_FullNameAsc(assignmentId));
+        assignmentRepository.delete(assignment);
+    }
+
+    public Assignment getOwned(Long assignmentId, Teacher teacher) {
+        return requireOwnedBy(assignmentId, teacher);
+    }
+
     public List<Assignment> listForTeacher(String teacherId) {
         return assignmentRepository.findByTeacher_TeacherIdOrderByDueDateDesc(teacherId);
     }

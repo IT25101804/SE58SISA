@@ -82,10 +82,13 @@ public class TeacherAssignmentController {
         User user = currentUser(authentication);
         model.addAttribute("user", user);
         model.addAttribute("activeItem", "timetable");
-        model.addAttribute("form", new AssignmentForm());
+        AssignmentForm form = new AssignmentForm();
+        model.addAttribute("form", form);
         List<String> classNames = List.of();
         try {
-            classNames = myClassNames(attendanceService.requireTeacher(user));
+            Teacher teacher = attendanceService.requireTeacher(user);
+            classNames = myClassNames(teacher);
+            form.setSubject(teacher.getSubjectSpecialty());
         } catch (RuntimeException ignored) {
 
         }
@@ -101,6 +104,10 @@ public class TeacherAssignmentController {
         Teacher teacher = null;
         try {
             teacher = attendanceService.requireTeacher(user);
+            if (teacher.getSubjectSpecialty() == null || teacher.getSubjectSpecialty().isBlank()) {
+                throw new IllegalArgumentException("You don't have a subject assigned yet — ask the Registrar to set your subject specialty.");
+            }
+            form.setSubject(teacher.getSubjectSpecialty());
             Assignment created = assignmentService.create(form, teacher);
             return "redirect:/teacher/assignments/" + created.getId();
         } catch (RuntimeException ex) {
@@ -109,6 +116,71 @@ public class TeacherAssignmentController {
             model.addAttribute("classNames", teacher != null ? myClassNames(teacher) : List.of());
             return "teacher/assignment-new";
         }
+    }
+
+    @GetMapping("/teacher/assignments/{id}/edit")
+    public String editForm(@PathVariable Long id, Authentication authentication, Model model) {
+        User user = currentUser(authentication);
+        model.addAttribute("user", user);
+        model.addAttribute("activeItem", "timetable");
+        Teacher teacher = attendanceService.requireTeacher(user);
+        Assignment assignment = assignmentService.getOwned(id, teacher);
+
+        AssignmentForm form = new AssignmentForm();
+        form.setClassName(assignment.getClassName());
+        form.setSubject(assignment.getSubject());
+        form.setTitle(assignment.getTitle());
+        form.setDescription(assignment.getDescription());
+        form.setMaterialUrl(assignment.getMaterialUrl());
+        form.setDueDate(assignment.getDueDate().toString());
+        model.addAttribute("form", form);
+        model.addAttribute("editId", id);
+        model.addAttribute("classNames", classOptions(teacher, assignment.getClassName()));
+        return "teacher/assignment-new";
+    }
+
+    @PostMapping("/teacher/assignments/{id}/edit")
+    public String update(@PathVariable Long id, @ModelAttribute("form") AssignmentForm form,
+                         Authentication authentication, Model model, RedirectAttributes redirectAttributes) {
+        User user = currentUser(authentication);
+        Teacher teacher = attendanceService.requireTeacher(user);
+        Assignment assignment = assignmentService.getOwned(id, teacher);
+        try {
+            if (!classOptions(teacher, assignment.getClassName()).contains(form.getClassName())) {
+                throw new IllegalArgumentException("Choose one of your classes.");
+            }
+            assignmentService.update(id, form, teacher);
+            redirectAttributes.addFlashAttribute("success", "Assignment \"" + form.getTitle() + "\" updated.");
+            return "redirect:/teacher/assignments";
+        } catch (ResponseStatusException rse) {
+            throw rse;
+        } catch (RuntimeException ex) {
+            model.addAttribute("user", user);
+            model.addAttribute("activeItem", "timetable");
+            model.addAttribute("error", ex.getMessage());
+            form.setSubject(assignment.getSubject());
+            model.addAttribute("form", form);
+            model.addAttribute("editId", id);
+            model.addAttribute("classNames", classOptions(teacher, assignment.getClassName()));
+            return "teacher/assignment-new";
+        }
+    }
+
+    @PostMapping("/teacher/assignments/{id}/delete")
+    public String delete(@PathVariable Long id, Authentication authentication, RedirectAttributes redirectAttributes) {
+        Teacher teacher = attendanceService.requireTeacher(currentUser(authentication));
+        Assignment assignment = assignmentService.getOwned(id, teacher);
+        assignmentService.delete(id, teacher);
+        redirectAttributes.addFlashAttribute("success", "Assignment \"" + assignment.getTitle() + "\" deleted.");
+        return "redirect:/teacher/assignments";
+    }
+
+    private List<String> classOptions(Teacher teacher, String currentClassName) {
+        List<String> names = myClassNames(teacher);
+        if (currentClassName != null && !names.contains(currentClassName)) {
+            names.add(0, currentClassName);
+        }
+        return names;
     }
 
     @GetMapping("/teacher/assignments/{id}")
