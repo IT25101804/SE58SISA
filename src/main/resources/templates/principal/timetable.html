@@ -78,9 +78,6 @@
             <div class="card" style="max-width:520px;">
                 <h3 th:if="${form.slotId == null}"><i class="bi bi-plus-circle-fill"></i> Add a Slot</h3>
                 <h3 th:if="${form.slotId != null}"><i class="bi bi-pencil-square"></i> Edit Slot</h3>
-                <p style="font-size:12.5px; opacity:.65; margin-top:-6px;">A day+period that's already filled can't be added again &mdash; use
-                    Edit or Delete on that slot. Only teachers whose subject specialty matches the chosen subject are listed,
-                    and a teacher already booked elsewhere at that day+period is rejected.</p>
                 <form th:action="@{/principal/timetable/slot}" th:object="${form}" method="post">
                     <input type="hidden" name="className" th:value="${className}"/>
                     <input type="hidden" th:field="*{slotId}"/>
