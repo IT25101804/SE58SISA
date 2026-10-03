@@ -36,6 +36,12 @@ public class UserAccountFactory {
         this.passwordEncoder = passwordEncoder;
     }
 
+    public static final String EMAIL_DOMAIN = "my.sisa.lk";
+
+    public static String emailFor(String userId) {
+        return userId + "@" + EMAIL_DOMAIN;
+    }
+
     @Transactional
     public User createFor(Role role, CreateAccountRequest req) {
         String userId = switch (role) {
@@ -51,7 +57,7 @@ public class UserAccountFactory {
         user.setUsername(userId);
         user.setPassword(passwordEncoder.encode(req.getRawPassword()));
         user.setFullName(req.getFullName());
-        user.setEmail(req.getEmail());
+        user.setEmail(emailFor(userId));
         user.setRole(role);
         user.setDeletable(true);
         user.setStatus(role == Role.REGISTRAR ? AccountStatus.APPROVED : AccountStatus.PENDING);

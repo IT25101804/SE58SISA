@@ -216,7 +216,7 @@ public class DataSeeder implements CommandLineRunner {
         principal.setUsername("principal");
         principal.setPassword(passwordEncoder.encode("Principal@123"));
         principal.setFullName("Dr. Madhawa Gunasekara");
-        principal.setEmail("principal@sisa.edu");
+        principal.setEmail(sisa.service.UserAccountFactory.emailFor("PRINCIPAL"));
         principal.setRole(Role.PRINCIPAL);
         principal.setStatus(AccountStatus.APPROVED);
         principal.setDeletable(false);

@@ -33,10 +33,7 @@
                     <label for="fullName">Full Name</label>
                     <input id="fullName" type="text" th:field="*{fullName}" required/>
                 </div>
-                <div class="field">
-                    <label for="email">Email</label>
-                    <input id="email" type="email" th:field="*{email}" required/>
-                </div>
+                <p style="font-size:12.5px; opacity:.65; margin:-6px 0 16px;"><i class="bi bi-envelope-fill"></i> Email is created automatically as <strong>[ID]@my.sisa.lk</strong>.</p>
                 <div class="field">
                     <label for="rawPassword">Temporary Password</label>
                     <input id="rawPassword" type="password" th:field="*{rawPassword}" required minlength="8"/>
