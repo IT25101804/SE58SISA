@@ -76,7 +76,15 @@
                     booked elsewhere at that day+period is rejected with a conflict message.</p>
                 <form th:action="@{/principal/timetable/slot}" th:object="${form}" method="post">
                     <input type="hidden" name="className" th:value="${className}"/>
-                    <div class="field"><label for="subject">Subject</label><input id="subject" type="text" th:field="*{subject}" required/></div>
+                    <div class="field">
+                        <label for="subject">Subject</label>
+                        <select id="subject" th:field="*{subject}" required>
+                            <option value="">— Choose a subject —</option>
+                            <option th:each="s : ${subjects}" th:value="${s.name}"
+                                    th:text="${s.code != null and s.code != ''} ? ${s.name + ' (' + s.code + ')'} : ${s.name}">Mathematics</option>
+                        </select>
+                        <p th:if="${#lists.isEmpty(subjects)}" style="font-size:12px; opacity:.6; margin:4px 0 0;">No subjects yet &mdash; add them under Subjects &amp; Terms.</p>
+                    </div>
                     <div class="field">
                         <label for="teacherId">Teacher</label>
                         <select id="teacherId" th:field="*{teacherId}" required>

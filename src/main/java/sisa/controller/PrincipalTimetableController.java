@@ -4,6 +4,7 @@ import sisa.entity.ResourceType;
 import sisa.entity.User;
 import sisa.repository.ResourceRepository;
 import sisa.repository.StudentRepository;
+import sisa.repository.SubjectRepository;
 import sisa.repository.TeacherRepository;
 import sisa.repository.UserRepository;
 import sisa.service.TimetableService;
@@ -23,15 +24,18 @@ public class PrincipalTimetableController {
     private final TeacherRepository teacherRepository;
     private final ResourceRepository resourceRepository;
     private final TimetableService timetableService;
+    private final SubjectRepository subjectRepository;
 
     public PrincipalTimetableController(UserRepository userRepository, StudentRepository studentRepository,
                                         TeacherRepository teacherRepository, ResourceRepository resourceRepository,
-                                        TimetableService timetableService) {
+                                        TimetableService timetableService,
+                                       SubjectRepository subjectRepository) {
         this.userRepository = userRepository;
         this.studentRepository = studentRepository;
         this.teacherRepository = teacherRepository;
         this.resourceRepository = resourceRepository;
         this.timetableService = timetableService;
+        this.subjectRepository = subjectRepository;
     }
 
     private User currentUser(Authentication authentication) {
@@ -46,6 +50,7 @@ public class PrincipalTimetableController {
         model.addAttribute("allClassNames", studentRepository.distinctClassNames());
 
         model.addAttribute("teachers", teacherRepository.findAll());
+        model.addAttribute("subjects", subjectRepository.findAllByOrderByNameAsc());
         model.addAttribute("bookableRooms", resourceRepository.findAllByOrderByTypeAscNameAsc().stream()
                 .filter(r -> r.getType() != ResourceType.EQUIPMENT).toList());
         model.addAttribute("periods", periodRange());
@@ -63,7 +68,10 @@ public class PrincipalTimetableController {
     public String saveSlot(@ModelAttribute("form") TimetableSlotForm form, Authentication authentication,
                            RedirectAttributes redirectAttributes) {
         try {
-
+            // Only subjects registered under Subjects & Terms can be timetabled.
+            if (form.getSubject() == null || !subjectRepository.existsByNameIgnoreCase(form.getSubject().trim())) {
+                throw new IllegalArgumentException("Choose one of the registered subjects.");
+            }
             timetableService.upsertSlot(form);
             redirectAttributes.addFlashAttribute("success",
                     form.getSubject() + " saved for " + form.getDayOfWeek() + " period " + form.getPeriodNumber() + ".");
