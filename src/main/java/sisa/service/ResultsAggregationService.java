@@ -27,12 +27,13 @@ public class ResultsAggregationService {
         this.attendanceService = attendanceService;
     }
 
-    public record RankedStudent(Student student, Double gpa) {}
+    /** A student and their average mark for the current term (null when they have no marks this term). */
+    public record RankedStudent(Student student, Double average) {}
 
     public List<RankedStudent> classRankings(String className) {
         return studentRepository.findByClassNameAndStatusOrderByUser_FullNameAsc(className, StudentStatus.ACTIVE).stream()
-                .map(s -> new RankedStudent(s, marksEntryService.gpaFor(s.getStudentId())))
-                .sorted(Comparator.comparing((RankedStudent r) -> r.gpa() == null ? -1.0 : r.gpa()).reversed())
+                .map(s -> new RankedStudent(s, marksEntryService.currentTermAverage(s.getStudentId())))
+                .sorted(Comparator.comparing((RankedStudent r) -> r.average() == null ? -1.0 : r.average()).reversed())
                 .toList();
     }
 

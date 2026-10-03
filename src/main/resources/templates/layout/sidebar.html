@@ -52,7 +52,7 @@
      class="nav-item" th:classappend="${activeItem == 'resources'} ? 'active'"><i class="bi bi-building-fill"></i> Labs &amp; Classrooms Availability</a>
   <a th:if="${user != null and user.role.name() == 'PRINCIPAL'}"
      th:href="@{/principal/subjects}"
-     class="nav-item" th:classappend="${activeItem == 'subjects'} ? 'active'"><i class="bi bi-collection-fill"></i> Subjects</a>
+     class="nav-item" th:classappend="${activeItem == 'subjects'} ? 'active'"><i class="bi bi-collection-fill"></i> Subjects &amp; Terms</a>
   <a th:if="${user != null and (user.role.name() == 'PRINCIPAL' or user.role.name() == 'REGISTRAR' or user.role.name() == 'STUDENT' or user.role.name() == 'PARENT')}"
      th:href="${user.role.name() == 'PRINCIPAL' or user.role.name() == 'REGISTRAR'} ? @{/registrar/library}
               : (${user.role.name() == 'STUDENT'} ? @{/student/library} : @{/parent/library-due-dates})"

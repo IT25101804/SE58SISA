@@ -13,4 +13,5 @@ public class ExamForm {
     private String examName;
     private String examDate;
     private double maxMarks = 100;
+    private Long termId;
 }

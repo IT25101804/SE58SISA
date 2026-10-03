@@ -10,6 +10,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.List;
 
@@ -28,7 +29,7 @@ public class ParentAcademicController {
     }
 
     @GetMapping("/parent/child-results")
-    public String childResults(Authentication authentication, Model model) {
+    public String childResults(@RequestParam(required = false) Long termId, Authentication authentication, Model model) {
         User user = userRepository.findByUsername(authentication.getName()).orElseThrow();
         model.addAttribute("user", user);
         model.addAttribute("activeItem", "academic");
@@ -39,13 +40,16 @@ public class ParentAcademicController {
         }
         List<Student> children = studentRepository.findByParent_UserId(user.getUserId());
         List<ChildResults> childData = children.stream()
-                .map(child -> new ChildResults(child, marksEntryService.reportCardFor(child.getStudentId()),
-                        marksEntryService.monthlyGpaTrend(child.getStudentId())))
+                .map(child -> new ChildResults(child, marksEntryService.reportCardFor(child.getStudentId(), termId),
+                        marksEntryService.termAverageTrend(child.getStudentId())))
                 .toList();
         model.addAttribute("children", childData);
+        model.addAttribute("terms", marksEntryService.allTerms());
+        var selected = marksEntryService.termOrCurrent(termId);
+        model.addAttribute("selectedTermId", selected != null ? selected.getId() : null);
         return "parent/child-results";
     }
 
     public record ChildResults(Student student, MarksEntryService.ReportCard reportCard,
-                               List<MarksEntryService.GpaTrendPoint> trend) {}
+                               List<MarksEntryService.TermAverage> trend) {}
 }

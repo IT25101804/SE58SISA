@@ -32,13 +32,14 @@
         <div class="card">
             <table class="wsims-table">
                 <thead>
-                <tr><th>Exam</th><th>Class</th><th>Subject</th><th>Date</th><th>Max Marks</th><th></th></tr>
+                <tr><th>Exam</th><th>Class</th><th>Subject</th><th>Term</th><th>Date</th><th>Max Marks</th><th></th></tr>
                 </thead>
                 <tbody>
                 <tr th:each="e : ${exams}">
                     <td th:text="${e.examName}">Exam</td>
                     <td th:text="${e.className}">Class</td>
                     <td th:text="${e.subject}">Subject</td>
+                    <td th:text="${examTerms[e.id]}">Term 1, 2026</td>
                     <td th:text="${e.examDate}">2026-01-01</td>
                     <td th:text="${e.maxMarks}">100</td>
                     <td>
@@ -54,7 +55,7 @@
                     </td>
                 </tr>
                 <tr th:if="${#lists.isEmpty(exams)}">
-                    <td colspan="6"><div class="empty-state"><i class="bi bi-inbox"></i> No exams yet.</div></td>
+                    <td colspan="7"><div class="empty-state"><i class="bi bi-inbox"></i> No exams yet.</div></td>
                 </tr>
                 </tbody>
             </table>

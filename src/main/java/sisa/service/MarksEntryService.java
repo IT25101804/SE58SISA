@@ -13,9 +13,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Service
 public class MarksEntryService {
@@ -29,16 +27,52 @@ public class MarksEntryService {
     private final TeacherRepository teacherRepository;
     private final TimetableSlotRepository timetableSlotRepository;
     private final SubjectRepository subjectRepository;
+    private final AcademicTermRepository academicTermRepository;
 
     public MarksEntryService(ExamRepository examRepository, MarkRepository markRepository,
                              StudentRepository studentRepository, TeacherRepository teacherRepository,
-                             TimetableSlotRepository timetableSlotRepository, SubjectRepository subjectRepository) {
+                             TimetableSlotRepository timetableSlotRepository, SubjectRepository subjectRepository,
+                             AcademicTermRepository academicTermRepository) {
         this.examRepository = examRepository;
         this.markRepository = markRepository;
         this.studentRepository = studentRepository;
         this.teacherRepository = teacherRepository;
         this.timetableSlotRepository = timetableSlotRepository;
         this.subjectRepository = subjectRepository;
+        this.academicTermRepository = academicTermRepository;
+    }
+
+    // ---------- terms ----------
+
+    /** Every term, newest first — the choices for the term pickers. */
+    public List<AcademicTerm> allTerms() {
+        return academicTermRepository.findAllByOrderByStartDateDesc();
+    }
+
+    public AcademicTerm currentTerm() {
+        return academicTermRepository.findByCurrentTrue().orElse(null);
+    }
+
+    /** The chosen term, or the current term when none (or an unknown one) is chosen. */
+    public AcademicTerm termOrCurrent(Long termId) {
+        if (termId != null) {
+            Optional<AcademicTerm> chosen = academicTermRepository.findById(termId);
+            if (chosen.isPresent()) return chosen.get();
+        }
+        return currentTerm();
+    }
+
+    /** An exam's term; exams created before terms existed fall into the term their date is in. */
+    public AcademicTerm termOf(Exam exam, List<AcademicTerm> terms) {
+        if (exam.getTerm() != null) return exam.getTerm();
+        LocalDate date = exam.getExamDate();
+        return terms.stream()
+                .filter(t -> !date.isBefore(t.getStartDate()) && !date.isAfter(t.getEndDate()))
+                .findFirst().orElse(null);
+    }
+
+    private static boolean sameTerm(AcademicTerm a, AcademicTerm b) {
+        return a != null && b != null && Objects.equals(a.getId(), b.getId());
     }
 
     public static Grade gradeFor(double marksObtained, double maxMarks) {
@@ -118,6 +152,8 @@ public class MarksEntryService {
         exam.setExamDate(LocalDate.parse(form.getExamDate()));
         exam.setMaxMarks(form.getMaxMarks());
         exam.setCreatedBy(teacher);
+        AcademicTerm term = termOrCurrent(form.getTermId());
+        exam.setTerm(term != null ? term : termOf(exam, allTerms()));
         return examRepository.save(exam);
     }
 
@@ -197,36 +233,59 @@ public class MarksEntryService {
     }
 
     public record ReportCardEntry(String subject, String examName, LocalDate examDate, double marksObtained, double maxMarks, Grade grade) {}
-    public record ReportCard(Student student, List<ReportCardEntry> entries, Double gpa) {}
 
+    /** One term's results: the marks of that term's exams, their total, and the average mark (null when none). */
+    public record ReportCard(Student student, AcademicTerm term, List<ReportCardEntry> entries,
+                             double totalMarks, Double averageMark) {}
+
+    /** The current term's report card. */
     public ReportCard reportCardFor(String studentId) {
+        return reportCardFor(studentId, null);
+    }
+
+    /** The report card for the chosen term (the current term when termId is null). */
+    public ReportCard reportCardFor(String studentId, Long termId) {
         Student student = studentRepository.findById(studentId)
                 .orElseThrow(() -> new IllegalArgumentException("No such student: " + studentId));
+        AcademicTerm term = termOrCurrent(termId);
+        List<AcademicTerm> terms = allTerms();
         List<ReportCardEntry> entries = markRepository.findByStudent_StudentIdOrderByExam_ExamDateDesc(studentId).stream()
+                .filter(m -> term == null || sameTerm(termOf(m.getExam(), terms), term))
                 .map(m -> new ReportCardEntry(m.getExam().getSubject(), m.getExam().getExamName(), m.getExam().getExamDate(),
                         m.getMarksObtained(), m.getExam().getMaxMarks(), m.getGrade()))
                 .toList();
-        return new ReportCard(student, entries, gpaFor(studentId));
+        double total = entries.stream().mapToDouble(ReportCardEntry::marksObtained).sum();
+        Double average = entries.isEmpty() ? null : total / entries.size();
+        return new ReportCard(student, term, entries, total, average);
     }
 
-    public ReportCard reportCardForAsClassTeacher(String studentId, String className, User actingTeacher) {
+    public ReportCard reportCardForAsClassTeacher(String studentId, String className, User actingTeacher, Long termId) {
         requireClassTeacherFor(className, actingTeacher);
-        return reportCardFor(studentId);
+        return reportCardFor(studentId, termId);
     }
 
-    public record GpaTrendPoint(String label, double gpa) {}
+    /** The current term's average mark, or null when the student has no marks this term. */
+    public Double currentTermAverage(String studentId) {
+        return reportCardFor(studentId, null).averageMark();
+    }
 
-    public List<GpaTrendPoint> monthlyGpaTrend(String studentId) {
-        DateTimeFormatter monthLabel = DateTimeFormatter.ofPattern("MMM yyyy");
-        Map<String, List<Mark>> byMonth = markRepository.findByStudent_StudentIdOrderByExam_ExamDateDesc(studentId).stream()
-                .collect(Collectors.groupingBy(m -> m.getExam().getExamDate().withDayOfMonth(1).format(monthLabel),
-                        LinkedHashMap::new, Collectors.toList()));
-        List<GpaTrendPoint> trend = new ArrayList<>();
-        byMonth.forEach((label, marks) -> {
-            double avg = marks.stream().mapToInt(m -> GRADE_POINTS.get(m.getGrade())).average().orElse(0);
-            trend.add(new GpaTrendPoint(label, avg));
-        });
-        Collections.reverse(trend);
-        return trend;
+    public record TermAverage(String label, double average) {}
+
+    /** Average mark per term, oldest term first — the term-over-term trend (business rule 3). */
+    public List<TermAverage> termAverageTrend(String studentId) {
+        List<AcademicTerm> terms = allTerms();
+        Map<Long, AcademicTerm> termById = new HashMap<>();
+        Map<Long, List<Mark>> byTerm = new HashMap<>();
+        for (Mark m : markRepository.findByStudent_StudentIdOrderByExam_ExamDateDesc(studentId)) {
+            AcademicTerm t = termOf(m.getExam(), terms);
+            if (t == null) continue;
+            termById.putIfAbsent(t.getId(), t);
+            byTerm.computeIfAbsent(t.getId(), k -> new ArrayList<>()).add(m);
+        }
+        return byTerm.entrySet().stream()
+                .sorted(Comparator.comparing(e -> termById.get(e.getKey()).getStartDate()))
+                .map(e -> new TermAverage(termById.get(e.getKey()).getName(),
+                        e.getValue().stream().mapToDouble(Mark::getMarksObtained).average().orElse(0)))
+                .toList();
     }
 }

@@ -98,7 +98,7 @@ public class DashboardController {
 
         if (user.getRole() == Role.STUDENT) {
             model.addAttribute("attendanceSummary", attendanceService.summaryFor(user.getUserId()));
-            model.addAttribute("gpa", marksEntryService.gpaFor(user.getUserId()));
+            model.addAttribute("termAverage", marksEntryService.currentTermAverage(user.getUserId()));
             Student student = studentRepository.findById(user.getUserId()).orElse(null);
             if (student != null && student.getClassName() != null && !student.getClassName().isBlank()) {
                 model.addAttribute("timetableGrid", timetableService.asGrid(timetableService.slotsForClass(student.getClassName())));
@@ -121,6 +121,12 @@ public class DashboardController {
                     .mapToDouble(Double::doubleValue)
                     .average();
             model.addAttribute("childAttendancePercentage", avg.isPresent() ? avg.getAsDouble() : null);
+            OptionalDouble termAvg = children.stream()
+                    .map(c -> marksEntryService.currentTermAverage(c.getStudentId()))
+                    .filter(java.util.Objects::nonNull)
+                    .mapToDouble(Double::doubleValue)
+                    .average();
+            model.addAttribute("childTermAverage", termAvg.isPresent() ? termAvg.getAsDouble() : null);
             model.addAttribute("recentAnnouncements",
                     notificationRepository.findTop5ByRecipientUserIdAndSentAtIsNotNullOrderBySentAtDesc(user.getUserId()));
             model.addAttribute("unreadAlertsCount",

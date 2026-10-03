@@ -16,9 +16,12 @@
     <div th:replace="~{layout/sidebar :: backdrop}"></div>
 
     <main class="content">
-        <div class="page-head">
-            <h1>Child's Results</h1>
-            <p>Read-only &mdash; exam results, GPA and a month-over-month trend for each of your children.</p>
+        <div class="page-head" style="display:flex; align-items:flex-end; justify-content:space-between; flex-wrap:wrap; gap:12px;">
+            <div>
+                <h1>Child's Results</h1>
+                <p>Read-only &mdash; each child's exam results for the chosen term, with the term's total and average mark.</p>
+            </div>
+            <th:block th:if="${terms != null and not #lists.isEmpty(terms)}"><div th:replace="~{layout/report-card :: termPicker(${terms}, ${selectedTermId})}"></div></th:block>
         </div>
 
         <div th:if="${notice}" class="card"><div class="empty-state"><i class="bi bi-inbox"></i> <span th:text="${notice}">Notice</span></div></div>
@@ -33,7 +36,7 @@
             <div th:replace="~{layout/report-card :: view(${c.reportCard()})}"></div>
 
             <div th:if="${#lists.size(c.trend()) > 1}" style="margin-top:18px;">
-                <h4 style="color:var(--navy); margin:0 0 10px;">Month-over-Month GPA</h4>
+                <h4 style="color:var(--navy); margin:0 0 10px;">Average Mark by Term</h4>
                 <canvas th:id="'trend-' + ${c.student().studentId}" height="90"></canvas>
                 <script th:inline="javascript">
                     (function () {
@@ -44,8 +47,8 @@
                             data: {
                                 labels: trend.map(function (t) { return t.label; }),
                                 datasets: [{
-                                    label: 'GPA',
-                                    data: trend.map(function (t) { return t.gpa; }),
+                                    label: 'Average mark',
+                                    data: trend.map(function (t) { return t.average; }),
                                     borderColor: '#F1851F',
                                     backgroundColor: 'rgba(241,133,31,0.15)',
                                     tension: 0.3,
@@ -53,7 +56,7 @@
                                 }]
                             },
                             options: {
-                                scales: { y: { min: 0, max: 4, ticks: { stepSize: 1 } } },
+                                scales: { y: { min: 0, max: 100, ticks: { stepSize: 20 } } },
                                 plugins: { legend: { display: false } }
                             }
                         });

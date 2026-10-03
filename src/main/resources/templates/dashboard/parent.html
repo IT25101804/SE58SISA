@@ -26,8 +26,8 @@
       </div>
       <div class="card stat-card">
         <div class="stat-icon"><i class="bi bi-award-fill"></i></div>
-        <div class="stat-value">—</div>
-        <div class="stat-label">Latest Term GPA</div>
+        <div class="stat-value" th:text="${childTermAverage != null} ? ${#numbers.formatDecimal(childTermAverage,1,1)} : '—'">—</div>
+        <div class="stat-label">Current Term Average</div>
       </div>
       <div class="card stat-card">
         <div class="stat-icon"><i class="bi bi-bell-fill"></i></div>

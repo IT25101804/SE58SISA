@@ -36,4 +36,8 @@ public class Exam {
     @ManyToOne(optional = false)
     @JoinColumn(name = "created_by_teacher_id", referencedColumnName = "teacherId", nullable = false)
     private Teacher createdBy;
+
+    @ManyToOne
+    @JoinColumn(name = "term_id")
+    private AcademicTerm term;
 }

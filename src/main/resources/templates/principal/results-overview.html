@@ -98,10 +98,10 @@
                 <button type="submit" class="btn btn-outline"><i class="bi bi-search"></i> View</button>
             </form>
 
-            <div th:if="${className == null or className == ''}" class="empty-state"><i class="bi bi-inbox"></i> Choose a class above to rank its students by GPA.</div>
+            <div th:if="${className == null or className == ''}" class="empty-state"><i class="bi bi-inbox"></i> Choose a class above to rank its students by their current term average mark.</div>
 
             <table class="wsims-table" th:if="${className != null and className != ''}">
-                <thead><tr><th>#</th><th>Student</th><th>GPA</th></tr></thead>
+                <thead><tr><th>#</th><th>Student</th><th>Current Term Average</th></tr></thead>
                 <tbody>
                 <tr th:each="r, iStat : ${classRankings}">
                     <td th:text="${iStat.count}">1</td>
@@ -109,7 +109,7 @@
                         <span th:text="${r.student().user.fullName}">Name</span>
                         &nbsp;<span class="id-badge" th:text="${r.student().studentId}">S2600001</span>
                     </td>
-                    <td th:text="${r.gpa() != null} ? ${#numbers.formatDecimal(r.gpa(),1,2)} : '—'">—</td>
+                    <td th:text="${r.average() != null} ? ${#numbers.formatDecimal(r.average(),1,1)} : '—'">—</td>
                 </tr>
                 <tr th:if="${#lists.isEmpty(classRankings)}">
                     <td colspan="3"><div class="empty-state"><i class="bi bi-inbox"></i> No active students in this class.</div></td>

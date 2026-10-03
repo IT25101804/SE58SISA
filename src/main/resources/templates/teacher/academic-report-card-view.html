@@ -21,7 +21,10 @@
                 <p><span class="id-badge" th:text="${reportCard.student().studentId}">S2600001</span>
                     &nbsp;<span th:text="${reportCard.student().className}">Class</span></p>
             </div>
-            <a th:href="@{/teacher/academic/report-cards}" class="btn btn-outline"><i class="bi bi-arrow-left"></i> Back</a>
+            <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+                <th:block th:if="${not #lists.isEmpty(terms)}"><div th:replace="~{layout/report-card :: termPicker(${terms}, ${selectedTermId})}"></div></th:block>
+                <a th:href="@{/teacher/academic/report-cards}" class="btn btn-outline"><i class="bi bi-arrow-left"></i> Back</a>
+            </div>
         </div>
 
         <div class="card">

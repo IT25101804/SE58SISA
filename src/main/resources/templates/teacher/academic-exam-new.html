@@ -44,6 +44,12 @@
                         <option value="" disabled>Select a class first…</option>
                     </select>
                 </div>
+                <div class="field">
+                    <label for="termId">Term</label>
+                    <select id="termId" th:field="*{termId}" required>
+                        <option th:each="t : ${terms}" th:value="${t.id}" th:text="${t.name} + (${t.current} ? ' (current)' : '')">Term</option>
+                    </select>
+                </div>
                 <div class="field"><label for="examName">Exam Name</label><input id="examName" type="text" th:field="*{examName}" placeholder="Mid-Term Test" required/></div>
                 <div class="field"><label for="examDate">Exam Date</label><input id="examDate" type="date" th:field="*{examDate}" required/></div>
                 <div class="field"><label for="maxMarks">Max Marks</label><input id="maxMarks" type="number" step="0.5" min="1" th:field="*{maxMarks}" required/></div>

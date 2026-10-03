@@ -1,9 +1,18 @@
 <div th:fragment="view(reportCard)" xmlns:th="http://www.thymeleaf.org">
-    <div class="grid grid-2" style="margin-bottom:18px;">
+    <p style="margin:0 0 12px; font-weight:600; color:var(--navy);">
+        <i class="bi bi-calendar3"></i>
+        <span th:text="${reportCard.term() != null} ? ${reportCard.term().name} : 'All terms'">Term 3, 2026</span>
+    </p>
+    <div class="grid grid-3" style="margin-bottom:18px;">
         <div class="card stat-card">
-            <div class="stat-icon"><i class="bi bi-award-fill"></i></div>
-            <div class="stat-value" th:text="${reportCard.gpa() != null} ? ${#numbers.formatDecimal(reportCard.gpa(),1,2)} : '—'">—</div>
-            <div class="stat-label">GPA (out of 4.0)</div>
+            <div class="stat-icon tone-blue"><i class="bi bi-calculator-fill"></i></div>
+            <div class="stat-value" th:text="${#lists.isEmpty(reportCard.entries())} ? '—' : ${#numbers.formatDecimal(reportCard.totalMarks(),1,1)}">—</div>
+            <div class="stat-label">Total Marks (all subjects)</div>
+        </div>
+        <div class="card stat-card">
+            <div class="stat-icon tone-amber"><i class="bi bi-award-fill"></i></div>
+            <div class="stat-value" th:text="${reportCard.averageMark() != null} ? ${#numbers.formatDecimal(reportCard.averageMark(),1,1)} : '—'">—</div>
+            <div class="stat-label">Average Mark</div>
         </div>
         <div class="card stat-card">
             <div class="stat-icon"><i class="bi bi-journal-text"></i></div>
@@ -24,8 +33,19 @@
             <td><span class="status" th:classappend="${#strings.toLowerCase(e.grade())}" th:text="${e.grade()}">A</span></td>
         </tr>
         <tr th:if="${#lists.isEmpty(reportCard.entries())}">
-            <td colspan="5"><div class="empty-state"><i class="bi bi-inbox"></i> No exam results recorded yet.</div></td>
+            <td colspan="5"><div class="empty-state"><i class="bi bi-inbox"></i> No exam results recorded for this term yet.</div></td>
         </tr>
         </tbody>
     </table>
 </div>
+
+<!-- Term picker: reloads the current page with ?termId=… -->
+<form th:fragment="termPicker(terms, selectedTermId)" method="get" style="display:flex; gap:8px; align-items:center; margin:0;"
+      xmlns:th="http://www.thymeleaf.org">
+    <label for="termId" style="font-size:13px; font-weight:600; color:var(--navy);">Term</label>
+    <select id="termId" name="termId" onchange="this.form.submit()"
+            style="padding:8px 10px; border-radius:var(--radius-sm); border:1.5px solid var(--azure); font-family:inherit; font-size:14px; background:var(--white); color:var(--charcoal);">
+        <option th:each="t : ${terms}" th:value="${t.id}" th:selected="${t.id == selectedTermId}"
+                th:text="${t.name} + (${t.current} ? ' (current)' : '')">Term</option>
+    </select>
+</form>

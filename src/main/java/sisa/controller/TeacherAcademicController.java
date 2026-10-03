@@ -56,7 +56,15 @@ public class TeacherAcademicController {
 
         Teacher teacher = marksEntryService.requireTeacher(user);
         model.addAttribute("teacher", teacher);
-        model.addAttribute("exams", marksEntryService.listForTeacher(teacher));
+        var exams = marksEntryService.listForTeacher(teacher);
+        var terms = marksEntryService.allTerms();
+        java.util.Map<Long, String> examTerms = new java.util.HashMap<>();
+        for (Exam e : exams) {
+            var t = marksEntryService.termOf(e, terms);
+            examTerms.put(e.getId(), t != null ? t.getName() : "—");
+        }
+        model.addAttribute("exams", exams);
+        model.addAttribute("examTerms", examTerms);
         return "teacher/academic-exams";
     }
 
@@ -65,7 +73,11 @@ public class TeacherAcademicController {
         User user = currentUser(authentication);
         model.addAttribute("user", user);
         model.addAttribute("activeItem", "academic");
-        model.addAttribute("form", new ExamForm());
+        ExamForm form = new ExamForm();
+        var current = marksEntryService.currentTerm();
+        if (current != null) form.setTermId(current.getId());
+        model.addAttribute("form", form);
+        model.addAttribute("terms", marksEntryService.allTerms());
         model.addAttribute("classOptions", marksEntryService.classSubjectOptionsFor(marksEntryService.requireTeacher(user)));
         return "teacher/academic-exam-new";
     }
@@ -81,6 +93,7 @@ public class TeacherAcademicController {
         } catch (RuntimeException ex) {
             model.addAttribute("error", ex instanceof ResponseStatusException rse ? rse.getReason() : ex.getMessage());
             model.addAttribute("form", form);
+            model.addAttribute("terms", marksEntryService.allTerms());
             model.addAttribute("classOptions", marksEntryService.classSubjectOptionsFor(marksEntryService.requireTeacher(user)));
             return "teacher/academic-exam-new";
         }
@@ -159,13 +172,17 @@ public class TeacherAcademicController {
     }
 
     @GetMapping("/report-cards/{studentId}")
-    public String reportCard(@PathVariable String studentId, Authentication authentication, Model model) {
+    public String reportCard(@PathVariable String studentId, @RequestParam(required = false) Long termId,
+                             Authentication authentication, Model model) {
         User user = currentUser(authentication);
         model.addAttribute("user", user);
         model.addAttribute("activeItem", "academic");
 
         Teacher teacher = marksEntryService.requireTeacher(user);
-        model.addAttribute("reportCard", marksEntryService.reportCardForAsClassTeacher(studentId, teacher.getAssignedClassName(), user));
+        MarksEntryService.ReportCard reportCard = marksEntryService.reportCardForAsClassTeacher(studentId, teacher.getAssignedClassName(), user, termId);
+        model.addAttribute("reportCard", reportCard);
+        model.addAttribute("terms", marksEntryService.allTerms());
+        model.addAttribute("selectedTermId", reportCard.term() != null ? reportCard.term().getId() : null);
         model.addAttribute("behaviourNotes", behaviourNoteRepository.findByStudent_StudentIdOrderByCreatedAtDesc(studentId));
         model.addAttribute("behaviourCategories", BehaviourCategory.values());
         return "teacher/academic-report-card-view";

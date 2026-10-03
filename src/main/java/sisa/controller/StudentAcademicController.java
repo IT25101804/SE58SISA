@@ -8,6 +8,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 @Controller
 public class StudentAcademicController {
@@ -21,7 +22,7 @@ public class StudentAcademicController {
     }
 
     @GetMapping("/student/results")
-    public String results(Authentication authentication, Model model) {
+    public String results(@RequestParam(required = false) Long termId, Authentication authentication, Model model) {
         User user = userRepository.findByUsername(authentication.getName()).orElseThrow();
         model.addAttribute("user", user);
         model.addAttribute("activeItem", "academic");
@@ -30,7 +31,10 @@ public class StudentAcademicController {
             model.addAttribute("notice", "Only Student accounts have results here.");
             return "student/results";
         }
-        model.addAttribute("reportCard", marksEntryService.reportCardFor(user.getUserId()));
+        MarksEntryService.ReportCard reportCard = marksEntryService.reportCardFor(user.getUserId(), termId);
+        model.addAttribute("reportCard", reportCard);
+        model.addAttribute("terms", marksEntryService.allTerms());
+        model.addAttribute("selectedTermId", reportCard.term() != null ? reportCard.term().getId() : null);
         return "student/results";
     }
 }
