@@ -79,7 +79,11 @@ public class AccountDeletionService {
         switch (user.getRole()) {
             case STUDENT -> {
                 assertStudentHasNoRecords(userId);
-                studentRepository.findById(userId).ifPresent(studentRepository::delete);
+                studentRepository.findById(userId).ifPresent(student -> {
+                    User guardian = student.getParent();
+                    studentRepository.delete(student);
+                    deleteGuardianIfNoChildrenLeft(guardian, actingUser);
+                });
             }
             case TEACHER -> {
                 assertTeacherHasNoRecords(userId, "so the account can only stay disabled.");
@@ -112,11 +116,29 @@ public class AccountDeletionService {
         assertStudentHasNoRecords(studentId);
 
         User user = student.getUser();
+        User guardian = student.getParent();
         studentRepository.delete(student);
         removeUserAndPersonalData(user);
         auditLogService.log(studentId, actingUser.getUserId(), "DELETE_STUDENT",
                 actingUser.getFullName() + " permanently deleted student " + studentId
                         + " (" + user.getFullName() + ") — registered in error");
+        deleteGuardianIfNoChildrenLeft(guardian, actingUser);
+    }
+
+    /**
+     * A Parent account exists only because of the student(s) it is guardian of, so once its last
+     * linked student is deleted the parent account goes too. A guardian shared by siblings is kept
+     * while any of their children are still enrolled.
+     */
+    private void deleteGuardianIfNoChildrenLeft(User guardian, User actingUser) {
+        if (guardian == null || guardian.getRole() != Role.PARENT) return;
+        String parentId = guardian.getUserId();
+        if (studentRepository.existsByParent_UserId(parentId)) return;
+        parentRepository.findById(parentId).ifPresent(parentRepository::delete);
+        removeUserAndPersonalData(guardian);
+        auditLogService.log(parentId, actingUser.getUserId(), "DELETE_ACCOUNT",
+                actingUser.getFullName() + " permanently deleted PARENT account " + parentId
+                        + " (" + guardian.getFullName() + ") — their last linked student was deleted");
     }
 
     @Transactional
