@@ -44,7 +44,7 @@
                 </p>
                 <p th:text="${submission.fileUrlOrText}">Answer</p>
                 <div th:if="${submission.grade != null}" class="card" style="background:var(--azure-soft); box-shadow:none;">
-                    <p style="margin:0;"><strong>Grade:</strong> <span class="status graded" th:text="${submission.grade}">Grade</span></p>
+                    <p style="margin:0;"><strong>Grade:</strong> <span th:if="${submission.marks != null}" th:text="${#numbers.formatDecimal(submission.marks, 1, 'COMMA', (submission.marks % 1 == 0 ? 0 : 1), 'POINT')} + ' / 100'" style="margin-right:6px;">78 / 100</span><span class="status" th:classappend="${#strings.toLowerCase(submission.grade)}" th:text="${submission.grade}">Grade</span></p>
                     <p style="margin:8px 0 0;" th:if="${submission.feedback}"><strong>Feedback:</strong> <span th:text="${submission.feedback}">Feedback</span></p>
                 </div>
                 <div th:unless="${submission.grade != null}" class="empty-state" style="padding:16px 0;">

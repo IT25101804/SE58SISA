@@ -51,20 +51,25 @@
                         <span th:text="${s.student.user.fullName}">Name</span>
                         &nbsp;<span class="id-badge" th:text="${s.student.studentId}">S2600001</span>
                     </td>
-                    <td th:text="${s.submittedAt}">2026-01-01</td>
+                    <td th:text="${#temporals.format(s.submittedAt, 'd MMM yyyy, h:mm a')}">4 Oct 2026, 3:04 AM</td>
                     <td><span class="status" th:classappend="${#strings.toLowerCase(s.status)}" th:text="${s.status}">STATUS</span></td>
                     <td th:text="${s.fileUrlOrText}">Answer</td>
                     <td>
-                        <div th:if="${s.grade != null}">
-                            <span class="status graded" th:text="${s.grade}">Grade</span>
-                            <p style="font-size:12.5px; opacity:.7; margin:4px 0 0;" th:text="${s.feedback}">Feedback</p>
+                        <div th:if="${s.grade != null}" class="graded-view" style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+                            <strong th:if="${s.marks != null}" th:text="${#numbers.formatDecimal(s.marks, 1, 'COMMA', (s.marks % 1 == 0 ? 0 : 1), 'POINT')} + ' / 100'">78 / 100</strong>
+                            <span class="status" th:classappend="${#strings.toLowerCase(s.grade)}" th:text="${s.grade}">A</span>
+                            <button type="button" class="btn btn-outline js-edit-grade" style="padding:3px 8px; font-size:11px;" title="Edit marks"><i class="bi bi-pencil-square"></i> Edit</button>
+                            <p th:if="${s.feedback != null and s.feedback != ''}" style="flex-basis:100%; font-size:12.5px; opacity:.7; margin:0;" th:text="${s.feedback}">Feedback</p>
                         </div>
-                        <form th:unless="${s.grade != null}" th:action="@{/teacher/assignments/{id}/grade(id=${assignment.id})}" method="post"
-                              style="display:flex; gap:6px; flex-wrap:wrap; align-items:center;">
+                        <form th:action="@{/teacher/assignments/{id}/grade(id=${assignment.id})}" method="post" class="grade-form"
+                              th:style="${s.grade != null} ? 'display:none; gap:6px; flex-wrap:wrap; align-items:center;' : 'display:flex; gap:6px; flex-wrap:wrap; align-items:center;'">
                             <input type="hidden" name="submissionId" th:value="${s.id}"/>
-                            <input type="text" name="grade" placeholder="Grade" style="width:80px; padding:6px;" required/>
-                            <input type="text" name="feedback" placeholder="Feedback" style="width:auto; padding:6px;"/>
+                            <input type="number" name="marks" min="0" max="100" step="0.5" placeholder="Marks /100" class="js-marks"
+                                   th:value="${s.marks}" style="width:110px; padding:6px;" required/>
+                            <span class="status js-grade-preview" style="min-width:24px; text-align:center;">–</span>
+                            <input type="text" name="feedback" placeholder="Feedback" th:value="${s.feedback}" style="width:auto; padding:6px;"/>
                             <button type="submit" class="btn btn-primary" style="padding:6px 12px; font-size:12.5px;">Save</button>
+                            <button th:if="${s.grade != null}" type="button" class="btn btn-outline js-cancel-grade" style="padding:6px 12px; font-size:12.5px;">Cancel</button>
                         </form>
                     </td>
                 </tr>
@@ -77,5 +82,40 @@
     </main>
 </div>
 <script th:src="@{/js/main.js}"></script>
+<script>
+    (function () {
+        function gradeFor(m) {
+            if (m >= 75) return 'A';
+            if (m >= 60) return 'B';
+            if (m >= 50) return 'C';
+            if (m >= 40) return 'D';
+            return 'F';
+        }
+        document.querySelectorAll('.grade-form').forEach(function (form) {
+            var input = form.querySelector('.js-marks');
+            var preview = form.querySelector('.js-grade-preview');
+            function update() {
+                var v = parseFloat(input.value);
+                var g = isNaN(v) || v < 0 || v > 100 ? '–' : gradeFor(v);
+                preview.textContent = g;
+                preview.className = 'status js-grade-preview' + (g === '–' ? '' : ' ' + g.toLowerCase());
+            }
+            input.addEventListener('input', update);
+            update();
+            var cancel = form.querySelector('.js-cancel-grade');
+            if (cancel) cancel.addEventListener('click', function () {
+                form.style.display = 'none';
+                form.previousElementSibling.style.display = 'flex';
+            });
+        });
+        document.querySelectorAll('.js-edit-grade').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                var view = btn.closest('.graded-view');
+                view.style.display = 'none';
+                view.nextElementSibling.style.display = 'flex';
+            });
+        });
+    })();
+</script>
 </body>
 </html>

@@ -202,8 +202,9 @@ public class TeacherAssignmentController {
         User user = currentUser(authentication);
         try {
             Teacher teacher = attendanceService.requireTeacher(user);
-            assignmentService.grade(id, form.getSubmissionId(), form.getGrade(), form.getFeedback(), teacher);
-            redirectAttributes.addFlashAttribute("success", "Grade saved.");
+            assignmentService.gradeWithMarks(id, form.getSubmissionId(), form.getMarks(), form.getFeedback(), teacher);
+            redirectAttributes.addFlashAttribute("success", "Marks saved — grade "
+                    + sisa.service.MarksEntryService.gradeFor(form.getMarks(), 100) + ".");
         } catch (ResponseStatusException rse) {
             throw rse;
         } catch (RuntimeException ex) {

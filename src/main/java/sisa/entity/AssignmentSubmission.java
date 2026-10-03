@@ -37,6 +37,8 @@ public class AssignmentSubmission {
     @Column(nullable = false, length = 10)
     private SubmissionStatus status;
 
+    private Double marks;
+
     private String grade;
     private String feedback;
     private String gradedBy;

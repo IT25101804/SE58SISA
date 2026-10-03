@@ -102,6 +102,25 @@ public class AssignmentService {
         submissionRepository.save(submission);
     }
 
+    @Transactional
+    public void gradeWithMarks(Long assignmentId, Long submissionId, Double marks, String feedback, Teacher actingTeacher) {
+        if (marks == null || marks < 0 || marks > 100) {
+            throw new IllegalArgumentException("Enter marks between 0 and 100.");
+        }
+        requireOwnedBy(assignmentId, actingTeacher);
+        AssignmentSubmission submission = submissionRepository.findById(submissionId)
+                .orElseThrow(() -> new IllegalArgumentException("No such submission: " + submissionId));
+        if (!submission.getAssignment().getId().equals(assignmentId)) {
+            throw new IllegalArgumentException("That submission doesn't belong to this assignment.");
+        }
+        submission.setMarks(marks);
+        submission.setGrade(MarksEntryService.gradeFor(marks, 100).name());
+        submission.setFeedback(feedback);
+        submission.setGradedBy(actingTeacher.getTeacherId());
+        submission.setGradedAt(LocalDateTime.now());
+        submissionRepository.save(submission);
+    }
+
     private Assignment requireOwnedBy(Long assignmentId, Teacher teacher) {
         Assignment assignment = getOrThrow(assignmentId);
         if (!assignment.getTeacher().getTeacherId().equals(teacher.getTeacherId())) {

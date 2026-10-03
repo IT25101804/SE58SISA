@@ -9,6 +9,7 @@ import lombok.Setter;
 @NoArgsConstructor
 public class GradeForm {
     private Long submissionId;
+    private Double marks;
     private String grade;
     private String feedback;
 }
