@@ -3,6 +3,7 @@ package sisa.controller;
 import sisa.entity.User;
 import sisa.repository.UserRepository;
 import sisa.service.AuditLogService;
+import sisa.service.UserAccountFactory;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
@@ -40,14 +41,13 @@ public class ProfileController {
 
     @PostMapping("/profile")
     public String updateProfile(@RequestParam String fullName,
-                                @RequestParam String email,
                                 Authentication authentication,
                                 RedirectAttributes redirectAttributes) {
         User user = currentUser(authentication);
         user.setFullName(fullName);
-        user.setEmail(email);
+        user.setEmail(UserAccountFactory.emailFor(user.getUserId()));
         userRepository.save(user);
-        auditLogService.log(user.getUserId(), user.getUserId(), "PROFILE_UPDATE", "Updated name/email");
+        auditLogService.log(user.getUserId(), user.getUserId(), "PROFILE_UPDATE", "Updated name");
         redirectAttributes.addFlashAttribute("success", "Profile updated.");
         return "redirect:/profile";
     }

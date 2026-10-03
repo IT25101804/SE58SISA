@@ -29,7 +29,7 @@
         <form th:action="@{/profile}" method="post">
           <div class="field"><label>Full Name</label><input type="text" name="fullName" th:value="${user.fullName}" required/></div>
           <div class="field"><label>Username</label><input type="text" th:value="${user.username}" disabled/></div>
-          <div class="field"><label>Email</label><input type="email" name="email" th:value="${user.email}" required/></div>
+          <div class="field"><label>Email</label><input type="email" th:value="${user.email}" disabled/><p style="font-size:12px; opacity:.6; margin:4px 0 0;">Assigned automatically from the ID &mdash; it can't be changed.</p></div>
           <div class="field">
             <label>Role &amp; ID</label>
             <p><span class="role-pill" th:text="${user.role}">ROLE</span>

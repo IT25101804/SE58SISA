@@ -38,7 +38,7 @@
                 <h3><i class="bi bi-person-vcard-fill"></i> Student Details</h3>
                 <form th:action="@{/registrar/students/{id}/edit(id=${student.studentId})}" method="post">
                     <div class="field"><label for="fullName">Full Name</label><input id="fullName" name="fullName" type="text" th:value="${student.user.fullName}" required/></div>
-                    <div class="field"><label for="email">Email</label><input id="email" name="email" type="email" th:value="${student.user.email}" required/></div>
+                    <div class="field"><label for="email">Email</label><input id="email" type="email" th:value="${student.user.email}" disabled/><p style="font-size:12px; opacity:.6; margin:4px 0 0;">Assigned automatically from the ID &mdash; it can't be changed.</p></div>
                     <div class="field"><label for="dateOfBirth">Date of Birth</label><input id="dateOfBirth" name="dateOfBirth" type="date" th:value="${student.dateOfBirth}"/></div>
                     <div class="field">
                         <label for="gender">Gender</label>

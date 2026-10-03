@@ -155,7 +155,7 @@ public class StudentRegistrationService {
 
         User user = student.getUser();
         user.setFullName(req.getFullName());
-        user.setEmail(req.getEmail());
+        user.setEmail(UserAccountFactory.emailFor(user.getUserId()));
         userRepository.save(user);
 
         student.setAdmissionYear(req.getAdmissionYear());
