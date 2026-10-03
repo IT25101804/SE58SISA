@@ -23,6 +23,7 @@
             </div>
             <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
                 <th:block th:if="${not #lists.isEmpty(terms)}"><div th:replace="~{layout/report-card :: termPicker(${terms}, ${selectedTermId})}"></div></th:block>
+                <a th:href="@{/teacher/academic/report-cards/{id}/pdf(id=${reportCard.student().studentId}, termId=${selectedTermId})}" class="btn btn-primary"><i class="bi bi-file-earmark-pdf-fill"></i> Export PDF</a>
                 <a th:href="@{/teacher/academic/report-cards}" class="btn btn-outline"><i class="bi bi-arrow-left"></i> Back</a>
             </div>
         </div>

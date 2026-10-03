@@ -8,6 +8,8 @@ import org.springframework.stereotype.Component;
 
 import java.awt.Color;
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 
 @Component
 public class PdfExportStrategy implements ReportExportStrategy {
@@ -20,6 +22,14 @@ public class PdfExportStrategy implements ReportExportStrategy {
             PdfWriter.getInstance(document, out);
             document.open();
 
+            Image logo = loadLogo();
+            if (logo != null) {
+                logo.scaleToFit(170, 57);
+                logo.setAlignment(Image.ALIGN_LEFT);
+                document.add(logo);
+                document.add(new Paragraph(" "));
+            }
+
             Font titleFont = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 16);
             document.add(new Paragraph(data.title(), titleFont));
             document.add(new Paragraph(" "));
@@ -28,7 +38,7 @@ public class PdfExportStrategy implements ReportExportStrategy {
             PdfPTable table = new PdfPTable(columnCount);
             table.setWidthPercentage(100);
 
-            Font headerFont = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 10);
+            Font headerFont = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 10, Color.WHITE);
             for (String column : data.columns()) {
                 PdfPCell cell = new PdfPCell(new Phrase(column, headerFont));
                 cell.setBackgroundColor(new Color(0x11, 0x35, 0x6F));
@@ -58,6 +68,15 @@ public class PdfExportStrategy implements ReportExportStrategy {
             if (document.isOpen()) document.close();
         }
         return out.toByteArray();
+    }
+
+    /** The SISA logo from the app's static images; null (no logo) if it can't be read. */
+    private static Image loadLogo() {
+        try (InputStream in = PdfExportStrategy.class.getResourceAsStream("/static/images/sisa-logo.png")) {
+            return in == null ? null : Image.getInstance(in.readAllBytes());
+        } catch (IOException | BadElementException e) {
+            return null;
+        }
     }
 
     @Override

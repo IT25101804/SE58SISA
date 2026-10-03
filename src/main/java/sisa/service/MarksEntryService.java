@@ -261,6 +261,13 @@ public class MarksEntryService {
 
     public ReportCard reportCardForAsClassTeacher(String studentId, String className, User actingTeacher, Long termId) {
         requireClassTeacherFor(className, actingTeacher);
+        // The student must actually be in this Class Teacher's class.
+        Student student = studentRepository.findById(studentId)
+                .orElseThrow(() -> new IllegalArgumentException("No such student: " + studentId));
+        if (!className.equals(student.getClassName())) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN,
+                    "Only the Class Teacher for " + student.getClassName() + " can view this student's report card.");
+        }
         return reportCardFor(studentId, termId);
     }
 

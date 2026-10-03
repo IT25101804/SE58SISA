@@ -19,7 +19,7 @@
         <div class="page-head" style="display:flex; align-items:flex-end; justify-content:space-between; flex-wrap:wrap; gap:12px;">
             <div>
                 <h1>Child's Results</h1>
-                <p>Read-only &mdash; each child's exam results for the chosen term, with the term's total and average mark.</p>
+                <p>Your child's report card for the selected term.</p>
             </div>
             <th:block th:if="${terms != null and not #lists.isEmpty(terms)}"><div th:replace="~{layout/report-card :: termPicker(${terms}, ${selectedTermId})}"></div></th:block>
         </div>
@@ -30,8 +30,11 @@
         </div>
 
         <div th:each="c : ${children}" class="card" style="margin-bottom:18px;">
-            <h3><i class="bi bi-person-vcard-fill"></i> <span th:text="${c.student().user.fullName}">Child</span>
+            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:14px;">
+            <h3 style="margin:0;"><i class="bi bi-person-vcard-fill"></i> <span th:text="${c.student().user.fullName}">Child</span>
                 &nbsp;<span class="id-badge" th:text="${c.student().studentId}">S2600001</span></h3>
+                <a th:href="@{/parent/child-results/{id}/pdf(id=${c.student().studentId}, termId=${selectedTermId})}" class="btn btn-primary"><i class="bi bi-file-earmark-pdf-fill"></i> Export PDF</a>
+            </div>
 
             <div th:replace="~{layout/report-card :: view(${c.reportCard()})}"></div>
 

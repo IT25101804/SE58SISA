@@ -18,11 +18,11 @@
         <div class="page-head" style="display:flex; align-items:flex-end; justify-content:space-between; flex-wrap:wrap; gap:12px;">
             <div>
                 <h1>My Results</h1>
-                <p>Your exam results for each term, with the term's total and average mark. Use your browser's print/save-as-PDF for a copy of your report card.</p>
+                <p>Your report card for the selected term.</p>
             </div>
             <div th:if="${reportCard != null}" style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
                 <th:block th:if="${not #lists.isEmpty(terms)}"><div th:replace="~{layout/report-card :: termPicker(${terms}, ${selectedTermId})}"></div></th:block>
-                <button onclick="window.print()" class="btn btn-outline"><i class="bi bi-printer-fill"></i> Print Report Card</button>
+                <a th:href="@{/student/results/pdf(termId=${selectedTermId})}" class="btn btn-primary"><i class="bi bi-file-earmark-pdf-fill"></i> Export PDF</a>
             </div>
         </div>
 

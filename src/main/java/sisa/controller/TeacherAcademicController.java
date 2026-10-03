@@ -12,6 +12,10 @@ import sisa.repository.StudentRepository;
 import sisa.repository.UserRepository;
 import sisa.service.AttendanceService;
 import sisa.service.MarksEntryService;
+import sisa.report.ReportCardPdf;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import sisa.service.dto.ExamForm;
 import sisa.service.dto.MarksEntryForm;
 import org.springframework.security.core.Authentication;
@@ -33,15 +37,29 @@ public class TeacherAcademicController {
     private final AttendanceService attendanceService;
     private final BehaviourNoteRepository behaviourNoteRepository;
     private final StudentRepository studentRepository;
+    private final ReportCardPdf reportCardPdf;
 
     public TeacherAcademicController(UserRepository userRepository, MarksEntryService marksEntryService,
                                      AttendanceService attendanceService, BehaviourNoteRepository behaviourNoteRepository,
-                                     StudentRepository studentRepository) {
+                                     StudentRepository studentRepository, ReportCardPdf reportCardPdf) {
         this.userRepository = userRepository;
         this.marksEntryService = marksEntryService;
         this.attendanceService = attendanceService;
         this.behaviourNoteRepository = behaviourNoteRepository;
         this.studentRepository = studentRepository;
+        this.reportCardPdf = reportCardPdf;
+    }
+
+    @GetMapping("/report-cards/{studentId}/pdf")
+    public ResponseEntity<byte[]> reportCardPdf(@PathVariable String studentId, @RequestParam(required = false) Long termId,
+                                                Authentication authentication) {
+        User user = currentUser(authentication);
+        Teacher teacher = marksEntryService.requireTeacher(user);
+        MarksEntryService.ReportCard card = marksEntryService.reportCardForAsClassTeacher(studentId, teacher.getAssignedClassName(), user, termId);
+        return ResponseEntity.ok()
+                .contentType(MediaType.APPLICATION_PDF)
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + ReportCardPdf.fileName(card) + "\"")
+                .body(reportCardPdf.render(card));
     }
 
     private User currentUser(Authentication authentication) {

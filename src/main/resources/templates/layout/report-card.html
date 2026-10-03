@@ -1,42 +1,48 @@
 <div th:fragment="view(reportCard)" xmlns:th="http://www.thymeleaf.org">
-    <p style="margin:0 0 12px; font-weight:600; color:var(--navy);">
-        <i class="bi bi-calendar3"></i>
-        <span th:text="${reportCard.term() != null} ? ${reportCard.term().name} : 'All terms'">Term 3, 2026</span>
-    </p>
-    <div class="grid grid-3" style="margin-bottom:18px;">
-        <div class="card stat-card">
-            <div class="stat-icon tone-blue"><i class="bi bi-calculator-fill"></i></div>
-            <div class="stat-value" th:text="${#lists.isEmpty(reportCard.entries())} ? '—' : ${#numbers.formatDecimal(reportCard.totalMarks(),1,1)}">—</div>
-            <div class="stat-label">Total Marks (all subjects)</div>
+    <div class="rc-summary">
+        <div class="rc-term">
+            <i class="bi bi-calendar3"></i>
+            <div>
+                <strong th:text="${reportCard.term() != null} ? ${reportCard.term().name} : 'All terms'">Term 3, 2026</strong>
+                <span th:if="${reportCard.term() != null}"
+                      th:text="${#temporals.format(reportCard.term().startDate, 'd MMM yyyy')} + ' – ' + ${#temporals.format(reportCard.term().endDate, 'd MMM yyyy')}">7 Sep 2026 – 4 Dec 2026</span>
+            </div>
         </div>
-        <div class="card stat-card">
-            <div class="stat-icon tone-amber"><i class="bi bi-award-fill"></i></div>
-            <div class="stat-value" th:text="${reportCard.averageMark() != null} ? ${#numbers.formatDecimal(reportCard.averageMark(),1,1)} : '—'">—</div>
-            <div class="stat-label">Average Mark</div>
-        </div>
-        <div class="card stat-card">
-            <div class="stat-icon"><i class="bi bi-journal-text"></i></div>
-            <div class="stat-value" th:text="${#lists.size(reportCard.entries())}">0</div>
-            <div class="stat-label">Exams Recorded</div>
+        <div class="rc-stats">
+            <div>
+                <span class="rc-value" th:text="${#lists.isEmpty(reportCard.entries())} ? '—'
+                      : (${reportCard.totalMarks() % 1 == 0} ? ${#numbers.formatInteger(reportCard.totalMarks(), 1)} : ${#numbers.formatDecimal(reportCard.totalMarks(), 1, 1)})">—</span>
+                <span class="rc-label">Total marks</span>
+            </div>
+            <div>
+                <span class="rc-value" th:text="${reportCard.averageMark() != null} ? ${#numbers.formatDecimal(reportCard.averageMark(), 1, 1)} : '—'">—</span>
+                <span class="rc-label">Average mark</span>
+            </div>
+            <div>
+                <span class="rc-value" th:text="${#lists.size(reportCard.entries())}">0</span>
+                <span class="rc-label">Exams</span>
+            </div>
         </div>
     </div>
-    <table class="wsims-table">
+    <table class="wsims-table rc-table">
         <thead>
-        <tr><th>Date</th><th>Subject</th><th>Exam</th><th>Marks</th><th>Grade</th></tr>
+        <tr><th>Subject</th><th>Assessment</th><th>Date</th><th class="num">Marks</th><th class="num">%</th><th class="num">Grade</th></tr>
         </thead>
         <tbody>
         <tr th:each="e : ${reportCard.entries()}">
-            <td th:text="${e.examDate()}">2026-01-01</td>
-            <td th:text="${e.subject()}">Subject</td>
-            <td th:text="${e.examName()}">Exam</td>
-            <td th:text="${e.marksObtained()} + ' / ' + ${e.maxMarks()}">0 / 100</td>
-            <td><span class="status" th:classappend="${#strings.toLowerCase(e.grade())}" th:text="${e.grade()}">A</span></td>
+            <td class="rc-subject" th:text="${e.subject()}">Mathematics</td>
+            <td th:text="${e.examName()}">First Term Test</td>
+            <td th:text="${#temporals.format(e.examDate(), 'd MMM yyyy')}">1 Apr 2026</td>
+            <td class="num" th:text="${#numbers.formatDecimal(e.marksObtained(), 1, 0)} + ' / ' + ${#numbers.formatDecimal(e.maxMarks(), 1, 0)}">82 / 100</td>
+            <td class="num" th:text="${e.maxMarks() > 0} ? ${#numbers.formatDecimal(e.marksObtained() * 100 / e.maxMarks(), 1, 0)} + '%' : '—'">82%</td>
+            <td class="num"><span class="status" th:classappend="${#strings.toLowerCase(e.grade())}" th:text="${e.grade()}">A</span></td>
         </tr>
         <tr th:if="${#lists.isEmpty(reportCard.entries())}">
-            <td colspan="5"><div class="empty-state"><i class="bi bi-inbox"></i> No exam results recorded for this term yet.</div></td>
+            <td colspan="6"><div class="empty-state"><i class="bi bi-inbox"></i> No exam results recorded for this term yet.</div></td>
         </tr>
         </tbody>
     </table>
+    <p class="rc-scale">Grading scale: A 75–100% · B 60–74% · C 50–59% · D 40–49% · F below 40%</p>
 </div>
 
 <!-- Term picker: reloads the current page with ?termId=… -->

@@ -472,3 +472,30 @@ table.wsims-table tr:hover td { background: var(--azure-soft); }
 .att-choice input:checked + span { background: currentColor; }
 .att-choice input:checked + span i { color: #FFFFFF; }
 .att-choice input:focus-visible + span { outline: 2px solid var(--navy); outline-offset: 2px; }
+
+/* ---------- Report card (layout/report-card.html) ---------- */
+.rc-summary {
+  display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;
+  padding: 16px 18px; margin-bottom: 18px;
+  background: var(--azure-soft); border-radius: var(--radius-md); border-left: 4px solid var(--orange);
+}
+.rc-term { display: flex; align-items: center; gap: 12px; color: var(--navy); }
+.rc-term > i { font-size: 22px; }
+.rc-term strong { display: block; font-size: 16px; }
+.rc-term span { font-size: 12.5px; color: var(--charcoal); opacity: .7; }
+.rc-stats { display: flex; gap: 28px; }
+.rc-stats > div { text-align: center; min-width: 70px; }
+.rc-value { display: block; font-size: 22px; font-weight: 800; color: var(--navy); font-family: var(--font-mono); }
+.rc-label { display: block; font-size: 11px; letter-spacing: .04em; text-transform: uppercase; opacity: .6; }
+.rc-table th.num, .rc-table td.num { text-align: center; }
+.rc-table td.rc-subject { font-weight: 600; color: var(--navy); }
+.rc-scale { font-size: 12px; opacity: .6; margin: 12px 0 0; }
+
+/* Printing a page prints just its content, not the menu and top bar. */
+@media print {
+  .sidebar, .topbar, .sidebar-backdrop, .page-head .btn, .page-head form, .no-print { display: none !important; }
+  .app-shell { display: block; }
+  main.content { padding: 0; }
+  .card { box-shadow: none; border: none; }
+  body { background: #FFFFFF; }
+}
