@@ -3,6 +3,7 @@ package sisa.service;
 import sisa.entity.*;
 import sisa.entity.*;
 import sisa.repository.NotificationRepository;
+import sisa.repository.RegistrarRepository;
 import sisa.repository.StudentRepository;
 import sisa.repository.TeacherRepository;
 import sisa.repository.TimetableSlotRepository;
@@ -24,15 +25,17 @@ public class AnnouncementService {
     private final StudentRepository studentRepository;
     private final TeacherRepository teacherRepository;
     private final TimetableSlotRepository timetableSlotRepository;
+    private final RegistrarRepository registrarRepository;
 
     public AnnouncementService(NotificationRepository notificationRepository, UserRepository userRepository,
                                StudentRepository studentRepository, TeacherRepository teacherRepository,
-                               TimetableSlotRepository timetableSlotRepository) {
+                               TimetableSlotRepository timetableSlotRepository, RegistrarRepository registrarRepository) {
         this.notificationRepository = notificationRepository;
         this.userRepository = userRepository;
         this.studentRepository = studentRepository;
         this.teacherRepository = teacherRepository;
         this.timetableSlotRepository = timetableSlotRepository;
+        this.registrarRepository = registrarRepository;
     }
 
     @Transactional
@@ -71,7 +74,7 @@ public class AnnouncementService {
             }
         }
 
-        Set<String> recipients = resolveRecipients(scope, className, form.getStudentId(), form.getTeacherId());
+        Set<String> recipients = resolveRecipients(scope, className, form.getStudentId(), form.getTeacherId(), form.getRegistrarId());
         if (recipients.isEmpty()) {
             throw new IllegalArgumentException("No recipients found for that target.");
         }
@@ -97,7 +100,8 @@ public class AnnouncementService {
         return recipients.size();
     }
 
-    private Set<String> resolveRecipients(NotificationScope scope, String className, String studentId, String teacherId) {
+    private Set<String> resolveRecipients(NotificationScope scope, String className, String studentId, String teacherId,
+                                          String registrarId) {
         Set<String> ids = new LinkedHashSet<>();
         switch (scope) {
             case SCHOOL -> userRepository.findByStatus(AccountStatus.APPROVED).forEach(u -> ids.add(u.getUserId()));
@@ -133,6 +137,18 @@ public class AnnouncementService {
                 }
                 ids.add(teacher.getTeacherId());
             }
+            case REGISTRARS -> activeRegistrars().forEach(r -> ids.add(r.getRegistrarId()));
+            case REGISTRAR -> {
+                if (registrarId == null || registrarId.isBlank()) {
+                    throw new IllegalArgumentException("Choose a registrar to send this to.");
+                }
+                Registrar registrar = registrarRepository.findById(registrarId.trim())
+                        .orElseThrow(() -> new IllegalArgumentException("No such registrar: " + registrarId));
+                if (registrar.getUser() == null || registrar.getUser().getStatus() != AccountStatus.APPROVED) {
+                    throw new IllegalArgumentException("That registrar's account isn't active.");
+                }
+                ids.add(registrar.getRegistrarId());
+            }
             case PRINCIPAL -> userRepository.findByRole(Role.PRINCIPAL).stream()
                     .filter(u -> u.getStatus() == AccountStatus.APPROVED)
                     .forEach(u -> ids.add(u.getUserId()));
@@ -146,6 +162,14 @@ public class AnnouncementService {
             }
         }
         return ids;
+    }
+
+    /** Approved registrars, A-Z by name — the choices for a "One Registrar" message. */
+    public List<Registrar> activeRegistrars() {
+        return registrarRepository.findAll().stream()
+                .filter(r -> r.getUser() != null && r.getUser().getStatus() == AccountStatus.APPROVED)
+                .sorted(Comparator.comparing(r -> r.getUser().getFullName(), String.CASE_INSENSITIVE_ORDER))
+                .toList();
     }
 
     public List<Teacher> activeTeachers() {

@@ -15,5 +15,6 @@ public class AnnouncementForm {
     private String className;
     private String studentId;
     private String teacherId;
+    private String registrarId;
     private String scheduledFor;
 }

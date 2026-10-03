@@ -34,6 +34,8 @@
                         <option value="CLASS">One Class</option>
                         <option value="TEACHERS">All Teachers</option>
                         <option value="TEACHER">One Teacher</option>
+                        <option value="REGISTRARS">All Registrars</option>
+                        <option value="REGISTRAR">One Registrar</option>
                         <option value="ONE_STUDENT">One Student</option>
                         <option value="GUARDIANS">One Student's Guardians</option>
                     </select>
@@ -51,6 +53,14 @@
                         <option value="">— Choose a teacher —</option>
                         <option th:each="t : ${allTeachers}" th:value="${t.teacherId}"
                                 th:text="${t.user.fullName + ' (' + t.teacherId + ')'}">Teacher</option>
+                    </select>
+                </div>
+                <div class="field" data-scope="REGISTRAR">
+                    <label for="registrarId">Registrar</label>
+                    <select id="registrarId" th:field="*{registrarId}">
+                        <option value="">— Choose a registrar —</option>
+                        <option th:each="r : ${allRegistrars}" th:value="${r.registrarId}"
+                                th:text="${r.user.fullName + ' (' + r.registrarId + ')'}">Registrar</option>
                     </select>
                 </div>
                 <div class="field" data-scope="ONE_STUDENT GUARDIANS">

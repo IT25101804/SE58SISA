@@ -45,6 +45,7 @@ public class RegistrarCommsController {
         model.addAttribute("activeItem", "comm");
         model.addAttribute("allClassNames", studentRepository.distinctClassNames());
         model.addAttribute("allTeachers", announcementService.activeTeachers());
+        model.addAttribute("allRegistrars", announcementService.activeRegistrars());
         model.addAttribute("form", new AnnouncementForm());
         return "registrar/comms-new";
     }
@@ -56,6 +57,7 @@ public class RegistrarCommsController {
         model.addAttribute("activeItem", "comm");
         model.addAttribute("allClassNames", studentRepository.distinctClassNames());
         model.addAttribute("allTeachers", announcementService.activeTeachers());
+        model.addAttribute("allRegistrars", announcementService.activeRegistrars());
         try {
             form.setCategory("MESSAGE"); // these forms only send messages, there is no category to choose
             int reached = announcementService.create(form, user);

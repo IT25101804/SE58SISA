@@ -58,6 +58,7 @@ public class PrincipalCommsController {
         model.addAttribute("activeItem", "comm");
         model.addAttribute("allClassNames", studentRepository.distinctClassNames());
         model.addAttribute("allTeachers", announcementService.activeTeachers());
+        model.addAttribute("allRegistrars", announcementService.activeRegistrars());
         model.addAttribute("canSchedule", true);
         model.addAttribute("form", new AnnouncementForm());
         return "principal/comms-new";
@@ -70,6 +71,7 @@ public class PrincipalCommsController {
         model.addAttribute("activeItem", "comm");
         model.addAttribute("allClassNames", studentRepository.distinctClassNames());
         model.addAttribute("allTeachers", announcementService.activeTeachers());
+        model.addAttribute("allRegistrars", announcementService.activeRegistrars());
         model.addAttribute("canSchedule", true);
         try {
             form.setCategory("MESSAGE"); // these forms only send messages, there is no category to choose

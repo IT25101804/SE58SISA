@@ -8,5 +8,7 @@ public enum NotificationScope {
     TEACHER,
     ONE_STUDENT,
     GUARDIANS,
-    PRINCIPAL
+    PRINCIPAL,
+    REGISTRARS,
+    REGISTRAR
 }
