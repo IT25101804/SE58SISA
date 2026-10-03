@@ -75,7 +75,7 @@ public class AnnouncementService {
                     }
                     className = teacher.getAssignedClassName();
                 }
-                case PRINCIPAL -> { }
+                case PRINCIPAL, SCHOOL, TEACHERS -> { }
                 case ONE_STUDENT, GUARDIANS -> {
                     Student student = requireStudent(form.getStudentId());
                     if (!classesTaughtBy(teacher).contains(student.getClassName())) {
@@ -84,7 +84,7 @@ public class AnnouncementService {
                     }
                 }
                 default -> throw new ResponseStatusException(HttpStatus.FORBIDDEN,
-                        "Teachers can send to their class, the Principal, one student or one parent.");
+                        "Teachers can send to the whole school, all teachers, their class, the Principal, one student or one parent.");
             }
         }
 
