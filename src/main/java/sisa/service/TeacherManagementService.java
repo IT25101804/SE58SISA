@@ -2,6 +2,7 @@ package sisa.service;
 
 import sisa.entity.Teacher;
 import sisa.entity.User;
+import sisa.repository.SubjectRepository;
 import sisa.repository.TeacherRepository;
 import sisa.service.dto.TeacherAssignmentRequest;
 import org.springframework.stereotype.Service;
@@ -16,10 +17,13 @@ public class TeacherManagementService {
 
     private final TeacherRepository teacherRepository;
     private final AuditLogService auditLogService;
+    private final SubjectRepository subjectRepository;
 
-    public TeacherManagementService(TeacherRepository teacherRepository, AuditLogService auditLogService) {
+    public TeacherManagementService(TeacherRepository teacherRepository, AuditLogService auditLogService,
+                                    SubjectRepository subjectRepository) {
         this.teacherRepository = teacherRepository;
         this.auditLogService = auditLogService;
+        this.subjectRepository = subjectRepository;
     }
 
     public List<Teacher> listAll() {
@@ -52,7 +56,11 @@ public class TeacherManagementService {
                     });
         }
 
-        teacher.setSubjectSpecialty(req.getSubjectSpecialty());
+        if (StringUtils.hasText(req.getSubjectSpecialty()) && !subjectRepository.existsByNameIgnoreCase(req.getSubjectSpecialty().trim())) {
+            throw new IllegalArgumentException("Choose one of the registered subjects as the subject specialty.");
+        }
+
+        teacher.setSubjectSpecialty(StringUtils.hasText(req.getSubjectSpecialty()) ? req.getSubjectSpecialty().trim() : null);
         teacher.setJoiningYear(req.getJoiningYear());
         teacher.setClassTeacher(req.isClassTeacher());
         teacher.setAssignedClassName(req.isClassTeacher() ? req.getAssignedClassName() : null);

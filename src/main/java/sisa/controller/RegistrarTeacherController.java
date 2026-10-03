@@ -3,6 +3,8 @@ package sisa.controller;
 import sisa.entity.Teacher;
 import sisa.entity.User;
 import sisa.repository.StudentRepository;
+import sisa.repository.SubjectRepository;
+import sisa.repository.TeacherRepository;
 import sisa.repository.UserRepository;
 import sisa.service.AccountAdminService;
 import sisa.service.AccountDeletionService;
@@ -24,16 +26,21 @@ public class RegistrarTeacherController {
     private final AccountAdminService accountAdminService;
     private final TeacherManagementService teacherManagementService;
     private final AccountDeletionService accountDeletionService;
+    private final SubjectRepository subjectRepository;
+    private final TeacherRepository teacherRepository;
 
     public RegistrarTeacherController(UserRepository userRepository, StudentRepository studentRepository,
                                       AccountAdminService accountAdminService,
                                       TeacherManagementService teacherManagementService,
-                                      AccountDeletionService accountDeletionService) {
+                                      AccountDeletionService accountDeletionService,
+                                      SubjectRepository subjectRepository, TeacherRepository teacherRepository) {
         this.userRepository = userRepository;
         this.studentRepository = studentRepository;
         this.accountAdminService = accountAdminService;
         this.teacherManagementService = teacherManagementService;
         this.accountDeletionService = accountDeletionService;
+        this.subjectRepository = subjectRepository;
+        this.teacherRepository = teacherRepository;
     }
 
     private User currentUser(Authentication authentication) {
@@ -64,21 +71,35 @@ public class RegistrarTeacherController {
         model.addAttribute("user", currentUser(authentication));
         model.addAttribute("activeItem", "access");
         model.addAttribute("request", new CreateAccountRequest());
+        model.addAttribute("subjects", subjectRepository.findAllByOrderByNameAsc());
         return "registrar/teacher-new";
     }
 
     @PostMapping("/new")
     public String create(@ModelAttribute("request") CreateAccountRequest request,
+                         @RequestParam(required = false) String subjectSpecialty,
                          Authentication authentication, Model model) {
         model.addAttribute("user", currentUser(authentication));
         model.addAttribute("activeItem", "access");
+        model.addAttribute("subjects", subjectRepository.findAllByOrderByNameAsc());
         try {
+            boolean hasSpecialty = subjectSpecialty != null && !subjectSpecialty.isBlank();
+            if (hasSpecialty && !subjectRepository.existsByNameIgnoreCase(subjectSpecialty.trim())) {
+                throw new IllegalArgumentException("Choose one of the registered subjects as the subject specialty.");
+            }
             User created = accountAdminService.createTeacher(request, currentUser(authentication));
+            if (hasSpecialty) {
+                teacherRepository.findById(created.getUserId()).ifPresent(t -> {
+                    t.setSubjectSpecialty(subjectSpecialty.trim());
+                    teacherRepository.save(t);
+                });
+            }
             model.addAttribute("createdId", created.getUserId());
             model.addAttribute("request", new CreateAccountRequest());
         } catch (RuntimeException ex) {
             model.addAttribute("error", ex.getMessage());
             model.addAttribute("request", request);
+            model.addAttribute("selectedSpecialty", subjectSpecialty);
         }
         return "registrar/teacher-new";
     }
@@ -90,6 +111,7 @@ public class RegistrarTeacherController {
         Teacher teacher = teacherManagementService.getOrThrow(id);
         model.addAttribute("teacher", teacher);
         model.addAttribute("allClassNames", studentRepository.distinctClassNames());
+        model.addAttribute("subjects", subjectRepository.findAllByOrderByNameAsc());
 
         TeacherAssignmentRequest form = new TeacherAssignmentRequest();
         form.setSubjectSpecialty(teacher.getSubjectSpecialty());

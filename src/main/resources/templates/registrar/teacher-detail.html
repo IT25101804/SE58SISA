@@ -35,7 +35,12 @@
                 (report business rule). Only one Class Teacher is allowed per class.</p>
             <form th:action="@{/registrar/teachers/{id}/edit(id=${teacher.teacherId})}" th:object="${form}" method="post">
                 <div class="field"><label for="subjectSpecialty">Subject Specialty</label>
-                    <input id="subjectSpecialty" type="text" th:field="*{subjectSpecialty}" placeholder="e.g. Mathematics"/>
+                    <select id="subjectSpecialty" name="subjectSpecialty" required>
+                        <option value="">— Choose a subject —</option>
+                        <option th:each="s : ${subjects}" th:value="${s.name}" th:selected="${#strings.equalsIgnoreCase(s.name, form.subjectSpecialty)}"
+                                th:text="${s.code != null and s.code != ''} ? ${s.name + ' (' + s.code + ')'} : ${s.name}">Mathematics</option>
+                    </select>
+                    <p th:if="${#lists.isEmpty(subjects)}" style="font-size:12px; opacity:.6; margin:4px 0 0;">No subjects yet &mdash; the Principal adds them under Subjects &amp; Terms.</p>
                 </div>
                 <div class="field"><label for="joiningYear">Joining Year</label>
                     <input id="joiningYear" type="text" th:field="*{joiningYear}" placeholder="2026"/>

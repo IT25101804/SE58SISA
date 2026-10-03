@@ -43,7 +43,8 @@ public class PrincipalTimetableController {
     }
 
     @GetMapping
-    public String builder(@RequestParam(required = false) String className, Authentication authentication, Model model) {
+    public String builder(@RequestParam(required = false) String className, @RequestParam(required = false) Long edit,
+                          Authentication authentication, Model model) {
         model.addAttribute("user", currentUser(authentication));
         model.addAttribute("activeItem", "timetable");
 
@@ -59,7 +60,22 @@ public class PrincipalTimetableController {
 
         if (className != null && !className.isBlank()) {
             model.addAttribute("grid", timetableService.asGrid(timetableService.slotsForClass(className)));
-            model.addAttribute("form", new TimetableSlotForm());
+            TimetableSlotForm form = new TimetableSlotForm();
+            if (edit != null) {
+                timetableService.slotsForClass(className).stream()
+                        .filter(s -> s.getId().equals(edit))
+                        .findFirst()
+                        .ifPresent(s -> {
+                            form.setSlotId(s.getId());
+                            form.setClassName(s.getClassName());
+                            form.setSubject(s.getSubject());
+                            form.setTeacherId(s.getTeacher().getTeacherId());
+                            form.setDayOfWeek(s.getDayOfWeek().name());
+                            form.setPeriodNumber(s.getPeriodNumber());
+                            form.setRoomResourceId(s.getRoom() == null ? null : s.getRoom().getId());
+                        });
+            }
+            model.addAttribute("form", form);
         }
         return "principal/timetable";
     }
@@ -72,11 +88,15 @@ public class PrincipalTimetableController {
             if (form.getSubject() == null || !subjectRepository.existsByNameIgnoreCase(form.getSubject().trim())) {
                 throw new IllegalArgumentException("Choose one of the registered subjects.");
             }
-            timetableService.upsertSlot(form);
-            redirectAttributes.addFlashAttribute("success",
-                    form.getSubject() + " saved for " + form.getDayOfWeek() + " period " + form.getPeriodNumber() + ".");
+            boolean editing = form.getSlotId() != null;
+            timetableService.saveSlot(form);
+            redirectAttributes.addFlashAttribute("success", form.getSubject() + (editing ? " updated for " : " added for ")
+                    + form.getDayOfWeek() + " period " + form.getPeriodNumber() + ".");
         } catch (RuntimeException ex) {
             redirectAttributes.addFlashAttribute("error", ex.getMessage());
+            if (form.getSlotId() != null) {
+                return "redirect:/principal/timetable?className=" + form.getClassName() + "&edit=" + form.getSlotId();
+            }
         }
         return "redirect:/principal/timetable?className=" + form.getClassName();
     }

@@ -58,10 +58,15 @@
                                 <strong th:text="${grid.get(p).get(d).subject}">Subject</strong><br/>
                                 <span style="font-size:12px; opacity:.7;" th:text="${grid.get(p).get(d).teacher.user.fullName}">Teacher</span><br/>
                                 <span style="font-size:12px; opacity:.55;" th:text="${grid.get(p).get(d).roomName ?: 'No room'}">Room</span>
-                                <form th:action="@{/principal/timetable/slot/{id}/delete(id=${grid.get(p).get(d).id})}" method="post" style="margin-top:6px;">
-                                    <input type="hidden" name="className" th:value="${className}"/>
-                                    <button type="submit" class="btn btn-outline" style="padding:3px 8px; font-size:11px;"><i class="bi bi-trash"></i></button>
-                                </form>
+                                <div style="display:flex; gap:4px; margin-top:6px;">
+                                    <a th:href="@{/principal/timetable(className=${className}, edit=${grid.get(p).get(d).id})}"
+                                       class="btn btn-outline" style="padding:3px 8px; font-size:11px;" title="Edit slot"><i class="bi bi-pencil-square"></i></a>
+                                    <form th:action="@{/principal/timetable/slot/{id}/delete(id=${grid.get(p).get(d).id})}" method="post" style="margin:0;"
+                                          data-confirm="Delete this timetable slot?">
+                                        <input type="hidden" name="className" th:value="${className}"/>
+                                        <button type="submit" class="btn btn-outline" style="padding:3px 8px; font-size:11px;" title="Delete slot"><i class="bi bi-trash"></i></button>
+                                    </form>
+                                </div>
                             </div>
                             <span th:unless="${grid.get(p) != null and grid.get(p).get(d) != null}" style="opacity:.3;">—</span>
                         </td>
@@ -71,11 +76,14 @@
             </div>
 
             <div class="card" style="max-width:520px;">
-                <h3><i class="bi bi-plus-circle-fill"></i> Add / Replace a Slot</h3>
-                <p style="font-size:12.5px; opacity:.65; margin-top:-6px;">Picking a day+period that's already filled replaces it. A teacher already
-                    booked elsewhere at that day+period is rejected with a conflict message.</p>
+                <h3 th:if="${form.slotId == null}"><i class="bi bi-plus-circle-fill"></i> Add a Slot</h3>
+                <h3 th:if="${form.slotId != null}"><i class="bi bi-pencil-square"></i> Edit Slot</h3>
+                <p style="font-size:12.5px; opacity:.65; margin-top:-6px;">A day+period that's already filled can't be added again &mdash; use
+                    Edit or Delete on that slot. Only teachers whose subject specialty matches the chosen subject are listed,
+                    and a teacher already booked elsewhere at that day+period is rejected.</p>
                 <form th:action="@{/principal/timetable/slot}" th:object="${form}" method="post">
                     <input type="hidden" name="className" th:value="${className}"/>
+                    <input type="hidden" th:field="*{slotId}"/>
                     <div class="field">
                         <label for="subject">Subject</label>
                         <select id="subject" th:field="*{subject}" required>
@@ -89,9 +97,10 @@
                         <label for="teacherId">Teacher</label>
                         <select id="teacherId" th:field="*{teacherId}" required>
                             <option value="">Select…</option>
-                            <option th:each="t : ${teachers}" th:value="${t.teacherId}"
+                            <option th:each="t : ${teachers}" th:value="${t.teacherId}" th:attr="data-subject=${t.subjectSpecialty}"
                                     th:text="${t.user.fullName} + ' (' + ${t.teacherId} + ')'">Teacher</option>
                         </select>
+                        <p id="noTeacherHint" style="display:none; font-size:12px; opacity:.6; margin:4px 0 0;">No teacher has this subject as their specialty yet.</p>
                     </div>
                     <div class="field">
                         <label for="dayOfWeek">Day</label>
@@ -114,12 +123,37 @@
                                     th:text="${r.name} + ' (' + ${r.type} + ')'">Room</option>
                         </select>
                     </div>
-                    <button type="submit" class="btn btn-primary"><i class="bi bi-save-fill"></i> Save Slot</button>
+                    <button type="submit" class="btn btn-primary"><i class="bi bi-save-fill"></i>
+                        <span th:text="${form.slotId == null} ? 'Add Slot' : 'Update Slot'">Add Slot</span></button>
+                    <a th:if="${form.slotId != null}" th:href="@{/principal/timetable(className=${className})}" class="btn btn-outline">Cancel</a>
                 </form>
             </div>
         </div>
     </main>
 </div>
 <script th:src="@{/js/main.js}"></script>
+<script>
+    (function () {
+        var subject = document.getElementById('subject');
+        var teacher = document.getElementById('teacherId');
+        if (!subject || !teacher) return;
+        var hint = document.getElementById('noTeacherHint');
+        function filterTeachers() {
+            var chosen = subject.value.trim().toLowerCase();
+            var shown = 0;
+            Array.prototype.forEach.call(teacher.options, function (o) {
+                if (!o.value) return;
+                var match = chosen !== '' && (o.getAttribute('data-subject') || '').trim().toLowerCase() === chosen;
+                o.hidden = !match;
+                o.disabled = !match;
+                if (match) shown++;
+            });
+            if (teacher.selectedOptions.length && teacher.selectedOptions[0].disabled) teacher.value = '';
+            hint.style.display = chosen !== '' && shown === 0 ? 'block' : 'none';
+        }
+        subject.addEventListener('change', filterTeachers);
+        filterTeachers();
+    })();
+</script>
 </body>
 </html>

@@ -55,13 +55,51 @@ public class TimetableService {
     @Transactional
     public TimetableSlot upsertSlot(TimetableSlotForm form) {
         DayOfWeek dayOfWeek = DayOfWeek.valueOf(form.getDayOfWeek());
-        Teacher teacher = teacherRepository.findById(form.getTeacherId())
-                .orElseThrow(() -> new IllegalArgumentException("No such teacher: " + form.getTeacherId()));
-
         TimetableSlot existingForClass = timetableSlotRepository
                 .findByClassNameAndDayOfWeekAndPeriodNumber(form.getClassName(), dayOfWeek, form.getPeriodNumber())
                 .orElse(null);
-        Long excludingId = existingForClass == null ? null : existingForClass.getId();
+        return write(form, existingForClass);
+    }
+
+    @Transactional
+    public TimetableSlot saveSlot(TimetableSlotForm form) {
+        if (form.getDayOfWeek() == null || form.getDayOfWeek().isBlank()) {
+            throw new IllegalArgumentException("Choose a day.");
+        }
+        if (form.getTeacherId() == null || form.getTeacherId().isBlank()) {
+            throw new IllegalArgumentException("Choose a teacher.");
+        }
+        DayOfWeek dayOfWeek = DayOfWeek.valueOf(form.getDayOfWeek());
+        Teacher teacher = teacherRepository.findById(form.getTeacherId())
+                .orElseThrow(() -> new IllegalArgumentException("No such teacher: " + form.getTeacherId()));
+        if (teacher.getSubjectSpecialty() == null || !teacher.getSubjectSpecialty().trim().equalsIgnoreCase(form.getSubject().trim())) {
+            throw new IllegalArgumentException(teacher.getUser().getFullName() + " does not teach " + form.getSubject()
+                    + " — choose a teacher whose subject specialty is " + form.getSubject() + ".");
+        }
+
+        TimetableSlot target = null;
+        if (form.getSlotId() != null) {
+            target = timetableSlotRepository.findById(form.getSlotId())
+                    .filter(s -> s.getClassName().equals(form.getClassName()))
+                    .orElseThrow(() -> new IllegalArgumentException("That slot no longer exists."));
+        }
+        Long ownId = target == null ? null : target.getId();
+        timetableSlotRepository
+                .findByClassNameAndDayOfWeekAndPeriodNumber(form.getClassName(), dayOfWeek, form.getPeriodNumber())
+                .filter(taken -> !taken.getId().equals(ownId))
+                .ifPresent(taken -> {
+                    throw new IllegalArgumentException(form.getClassName() + " already has " + taken.getSubject() + " on "
+                            + dayOfWeek + " period " + form.getPeriodNumber()
+                            + " — use Edit or Delete on that slot instead.");
+                });
+        return write(form, target);
+    }
+
+    private TimetableSlot write(TimetableSlotForm form, TimetableSlot existing) {
+        DayOfWeek dayOfWeek = DayOfWeek.valueOf(form.getDayOfWeek());
+        Teacher teacher = teacherRepository.findById(form.getTeacherId())
+                .orElseThrow(() -> new IllegalArgumentException("No such teacher: " + form.getTeacherId()));
+        Long excludingId = existing == null ? null : existing.getId();
 
         conflictChecker.conflictFor(teacher.getTeacherId(), dayOfWeek, form.getPeriodNumber(), excludingId)
                 .ifPresent(conflict -> {
@@ -84,7 +122,7 @@ public class TimetableService {
             room = resolvedRoom;
         }
 
-        TimetableSlot slot = existingForClass != null ? existingForClass : new TimetableSlot();
+        TimetableSlot slot = existing != null ? existing : new TimetableSlot();
         slot.setClassName(form.getClassName());
         slot.setSubject(form.getSubject());
         slot.setTeacher(teacher);

@@ -8,6 +8,7 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 public class TimetableSlotForm {
+    private Long slotId;
     private String className;
     private String subject;
     private String teacherId;

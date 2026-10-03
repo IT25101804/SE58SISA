@@ -83,10 +83,14 @@ class AnnouncementServiceTest {
         disabled.setStatus(AccountStatus.DISABLED);
         userRepository.save(disabled);
 
+        java.util.Set<Long> existingIds = notificationRepository.findAll().stream()
+                .map(Notification::getId).collect(java.util.stream.Collectors.toSet());
+
         AnnouncementForm form = baseForm("ANNOUNCEMENT", "SCHOOL");
         int reached = announcementService.create(form, principal());
 
-        List<Notification> all = notificationRepository.findAll();
+        List<Notification> all = notificationRepository.findAll().stream()
+                .filter(n -> !existingIds.contains(n.getId())).toList();
         List<String> recipientIds = all.stream().map(Notification::getRecipientUserId).toList();
 
         assertThat(recipientIds).contains(principal().getUserId(), teacher.getUserId(), student.getUserId(), parent.getUserId());
