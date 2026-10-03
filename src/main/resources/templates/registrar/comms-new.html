@@ -17,7 +17,7 @@
     <main class="content">
         <div class="page-head">
             <h1>New Message</h1>
-            <p>Send to the whole school, one class, every teacher or just one, one student, or one student's guardians &mdash; optionally scheduled for later.</p>
+            <p>Send to the whole school, the Principal, one class, teachers, registrars, one student, or one student's guardians &mdash; optionally scheduled for later.</p>
         </div>
 
         <div th:if="${success}" class="alert success"><i class="bi bi-check-circle-fill"></i> <span th:text="${success}">Done</span></div>
@@ -31,6 +31,7 @@
                     <label for="targetScope">Send To</label>
                     <select id="targetScope" th:field="*{targetScope}">
                         <option value="SCHOOL">Whole School</option>
+                        <option value="PRINCIPAL">Principal</option>
                         <option value="CLASS">One Class</option>
                         <option value="TEACHERS">All Teachers</option>
                         <option value="TEACHER">One Teacher</option>
