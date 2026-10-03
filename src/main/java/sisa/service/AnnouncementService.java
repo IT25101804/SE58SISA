@@ -76,6 +76,11 @@ public class AnnouncementService {
                     className = teacher.getAssignedClassName();
                 }
                 case PRINCIPAL, SCHOOL, TEACHERS -> { }
+                case TEACHER -> {
+                    if (teacher.getTeacherId().equals(form.getTeacherId())) {
+                        throw new IllegalArgumentException("Choose another teacher - you can't message yourself.");
+                    }
+                }
                 case ONE_STUDENT, GUARDIANS -> {
                     Student student = requireStudent(form.getStudentId());
                     if (!classesTaughtBy(teacher).contains(student.getClassName())) {
@@ -84,7 +89,7 @@ public class AnnouncementService {
                     }
                 }
                 default -> throw new ResponseStatusException(HttpStatus.FORBIDDEN,
-                        "Teachers can send to the whole school, all teachers, their class, the Principal, one student or one parent.");
+                        "Teachers can send to the whole school, all teachers, one teacher, their class, the Principal, one student or one parent.");
             }
         }
 

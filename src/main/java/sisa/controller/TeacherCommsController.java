@@ -48,6 +48,8 @@ public class TeacherCommsController {
         model.addAttribute("activeItem", "comm");
         Teacher teacher = attendanceService.requireTeacher(user);
         model.addAttribute("className", teacher.getAssignedClassName());
+        model.addAttribute("allTeachers", announcementService.activeTeachers().stream()
+                .filter(t -> !t.getTeacherId().equals(teacher.getTeacherId())).toList());
         model.addAttribute("form", new AnnouncementForm());
         return "teacher/comms-new";
     }
@@ -59,6 +61,8 @@ public class TeacherCommsController {
         model.addAttribute("activeItem", "comm");
         Teacher teacher = attendanceService.requireTeacher(user);
         model.addAttribute("className", teacher.getAssignedClassName());
+        model.addAttribute("allTeachers", announcementService.activeTeachers().stream()
+                .filter(t -> !t.getTeacherId().equals(teacher.getTeacherId())).toList());
         try {
             form.setCategory("MESSAGE"); // one kind of message for everyone, no category to choose
             int reached = announcementService.create(form, user);

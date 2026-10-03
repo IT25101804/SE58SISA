@@ -17,7 +17,7 @@
     <main class="content">
         <div class="page-head">
             <h1>New Message</h1>
-            <p>Send to the whole school, all teachers, your class, the Principal, one student you teach, or one student's parent &mdash; optionally scheduled for later.</p>
+            <p>Send to the whole school, all teachers or one teacher, your class, the Principal, one student you teach, or one student's parent &mdash; optionally scheduled for later.</p>
         </div>
 
         <div th:if="${success}" class="alert success"><i class="bi bi-check-circle-fill"></i> <span th:text="${success}">Done</span></div>
@@ -33,9 +33,18 @@
                         <option th:if="${className}" value="CLASS" th:text="'My Class (' + ${className} + ') and their guardians'">My Class</option>
                         <option value="SCHOOL">Whole School</option>
                         <option value="TEACHERS">All Teachers</option>
+                        <option value="TEACHER">One Teacher</option>
                         <option value="PRINCIPAL">Principal</option>
                         <option value="ONE_STUDENT">One Student</option>
                         <option value="GUARDIANS">One Parent</option>
+                    </select>
+                </div>
+                <div class="field" data-scope="TEACHER">
+                    <label for="teacherId">Teacher</label>
+                    <select id="teacherId" th:field="*{teacherId}">
+                        <option value="">— Choose a teacher —</option>
+                        <option th:each="t : ${allTeachers}" th:value="${t.teacherId}"
+                                th:text="${t.user.fullName + ' (' + t.teacherId + ')'}">Teacher</option>
                     </select>
                 </div>
                 <div class="field" data-scope="ONE_STUDENT GUARDIANS">
