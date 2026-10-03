@@ -66,6 +66,50 @@
     setTimeout(() => toast.remove(), 3500);
   };
 
+  // SISA-styled confirmation dialog, used instead of the browser's own confirm() box.
+  // Any form (or submit button) with data-confirm="message" asks before submitting.
+  function showConfirm(message, onConfirm) {
+    const backdrop = document.createElement('div');
+    backdrop.className = 'confirm-backdrop';
+    backdrop.innerHTML =
+      '<div class="confirm-dialog" role="alertdialog" aria-modal="true" aria-labelledby="confirmTitle" aria-describedby="confirmMessage">' +
+      '<div class="confirm-icon"><i class="bi bi-exclamation-triangle-fill"></i></div>' +
+      '<h3 id="confirmTitle">Are you sure?</h3>' +
+      '<p id="confirmMessage"></p>' +
+      '<div class="confirm-actions">' +
+      '<button type="button" class="btn btn-outline" data-action="cancel">Cancel</button>' +
+      '<button type="button" class="btn btn-danger" data-action="ok"><i class="bi bi-trash-fill"></i> Delete</button>' +
+      '</div></div>';
+    backdrop.querySelector('#confirmMessage').textContent = message;
+    const previousFocus = document.activeElement;
+
+    function close() {
+      document.removeEventListener('keydown', onKey);
+      backdrop.remove();
+      if (previousFocus && previousFocus.focus) previousFocus.focus();
+    }
+    function onKey(e) { if (e.key === 'Escape') close(); }
+
+    backdrop.addEventListener('click', (e) => {
+      if (e.target === backdrop || e.target.closest('[data-action="cancel"]')) close();
+      if (e.target.closest('[data-action="ok"]')) { close(); onConfirm(); }
+    });
+    document.addEventListener('keydown', onKey);
+    document.body.appendChild(backdrop);
+    backdrop.querySelector('[data-action="cancel"]').focus();
+  }
+
+  // Capture phase, so this runs before (and replaces) any page-level confirm() handlers.
+  document.addEventListener('submit', (e) => {
+    const form = e.target;
+    const submitter = e.submitter;
+    const message = (submitter && submitter.dataset.confirm) || form.dataset.confirm;
+    if (!message) return;
+    e.preventDefault();
+    e.stopImmediatePropagation();
+    showConfirm(message, () => HTMLFormElement.prototype.submit.call(form));
+  }, true);
+
   document.addEventListener('DOMContentLoaded', () => {
     initTheme();
     initMobileSidebar();

@@ -27,7 +27,7 @@
             <div style="display:flex; gap:10px;">
                 <a th:href="@{/inbox}" class="btn btn-outline"><i class="bi bi-arrow-left"></i> Back to Inbox</a>
                 <form th:action="@{/inbox/{id}/delete(id=${notification.id})}" method="post"
-                      onsubmit="return confirm('Delete this notification from your inbox?');">
+                      data-confirm="Delete this notification from your inbox?">
                     <button type="submit" class="btn btn-danger"><i class="bi bi-trash-fill"></i> Delete</button>
                 </form>
             </div>

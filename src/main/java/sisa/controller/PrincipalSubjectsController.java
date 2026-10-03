@@ -7,6 +7,7 @@ import sisa.repository.AcademicTermRepository;
 import sisa.repository.ExamRepository;
 import sisa.repository.SubjectRepository;
 import sisa.repository.UserRepository;
+import sisa.service.AcademicSetupService;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,13 +29,16 @@ public class PrincipalSubjectsController {
     private final SubjectRepository subjectRepository;
     private final AcademicTermRepository academicTermRepository;
     private final ExamRepository examRepository;
+    private final AcademicSetupService academicSetupService;
 
     public PrincipalSubjectsController(UserRepository userRepository, SubjectRepository subjectRepository,
-                                       AcademicTermRepository academicTermRepository, ExamRepository examRepository) {
+                                       AcademicTermRepository academicTermRepository, ExamRepository examRepository,
+                                       AcademicSetupService academicSetupService) {
         this.userRepository = userRepository;
         this.subjectRepository = subjectRepository;
         this.academicTermRepository = academicTermRepository;
         this.examRepository = examRepository;
+        this.academicSetupService = academicSetupService;
     }
 
     private User currentUser(Authentication authentication) {
@@ -71,6 +75,19 @@ public class PrincipalSubjectsController {
         return "redirect:/principal/subjects";
     }
 
+    @PostMapping("/{id}/edit")
+    public String updateSubject(@PathVariable Long id, @RequestParam String name, @RequestParam(required = false) String code,
+                                RedirectAttributes redirectAttributes) {
+        try {
+            int moved = academicSetupService.updateSubject(id, name, code);
+            redirectAttributes.addFlashAttribute("success", "Subject \"" + name.trim() + "\" updated"
+                    + (moved > 0 ? " (" + moved + " exams, timetable periods, assignments and teacher specialties now use the new name)." : "."));
+        } catch (IllegalArgumentException ex) {
+            redirectAttributes.addFlashAttribute("error", ex.getMessage());
+        }
+        return "redirect:/principal/subjects";
+    }
+
     @PostMapping("/{id}/delete")
     public String deleteSubject(@PathVariable Long id, RedirectAttributes redirectAttributes) {
         Subject subject = subjectRepository.findById(id).orElse(null);
@@ -101,6 +118,18 @@ public class PrincipalSubjectsController {
             redirectAttributes.addFlashAttribute("success", "Term \"" + term.getName() + "\" added.");
         } catch (RuntimeException ex) {
             redirectAttributes.addFlashAttribute("error", "Couldn't add term: " + ex.getMessage());
+        }
+        return "redirect:/principal/subjects";
+    }
+
+    @PostMapping("/terms/{id}/edit")
+    public String updateTerm(@PathVariable Long id, @RequestParam String name, @RequestParam String startDate,
+                             @RequestParam String endDate, RedirectAttributes redirectAttributes) {
+        try {
+            AcademicTerm term = academicSetupService.updateTerm(id, name, startDate, endDate);
+            redirectAttributes.addFlashAttribute("success", "Term \"" + term.getName() + "\" updated.");
+        } catch (RuntimeException ex) {
+            redirectAttributes.addFlashAttribute("error", "Couldn't update term: " + ex.getMessage());
         }
         return "redirect:/principal/subjects";
     }

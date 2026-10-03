@@ -33,12 +33,19 @@
                         <td th:text="${s.name}">Mathematics</td>
                         <td th:text="${s.code} ?: '—'">MATH</td>
                         <td>
-                            <form th:action="@{/principal/subjects/{id}/delete(id=${s.id})}" method="post">
-                                <button type="submit" class="btn btn-danger" style="padding:4px 10px; font-size:12px;"
-                                        onclick="return confirm('Delete this subject? This cannot be undone.');">
-                                    <i class="bi bi-trash-fill"></i> Delete
+                            <div style="display:flex; gap:6px; justify-content:flex-end;">
+                                <button type="button" class="btn btn-outline edit-btn" style="padding:4px 10px; font-size:12px;"
+                                        data-form="subject" th:data-url="@{/principal/subjects/{id}/edit(id=${s.id})}"
+                                        th:data-name="${s.name}" th:data-code="${s.code}">
+                                    <i class="bi bi-pencil-fill"></i> Edit
                                 </button>
-                            </form>
+                                <form th:action="@{/principal/subjects/{id}/delete(id=${s.id})}" method="post" style="margin:0;">
+                                    <button type="submit" class="btn btn-danger" style="padding:4px 10px; font-size:12px;"
+                                            data-confirm="Delete this subject? This cannot be undone.">
+                                        <i class="bi bi-trash-fill"></i> Delete
+                                    </button>
+                                </form>
+                            </div>
                         </td>
                     </tr>
                     </tbody>
@@ -49,15 +56,16 @@
             </div>
 
             <div class="card" style="align-self:start;">
-                <h3><i class="bi bi-plus-circle-fill"></i> Register a Subject</h3>
-                <form th:action="@{/principal/subjects}" method="post">
+                <h3 id="subjectFormTitle"><i class="bi bi-plus-circle-fill"></i> Register a Subject</h3>
+                <form id="subjectForm" th:action="@{/principal/subjects}" method="post">
                     <div class="field"><label for="subjectName">Subject Name</label>
                         <input id="subjectName" name="name" type="text" placeholder="e.g. Mathematics" required/>
                     </div>
                     <div class="field"><label for="subjectCode">Code (optional)</label>
                         <input id="subjectCode" name="code" type="text" placeholder="e.g. MATH"/>
                     </div>
-                    <button type="submit" class="btn btn-primary"><i class="bi bi-plus-circle-fill"></i> Register Subject</button>
+                    <button type="submit" class="btn btn-primary" id="subjectSubmit"><i class="bi bi-plus-circle-fill"></i> Register Subject</button>
+                    <button type="button" class="btn btn-outline" id="subjectCancel" hidden>Cancel edit</button>
                 </form>
             </div>
         </div>
@@ -77,9 +85,14 @@
                                 <form th:if="${not t.current}" th:action="@{/principal/subjects/terms/{id}/set-current(id=${t.id})}" method="post" style="margin:0;">
                                     <button type="submit" class="btn btn-outline" style="padding:4px 10px; font-size:12px;">Set Current</button>
                                 </form>
+                                <button type="button" class="btn btn-outline edit-btn" style="padding:4px 10px; font-size:12px;"
+                                        data-form="term" th:data-url="@{/principal/subjects/terms/{id}/edit(id=${t.id})}"
+                                        th:data-name="${t.name}" th:data-start="${t.startDate}" th:data-end="${t.endDate}">
+                                    <i class="bi bi-pencil-fill"></i> Edit
+                                </button>
                                 <form th:action="@{/principal/subjects/terms/{id}/delete(id=${t.id})}" method="post" style="margin:0;">
                                     <button type="submit" class="btn btn-danger" style="padding:4px 10px; font-size:12px;"
-                                            onclick="return confirm('Delete this term? This cannot be undone.');">
+                                            data-confirm="Delete this term? This cannot be undone.">
                                         <i class="bi bi-trash-fill"></i> Delete
                                     </button>
                                 </form>
@@ -94,8 +107,8 @@
             </div>
 
             <div class="card" style="align-self:start;">
-                <h3><i class="bi bi-calendar-plus-fill"></i> Add a Term</h3>
-                <form th:action="@{/principal/subjects/terms}" method="post">
+                <h3 id="termFormTitle"><i class="bi bi-calendar-plus-fill"></i> Add a Term</h3>
+                <form id="termForm" th:action="@{/principal/subjects/terms}" method="post">
                     <div class="field"><label for="termName">Term Name</label>
                         <input id="termName" name="name" type="text" placeholder="e.g. Term 1, 2027" required/>
                     </div>
@@ -105,12 +118,55 @@
                     <div class="field"><label for="termEnd">End Date</label>
                         <input id="termEnd" name="endDate" type="date" required/>
                     </div>
-                    <button type="submit" class="btn btn-primary"><i class="bi bi-plus-circle-fill"></i> Add Term</button>
+                    <button type="submit" class="btn btn-primary" id="termSubmit"><i class="bi bi-plus-circle-fill"></i> Add Term</button>
+                    <button type="button" class="btn btn-outline" id="termCancel" hidden>Cancel edit</button>
                 </form>
             </div>
         </div>
     </main>
 </div>
 <script th:src="@{/js/main.js}"></script>
+<script>
+    // "Edit" loads a subject/term into the form on the right and switches it to "Save Changes".
+    (function () {
+        var forms = {
+            subject: { form: 'subjectForm', title: 'subjectFormTitle', submit: 'subjectSubmit', cancel: 'subjectCancel',
+                       fields: { name: 'subjectName', code: 'subjectCode' }, editTitle: 'Edit Subject' },
+            term:    { form: 'termForm', title: 'termFormTitle', submit: 'termSubmit', cancel: 'termCancel',
+                       fields: { name: 'termName', start: 'termStart', end: 'termEnd' }, editTitle: 'Edit Term' }
+        };
+        Object.keys(forms).forEach(function (kind) {
+            var cfg = forms[kind];
+            var form = document.getElementById(cfg.form);
+            var title = document.getElementById(cfg.title);
+            var submit = document.getElementById(cfg.submit);
+            var cancel = document.getElementById(cfg.cancel);
+            var original = { action: form.getAttribute('action'), title: title.innerHTML, submit: submit.innerHTML };
+
+            function reset() {
+                form.setAttribute('action', original.action);
+                title.innerHTML = original.title;
+                submit.innerHTML = original.submit;
+                cancel.hidden = true;
+                form.reset();
+            }
+            cancel.addEventListener('click', reset);
+
+            document.querySelectorAll('.edit-btn[data-form="' + kind + '"]').forEach(function (btn) {
+                btn.addEventListener('click', function () {
+                    form.setAttribute('action', btn.dataset.url);
+                    Object.keys(cfg.fields).forEach(function (key) {
+                        document.getElementById(cfg.fields[key]).value = btn.dataset[key] || '';
+                    });
+                    title.innerHTML = '<i class="bi bi-pencil-square"></i> ' + cfg.editTitle;
+                    submit.innerHTML = '<i class="bi bi-save-fill"></i> Save Changes';
+                    cancel.hidden = false;
+                    form.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    document.getElementById(cfg.fields.name).focus();
+                });
+            });
+        });
+    })();
+</script>
 </body>
 </html>
