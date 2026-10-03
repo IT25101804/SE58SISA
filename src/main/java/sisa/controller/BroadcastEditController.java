@@ -37,13 +37,29 @@ public class BroadcastEditController {
     }
 
     @GetMapping("/edit")
-    public String editForm(@PathVariable String broadcastId, Authentication authentication, Model model) {
+    public String editForm(@PathVariable String broadcastId, Authentication authentication, Model model,
+                           RedirectAttributes redirectAttributes) {
         User user = currentUser(authentication);
+        AnnouncementService.Broadcast broadcast = announcementService.getBroadcastForEdit(broadcastId, user);
+        if (broadcast.sentAt() != null) {
+            redirectAttributes.addFlashAttribute("error", "That message has already been sent, so it can no longer be edited.");
+            return "redirect:" + logUrl(user);
+        }
         model.addAttribute("user", user);
         model.addAttribute("activeItem", "comm");
         model.addAttribute("backUrl", logUrl(user));
-        model.addAttribute("broadcast", announcementService.getBroadcastForEdit(broadcastId, user));
+        model.addAttribute("broadcast", broadcast);
         return "comms/broadcast-edit";
+    }
+
+    /** Delete a message (sent or scheduled) for every recipient — the Principal, or the message's own sender. */
+    @PostMapping("/delete")
+    public String delete(@PathVariable String broadcastId, Authentication authentication, RedirectAttributes redirectAttributes) {
+        User user = currentUser(authentication);
+        String back = logUrl(user);
+        String subject = announcementService.deleteBroadcast(broadcastId, user);
+        redirectAttributes.addFlashAttribute("success", "Deleted message \"" + subject + "\".");
+        return "redirect:" + back;
     }
 
     @PostMapping("/edit")

@@ -114,6 +114,7 @@ class CrudPagesRenderTest {
         form.setSubject("Staff meeting");
         form.setBody("Staff meeting at 2pm.");
         form.setTargetScope("SCHOOL");
+        form.setScheduledFor(java.time.LocalDateTime.now().plusDays(2).withSecond(0).withNano(0).toString());
         announcementService.create(form, principal());
         Notification row = notificationRepository.findByRecipientUserIdOrderByCreatedAtDesc(recipient.getUserId()).get(0);
 
@@ -124,7 +125,7 @@ class CrudPagesRenderTest {
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("Staff meeting at 2pm.")));
         mockMvc.perform(post("/comms/broadcasts/" + row.getBroadcastId() + "/edit").with(user("principal").roles("PRINCIPAL")).with(csrf())
-                        .param("subject", "Staff meeting").param("body", "Staff meeting moved to 3pm."))
+                        .param("subject", "Staff meeting").param("body", "Staff meeting moved to 3pm.").param("scheduledFor", ""))
                 .andExpect(redirectedUrl("/principal/comms"));
 
         mockMvc.perform(get("/inbox/" + row.getId()).with(user("tx910001").roles("TEACHER")))

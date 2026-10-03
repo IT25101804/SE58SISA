@@ -91,7 +91,7 @@ public class CommsInboxController {
     @PostMapping("/inbox/{id}/delete")
     public String deleteFromInbox(@PathVariable Long id, Authentication authentication, RedirectAttributes redirectAttributes) {
         announcementService.deleteFromInbox(id, currentUser(authentication));
-        redirectAttributes.addFlashAttribute("success", "Notification deleted from your inbox.");
+        redirectAttributes.addFlashAttribute("success", "Message deleted from your inbox.");
         return "redirect:/inbox";
     }
 

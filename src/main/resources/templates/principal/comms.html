@@ -43,16 +43,15 @@
                         <span th:if="${b.sentAt() != null}" class="status active">Sent</span>
                         <span th:unless="${b.sentAt() != null}" class="status pending">Scheduled</span>
                     </td>
-                    <td style="white-space:nowrap;">
-                        <a th:href="@{/comms/broadcasts/{id}/edit(id=${b.broadcastId()})}" class="btn btn-outline" style="padding:4px 10px; font-size:12px;">
+                    <td>
+                        <div style="display:flex; gap:6px; justify-content:flex-end;">
+                            <a th:if="${b.sentAt() == null}" th:href="@{/comms/broadcasts/{id}/edit(id=${b.broadcastId()})}" class="btn btn-outline" style="padding:4px 10px; font-size:12px;">
                             <i class="bi bi-pencil-square"></i> Edit</a>
-                        <form th:if="${b.sentAt() == null}" th:action="@{/principal/comms/{id}/delete(id=${b.broadcastId()})}" method="post"
-                              style="display:inline;" th:data-confirm="'Delete this scheduled message' + (${b.subject() != null and b.subject() != ''} ? (': ' + ${b.subject()}) : '') + '? This cannot be undone.'"
-                              class="delete-broadcast-form">
-                            <button type="submit" class="btn btn-danger" style="padding:4px 10px; font-size:12px;">
-                                <i class="bi bi-trash-fill"></i> Delete
-                            </button>
+                            <form th:action="@{/comms/broadcasts/{id}/delete(id=${b.broadcastId()})}" method="post" style="margin:0;"
+                              data-confirm="Delete this message for every recipient? This cannot be undone.">
+                            <button type="submit" class="btn btn-danger" style="padding:4px 10px; font-size:12px;"><i class="bi bi-trash-fill"></i> Delete</button>
                         </form>
+                        </div>
                     </td>
                 </tr>
                 <tr th:if="${#lists.isEmpty(broadcasts)}">

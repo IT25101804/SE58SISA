@@ -23,7 +23,8 @@
             <div style="display:flex; gap:10px;">
                 <a th:if="${user != null and user.role.name() == 'STUDENT'}" th:href="@{/discussions}" class="btn btn-outline">
                     <i class="bi bi-people-fill"></i> Class Discussion</a>
-                <a th:href="@{/messages}" class="btn btn-outline"><i class="bi bi-chat-dots-fill"></i> Messages</a>
+                <a th:if="${user != null and (user.role.name() == 'STUDENT' or user.role.name() == 'PARENT')}"
+                   th:href="@{/messages}" class="btn btn-outline"><i class="bi bi-chat-dots-fill"></i> Messages</a>
             </div>
         </div>
 
@@ -32,7 +33,7 @@
         <div class="card">
             <table class="wsims-table">
                 <thead>
-                <tr><th></th><th>Subject</th><th>Category</th><th>From</th><th>Received</th></tr>
+                <tr><th></th><th>Subject</th><th>Category</th><th>From</th><th>Received</th><th></th></tr>
                 </thead>
                 <tbody>
                 <tr th:each="t : ${messageRows}">
@@ -43,6 +44,7 @@
                     <td>MESSAGE</td>
                     <td th:text="${t.partnerName()}">Sender</td>
                     <td th:text="${t.lastMessage().sentAt}">2026-01-01</td>
+                    <td></td>
                 </tr>
                 <tr th:each="n : ${notifications}">
                     <td><span class="status" th:classappend="${n.read} ? 'read' : 'unread'" th:text="${n.read} ? 'Read' : 'Unread'">Unread</span></td>
@@ -50,9 +52,17 @@
                     <td th:text="${n.category}">CATEGORY</td>
                     <td th:text="${n.senderUserId ?: 'System'}">Sender</td>
                     <td th:text="${n.sentAt}">2026-01-01</td>
+                    <td>
+                        <form th:action="@{/inbox/{id}/delete(id=${n.id})}" method="post" style="margin:0;"
+                              data-confirm="Delete this message from your inbox?">
+                            <button type="submit" class="btn btn-danger" style="padding:4px 10px; font-size:12px;">
+                                <i class="bi bi-trash-fill"></i> Delete
+                            </button>
+                        </form>
+                    </td>
                 </tr>
                 <tr th:if="${#lists.isEmpty(notifications) and #lists.isEmpty(messageRows)}">
-                    <td colspan="5"><div class="empty-state"><i class="bi bi-inbox"></i> Nothing here yet.</div></td>
+                    <td colspan="6"><div class="empty-state"><i class="bi bi-inbox"></i> Nothing here yet.</div></td>
                 </tr>
                 </tbody>
             </table>

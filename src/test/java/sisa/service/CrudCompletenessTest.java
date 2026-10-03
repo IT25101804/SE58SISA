@@ -121,6 +121,7 @@ class CrudCompletenessTest {
         form.setBody("Sports day is on Friday.");
         form.setTargetScope("CLASS");
         form.setClassName("CRUD-Test-Class");
+        form.setScheduledFor(java.time.LocalDateTime.now().plusDays(2).withSecond(0).withNano(0).toString());
         announcementService.create(form, principal());
 
         List<Notification> rowsA = notificationRepository.findByRecipientUserIdOrderByCreatedAtDesc(a.getStudentId());

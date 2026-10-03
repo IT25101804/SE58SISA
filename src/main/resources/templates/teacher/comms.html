@@ -41,9 +41,18 @@
                     <td><span class="status" th:classappend="${#strings.toLowerCase(b.category())}" th:text="${b.category()}">CATEGORY</span></td>
                     <td th:text="${b.targetScope()}">CLASS</td>
                     <td th:text="${b.recipientCount()}">0</td>
-                    <td th:text="${b.sentAt()}">2026-01-01</td>
-                    <td><a th:href="@{/comms/broadcasts/{id}/edit(id=${b.broadcastId()})}" class="btn btn-outline" style="padding:4px 10px; font-size:12px;">
-                        <i class="bi bi-pencil-square"></i> Edit</a></td>
+                    <td><span th:if="${b.sentAt() != null}" th:text="${b.sentAt()}">2026-01-01</span>
+                        <span th:unless="${b.sentAt() != null}" class="status pending">Scheduled</span></td>
+                    <td>
+                        <div style="display:flex; gap:6px; justify-content:flex-end;">
+                            <a th:if="${b.sentAt() == null}" th:href="@{/comms/broadcasts/{id}/edit(id=${b.broadcastId()})}" class="btn btn-outline" style="padding:4px 10px; font-size:12px;">
+                            <i class="bi bi-pencil-square"></i> Edit</a>
+                            <form th:action="@{/comms/broadcasts/{id}/delete(id=${b.broadcastId()})}" method="post" style="margin:0;"
+                              data-confirm="Delete this message for every recipient? This cannot be undone.">
+                            <button type="submit" class="btn btn-danger" style="padding:4px 10px; font-size:12px;"><i class="bi bi-trash-fill"></i> Delete</button>
+                        </form>
+                        </div>
+                    </td>
                 </tr>
                 <tr th:if="${#lists.isEmpty(broadcasts)}">
                     <td colspan="6"><div class="empty-state"><i class="bi bi-inbox"></i> No class notices posted yet.</div></td>

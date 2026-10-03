@@ -42,8 +42,8 @@ public class PrincipalCommsController {
     @PostMapping("/{broadcastId}/delete")
     public String delete(@PathVariable String broadcastId, Authentication authentication, RedirectAttributes redirectAttributes) {
         try {
-            String subject = announcementService.deleteScheduledBroadcast(broadcastId, currentUser(authentication));
-            redirectAttributes.addFlashAttribute("success", "Deleted scheduled message \"" + subject + "\".");
+            String subject = announcementService.deleteBroadcast(broadcastId, currentUser(authentication));
+            redirectAttributes.addFlashAttribute("success", "Deleted message \"" + subject + "\".");
         } catch (ResponseStatusException rse) {
             redirectAttributes.addFlashAttribute("error", rse.getReason());
         } catch (RuntimeException ex) {

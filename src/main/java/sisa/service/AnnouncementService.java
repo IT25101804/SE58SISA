@@ -217,6 +217,9 @@ public class AnnouncementService {
             throw new IllegalArgumentException("The message body can't be empty.");
         }
         List<Notification> rows = requireEditableRows(broadcastId, requester);
+        if (rows.stream().anyMatch(n -> n.getSentAt() != null)) {
+            throw new IllegalArgumentException("This message has already been sent, so it can no longer be edited. You can delete it instead.");
+        }
 
         boolean reschedule = scheduledFor != null;
         LocalDateTime newSchedule = null;
@@ -269,7 +272,7 @@ public class AnnouncementService {
     }
 
     @Transactional
-    public String deleteScheduledBroadcast(String broadcastId, User requester) {
+    public String deleteBroadcast(String broadcastId, User requester) {
         List<Notification> rows = notificationRepository.findByBroadcastId(broadcastId);
         if (rows.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No such broadcast.");
@@ -277,10 +280,6 @@ public class AnnouncementService {
         Notification first = rows.get(0);
         if (requester.getRole() != Role.PRINCIPAL && !requester.getUserId().equals(first.getSenderUserId())) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You can only delete your own broadcasts.");
-        }
-        boolean anySent = rows.stream().anyMatch(n -> n.getSentAt() != null);
-        if (anySent) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "This broadcast has already been sent and can no longer be deleted.");
         }
         String subject = (first.getSubject() != null && !first.getSubject().isBlank()) ? first.getSubject() : "(no subject)";
         notificationRepository.deleteByBroadcastId(broadcastId);
