@@ -60,6 +60,7 @@ public class TeacherCommsController {
         Teacher teacher = attendanceService.requireTeacher(user);
         model.addAttribute("className", teacher.getAssignedClassName());
         try {
+            form.setCategory("MESSAGE"); // one kind of message for everyone, no category to choose
             int reached = announcementService.create(form, user);
             model.addAttribute("success", "Sent to " + reached + " recipient(s).");
             model.addAttribute("form", new AnnouncementForm());

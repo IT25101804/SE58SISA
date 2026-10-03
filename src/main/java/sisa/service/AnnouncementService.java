@@ -26,22 +26,36 @@ public class AnnouncementService {
     private final TeacherRepository teacherRepository;
     private final TimetableSlotRepository timetableSlotRepository;
     private final RegistrarRepository registrarRepository;
+    private final ParentTeacherContactService parentTeacherContactService;
 
     public AnnouncementService(NotificationRepository notificationRepository, UserRepository userRepository,
                                StudentRepository studentRepository, TeacherRepository teacherRepository,
-                               TimetableSlotRepository timetableSlotRepository, RegistrarRepository registrarRepository) {
+                               TimetableSlotRepository timetableSlotRepository, RegistrarRepository registrarRepository,
+                               ParentTeacherContactService parentTeacherContactService) {
         this.notificationRepository = notificationRepository;
         this.userRepository = userRepository;
         this.studentRepository = studentRepository;
         this.teacherRepository = teacherRepository;
         this.timetableSlotRepository = timetableSlotRepository;
         this.registrarRepository = registrarRepository;
+        this.parentTeacherContactService = parentTeacherContactService;
     }
 
     @Transactional
     public int create(AnnouncementForm form, User sender) {
-        if (sender.getRole() != Role.PRINCIPAL && sender.getRole() != Role.REGISTRAR && sender.getRole() != Role.TEACHER) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Only the Principal, Registrar or a Teacher can post notices.");
+        if (sender.getRole() == Role.STUDENT || sender.getRole() == Role.PARENT) {
+            // Students and parents can message one of their own (or their child's) teachers.
+            if (!"TEACHER".equals(form.getTargetScope())) {
+                throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Students and parents can only message a teacher.");
+            }
+            List<ParentTeacherContactService.TeacherContact> allowed = sender.getRole() == Role.STUDENT
+                    ? parentTeacherContactService.teachersForStudent(sender.getUserId())
+                    : parentTeacherContactService.teachersForParent(sender.getUserId());
+            if (allowed.stream().noneMatch(t -> t.userId().equals(form.getTeacherId()))) {
+                throw new IllegalArgumentException("Choose one of your teachers to send this to.");
+            }
+        } else if (sender.getRole() != Role.PRINCIPAL && sender.getRole() != Role.REGISTRAR && sender.getRole() != Role.TEACHER) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You can't send messages.");
         }
         NotificationCategory category = NotificationCategory.valueOf(form.getCategory());
         boolean noScope = form.getTargetScope() == null || form.getTargetScope().isBlank();

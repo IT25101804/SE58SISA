@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>New Message · SISA</title>
+    <link rel="icon" type="image/svg+xml" th:href="@{/images/logo.svg}"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"/>
+    <link rel="stylesheet" th:href="@{/css/styles.css}"/>
+</head>
+<body>
+<div class="app-shell">
+    <div th:replace="~{layout/sidebar :: sidebar('comm')}"></div>
+    <div th:replace="~{layout/topbar :: topbar}"></div>
+    <div th:replace="~{layout/sidebar :: backdrop}"></div>
+
+    <main class="content">
+        <div class="page-head">
+            <h1>New Message</h1>
+            <p th:text="${user.role.name() == 'PARENT'} ? 'Send a message to one of your child\'s teachers.' : 'Send a message to one of your teachers.'">Send a message to one of your teachers.</p>
+        </div>
+
+        <div th:if="${success}" class="alert success"><i class="bi bi-check-circle-fill"></i> <span th:text="${success}">Done</span></div>
+        <div th:if="${error}" class="alert error"><i class="bi bi-exclamation-circle-fill"></i> <span th:text="${error}">Error</span></div>
+
+        <div class="card" style="max-width:560px;">
+            <form th:action="@{/comms/new}" th:object="${form}" method="post">
+                <div class="field"><label for="subject">Subject</label><input id="subject" type="text" th:field="*{subject}" required/></div>
+                <div class="field"><label for="body">Message</label><textarea id="body" th:field="*{body}" rows="4" required></textarea></div>
+                <div class="field">
+                    <label for="teacherId">Send To</label>
+                    <select id="teacherId" th:field="*{teacherId}" required>
+                        <option value="">— Choose a teacher —</option>
+                        <option th:each="t : ${teacherOptions}" th:value="${t.userId()}"
+                                th:text="${user.role.name() == 'PARENT'}
+                                    ? ${t.teacherName() + ' — ' + t.subjects() + ' (' + t.childName() + ', ' + t.className() + ')'}
+                                    : ${t.teacherName() + ' — ' + t.subjects()}">Teacher — Subject</option>
+                    </select>
+                    <p th:if="${#lists.isEmpty(teacherOptions)}" style="font-size:12.5px; opacity:.65; margin-top:6px;">No teachers found yet.</p>
+                </div>
+                <button type="submit" class="btn btn-primary"><i class="bi bi-send-fill"></i> Send</button>
+                <a th:href="@{/inbox}" class="btn btn-outline"><i class="bi bi-arrow-left"></i> Back</a>
+            </form>
+        </div>
+    </main>
+</div>
+<script th:src="@{/js/main.js}"></script>
+</body>
+</html>

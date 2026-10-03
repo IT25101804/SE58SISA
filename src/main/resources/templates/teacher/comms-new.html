@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>New Class Notice · SISA</title>
+    <title>New Message · SISA</title>
     <link rel="icon" type="image/svg+xml" th:href="@{/images/logo.svg}"/>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"/>
     <link rel="stylesheet" th:href="@{/css/styles.css}"/>
@@ -16,7 +16,7 @@
 
     <main class="content">
         <div class="page-head">
-            <h1>New Notice</h1>
+            <h1>New Message</h1>
             <p>Send to your class, the Principal, one student you teach, or one student's parent.</p>
         </div>
 
@@ -25,13 +25,6 @@
 
         <div class="card" style="max-width:560px;">
             <form th:action="@{/teacher/comms/new}" th:object="${form}" method="post">
-                <div class="field">
-                    <label for="category">Category</label>
-                    <select id="category" th:field="*{category}">
-                        <option value="ANNOUNCEMENT">Class Notice</option>
-                        <option value="REMINDER">Reminder</option>
-                    </select>
-                </div>
                 <div class="field"><label for="subject">Subject</label><input id="subject" type="text" th:field="*{subject}" required/></div>
                 <div class="field"><label for="body">Message</label><textarea id="body" th:field="*{body}" rows="4" required></textarea></div>
                 <div class="field">

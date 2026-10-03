@@ -18,13 +18,16 @@
         <div class="page-head" style="display:flex; align-items:flex-end; justify-content:space-between; flex-wrap:wrap; gap:12px;">
             <div>
                 <h1>Inbox</h1>
-                <p>Messages, announcements, alerts and reminders sent to you.</p>
+                <p>Messages sent to you.</p>
             </div>
             <div style="display:flex; gap:10px;">
                 <a th:if="${user != null and user.role.name() == 'STUDENT'}" th:href="@{/discussions}" class="btn btn-outline">
                     <i class="bi bi-people-fill"></i> Class Discussion</a>
-                <a th:if="${user != null and (user.role.name() == 'STUDENT' or user.role.name() == 'PARENT')}"
-                   th:href="@{/messages}" class="btn btn-outline"><i class="bi bi-chat-dots-fill"></i> Messages</a>
+                <a th:if="${user != null}" class="btn btn-primary"
+                   th:href="${user.role.name() == 'PRINCIPAL'} ? @{/principal/comms/new}
+                          : (${user.role.name() == 'REGISTRAR'} ? @{/registrar/comms/new}
+                          : (${user.role.name() == 'TEACHER'} ? @{/teacher/comms/new} : @{/comms/new}))">
+                    <i class="bi bi-send-fill"></i> New Message</a>
             </div>
         </div>
 
