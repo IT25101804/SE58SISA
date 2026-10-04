@@ -2,6 +2,38 @@
 (function () {
   const STORAGE_KEY = 'wsims-theme';
 
+  function themeCharts(theme) {
+    if (!window.Chart) return;
+    const dark = theme === 'dark';
+    const text = dark ? '#DCE3F0' : '#273246';
+    const grid = dark ? 'rgba(220,227,240,0.12)' : 'rgba(17,53,111,0.08)';
+    const swap = { '#11356F': '#6FA1FF', '#1F4E9E': '#8DB4FF', '#0B1A33': '#DCE3F0' };
+
+    Chart.defaults.color = text;
+    Chart.defaults.borderColor = grid;
+
+    Object.values(Chart.instances || {}).forEach(chart => {
+      const opts = chart.options;
+      Object.values(opts.scales || {}).forEach(scale => {
+        if (scale.ticks) scale.ticks.color = text;
+        if (scale.grid) scale.grid.color = grid;
+        if (scale.title) scale.title.color = text;
+      });
+      if (opts.plugins && opts.plugins.legend && opts.plugins.legend.labels) opts.plugins.legend.labels.color = text;
+      if (opts.plugins && opts.plugins.title) opts.plugins.title.color = text;
+
+      chart.data.datasets.forEach(ds => {
+        ['backgroundColor', 'borderColor', 'pointBackgroundColor'].forEach(key => {
+          const original = ds['_light_' + key] !== undefined ? ds['_light_' + key] : ds[key];
+          if (typeof original !== 'string') return;
+          ds['_light_' + key] = original;
+          ds[key] = dark && swap[original.toUpperCase()] ? swap[original.toUpperCase()] : original;
+        });
+      });
+      chart.update();
+    });
+  }
+
   function applyTheme(theme) {
     document.documentElement.setAttribute('data-theme', theme);
     const btn = document.getElementById('themeToggle');
@@ -10,6 +42,7 @@
         ? '<i class="bi bi-sun-fill"></i>'
         : '<i class="bi bi-moon-stars-fill"></i>';
     }
+    themeCharts(theme);
   }
 
   function initTheme() {

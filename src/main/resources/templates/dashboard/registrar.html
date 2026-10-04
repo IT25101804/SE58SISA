@@ -7,10 +7,11 @@
     <link rel="icon" type="image/svg+xml" th:href="@{/images/logo.svg}"/>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"/>
   <link rel="stylesheet" th:href="@{/css/styles.css}"/>
+  <script>try{if(localStorage.getItem('wsims-theme')==='dark'){document.documentElement.setAttribute('data-theme','dark');}}catch(e){}</script>
 </head>
 <body>
 <div class="app-shell">
-  <div th:replace="~{layout/sidebar :: sidebar('students')}"></div>
+  <div th:replace="~{layout/sidebar :: sidebar('dashboard')}"></div>
   <div th:replace="~{layout/topbar :: topbar}"></div>
   <div th:replace="~{layout/sidebar :: backdrop}"></div>
   <main class="content">

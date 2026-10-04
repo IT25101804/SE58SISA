@@ -7,6 +7,7 @@
     <link rel="icon" type="image/svg+xml" th:href="@{/images/logo.svg}"/>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"/>
   <link rel="stylesheet" th:href="@{/css/styles.css}"/>
+  <script>try{if(localStorage.getItem('wsims-theme')==='dark'){document.documentElement.setAttribute('data-theme','dark');}}catch(e){}</script>
 </head>
 <body>
 <div class="app-shell">
@@ -16,7 +17,7 @@
 
   <main class="content">
     <div class="page-head">
-      <h1>Good to see you, <span th:text="${user.fullName}">Principal</span> 👋</h1>
+      <h1>Good to see you, <span th:text="${user.fullName}">Principal</span></h1>
       <p>Here's how SISA is doing across all eight modules today.</p>
     </div>
 
