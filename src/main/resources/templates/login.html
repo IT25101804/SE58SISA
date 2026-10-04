@@ -11,37 +11,63 @@
 </head>
 <body class="login-body">
 
-<div class="login-overlay"></div>
+<div class="login-split">
 
-<div class="login-wrap">
-  <div class="login-card">
-
-    <img class="login-logo" th:src="@{/images/sisa-logo.png}" alt="SISA — Learn · Grow · Build"/>
-    <h2>Welcome back</h2>
-    <p class="sub">Log in with the ID your school gave you.</p>
-
-    <div th:if="${param.error}" class="login-alert">
-      <i class="bi bi-exclamation-circle-fill"></i> Incorrect username or password, or your account isn't approved yet.
+  <section class="login-showcase" aria-label="Our school">
+    <div class="login-slides">
+      <div class="login-slide"><img src="https://images.unsplash.com/photo-1698993082050-19ca94c62fb8?w=1800&amp;q=80&amp;auto=format&amp;fit=crop" alt="Students reading in the classroom"/></div>
+      <div class="login-slide"><img src="https://images.unsplash.com/photo-1719159381916-062fa9f435a6?w=1800&amp;q=80&amp;auto=format&amp;fit=crop" alt="A modern classroom"/></div>
+      <div class="login-slide"><img src="https://images.unsplash.com/photo-1781331756173-386c128d6f92?w=1800&amp;q=80&amp;auto=format&amp;fit=crop" alt="Students taking notes in class"/></div>
+      <div class="login-slide"><img src="https://images.unsplash.com/photo-1598981457915-aea220950616?w=1800&amp;q=80&amp;auto=format&amp;fit=crop" alt="A student writing at a desk"/></div>
+      <div class="login-slide"><img src="https://images.unsplash.com/photo-1633828763399-e29f1cd3f4c1?w=1800&amp;q=80&amp;auto=format&amp;fit=crop" alt="A young scientist with goggles"/></div>
+      <div class="login-slide"><img src="https://images.unsplash.com/photo-1758685734030-a31d96462eec?w=1800&amp;q=80&amp;auto=format&amp;fit=crop" alt="A teacher and student doing a science experiment"/></div>
+      <div class="login-slide"><img src="https://images.unsplash.com/photo-1607013407627-6ee814329547?w=1800&amp;q=80&amp;auto=format&amp;fit=crop" alt="Graduates holding their caps up"/></div>
     </div>
-    <div th:if="${param.logout}" class="login-alert ok">
-      <i class="bi bi-check-circle-fill"></i> You've been logged out.
+    <div class="login-shade"></div>
+    <div class="login-badge">
+      <img th:src="@{/images/sisa-logo.png}" alt="SISA logo"/>
     </div>
+    <div class="login-captions">
+      <div class="login-caption"><span class="login-tag">Our school</span><h2>Welcome to SISA</h2><p>A place where every student is known, guided and supported.</p></div>
+      <div class="login-caption"><span class="login-tag">Our campus</span><h2>Spaces built for learning</h2><p>Bright classrooms, labs and libraries designed for today&#39;s learners.</p></div>
+      <div class="login-caption"><span class="login-tag">Our classrooms</span><h2>Focused learning, every day</h2><p>Dedicated teachers and well-equipped classrooms for every grade.</p></div>
+      <div class="login-caption"><span class="login-tag">Academics</span><h2>Results you can follow</h2><p>Marks, report cards and assignments &mdash; all online for students and parents.</p></div>
+      <div class="login-caption"><span class="login-tag">Science</span><h2>Hands-on learning in our labs</h2><p>Curious minds explore, test and discover every week.</p></div>
+      <div class="login-caption"><span class="login-tag">Our teachers</span><h2>Learning side by side</h2><p>Teachers who guide every experiment and every question.</p></div>
+      <div class="login-caption"><span class="login-tag">Achievements</span><h2>Celebrating our students</h2><p>Every milestone, from first day to graduation, shared with families.</p></div>
+      <div class="login-bars"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+    </div>
+  </section>
 
-    <form th:action="@{/login}" method="post">
-      <div class="field">
-        <label for="username">Username</label>
-        <input id="username" type="text" name="username" placeholder="Enter your ID" required autofocus/>
-      </div>
-      <div class="field">
-        <label for="password">Password</label>
-        <input id="password" type="password" name="password" placeholder="&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;" required/>
-      </div>
-      <button type="submit" class="btn btn-primary">
-        <i class="bi bi-box-arrow-in-right"></i> Log in
-      </button>
-    </form>
+  <section class="login-side">
+    <div class="login-card">
+      <h2>Welcome back</h2>
+      <p class="sub">Log in with the ID your school gave you.</p>
 
-  </div>
+      <div th:if="${param.error}" class="login-alert">
+        <i class="bi bi-exclamation-circle-fill"></i> Incorrect username or password, or your account isn't approved yet.
+      </div>
+      <div th:if="${param.logout}" class="login-alert ok">
+        <i class="bi bi-check-circle-fill"></i> You've been logged out.
+      </div>
+
+      <form th:action="@{/login}" method="post">
+        <div class="field">
+          <label for="username">ID</label>
+          <input id="username" type="text" name="username" placeholder="Enter your ID" required autofocus/>
+        </div>
+        <div class="field">
+          <label for="password">Password</label>
+          <input id="password" type="password" name="password" placeholder="&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;" required/>
+        </div>
+        <button type="submit" class="btn btn-primary">
+          <i class="bi bi-box-arrow-in-right"></i> Log in
+        </button>
+      </form>
+      <p class="login-help">Forgot your password? Ask the Registrar.</p>
+    </div>
+  </section>
+
 </div>
 
 <div class="demo-quick-login" role="group" aria-label="Demo account quick login">
