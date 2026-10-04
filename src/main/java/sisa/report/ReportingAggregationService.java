@@ -89,6 +89,7 @@ public class ReportingAggregationService {
 
         Map<String, Long> byMonth = students.stream()
                 .filter(s -> s.getEnrollmentDate() != null)
+                .sorted(java.util.Comparator.comparing(Student::getEnrollmentDate))
                 .collect(Collectors.groupingBy(s -> s.getEnrollmentDate().withDayOfMonth(1).format(MONTH_LABEL),
                         LinkedHashMap::new, Collectors.counting()));
 
