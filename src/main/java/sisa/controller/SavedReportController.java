@@ -50,13 +50,13 @@ public class SavedReportController {
                          RedirectAttributes redirectAttributes) {
         try {
             SavedReport saved = savedReportService.create(name, type, from, to, className, currentUser(authentication));
-            redirectAttributes.addFlashAttribute("success", "Saved report \"" + saved.getName() + "\".");
+            redirectAttributes.addFlashAttribute("success", "Saved report \"" + saved.getName() + "\". Click Open to view it.");
         } catch (ResponseStatusException rse) {
             redirectAttributes.addFlashAttribute("error", rse.getReason());
         } catch (RuntimeException ex) {
             redirectAttributes.addFlashAttribute("error", ex.getMessage());
         }
-        return redirectTo(reportsBase(request), type, from, to, className);
+        return "redirect:" + reportsBase(request);
     }
 
     @GetMapping("/{id}")
@@ -82,7 +82,7 @@ public class SavedReportController {
         } catch (RuntimeException ex) {
             redirectAttributes.addFlashAttribute("error", ex.getMessage());
         }
-        return redirectTo(reportsBase(request), type, from, to, className);
+        return "redirect:" + reportsBase(request);
     }
 
     @PostMapping("/{id}/delete")

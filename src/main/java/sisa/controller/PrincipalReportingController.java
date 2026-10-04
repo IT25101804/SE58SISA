@@ -34,7 +34,7 @@ public class PrincipalReportingController {
     }
 
     @GetMapping
-    public String reports(@RequestParam(required = false, defaultValue = "ENROLMENT") ReportType type,
+    public String reports(@RequestParam(required = false) ReportType type,
                           @RequestParam(required = false) String from,
                           @RequestParam(required = false) String to,
                           @RequestParam(required = false) String className,
@@ -51,10 +51,12 @@ public class PrincipalReportingController {
         model.addAttribute("savedReports", savedReportService.listFor(user));
         model.addAttribute("savedBase", "/principal/reports/saved");
 
-        ReportingAggregationService.Report report = reportingAggregationService.build(
-                type, parseDate(from), parseDate(to), className, true);
-        model.addAttribute("report", report.data());
-        model.addAttribute("chart", report.chart());
+        if (type != null) {
+            ReportingAggregationService.Report report = reportingAggregationService.build(
+                    type, parseDate(from), parseDate(to), className, true);
+            model.addAttribute("report", report.data());
+            model.addAttribute("chart", report.chart());
+        }
         return "principal/reports";
     }
 

@@ -8,63 +8,89 @@
     <div class="card" style="margin-bottom:18px;">
         <h3 style="margin-top:0;"><i class="bi bi-bookmark-star-fill"></i> Saved Reports</h3>
 
-        <form th:action="@{${savedBase}}" method="post" style="display:flex; gap:10px; align-items:flex-end; flex-wrap:wrap; margin-bottom:14px;">
-            <input type="hidden" name="type" th:value="${selectedType}"/>
-            <input type="hidden" name="from" th:value="${from}"/>
-            <input type="hidden" name="to" th:value="${to}"/>
-            <input type="hidden" name="className" th:value="${className}"/>
-            <div class="field" style="margin-bottom:0; min-width:240px;">
-                <label for="savedName">Save the current view as</label>
-                <input id="savedName" type="text" name="name" maxlength="100" required placeholder="e.g. Term 1 enrolment"/>
-            </div>
-            <button type="submit" class="btn btn-primary"><i class="bi bi-bookmark-plus-fill"></i> Save Report</button>
-        </form>
-
         <div style="overflow-x:auto;">
             <table class="wsims-table">
                 <thead><tr><th>Name</th><th>Report</th><th>Filters</th><th>Last changed</th><th>Actions</th></tr></thead>
                 <tbody>
-                <tr th:each="r : ${savedReports}">
+                <th:block th:each="r : ${savedReports}">
+                <tr>
                     <td th:text="${r.name}">Name</td>
                     <td th:text="${r.reportType}">TYPE</td>
                     <td style="font-size:12.5px;">
-                        <span th:text="${r.fromDate != null} ? ${r.fromDate} : 'any'">from</span> &rarr;
-                        <span th:text="${r.toDate != null} ? ${r.toDate} : 'any'">to</span>
+                        <span th:text="${r.fromDate != null} ? ${#temporals.format(r.fromDate, 'dd MMM yyyy')} : 'Any date'">from</span> &rarr;
+                        <span th:text="${r.toDate != null} ? ${#temporals.format(r.toDate, 'dd MMM yyyy')} : 'Any date'">to</span>
                         <span th:if="${r.className != null}" th:text="' · ' + ${r.className}">class</span>
                     </td>
                     <td th:text="${#temporals.format(r.updatedAt != null ? r.updatedAt : r.createdAt, 'dd MMM yyyy HH:mm')}">01 Jan 2026</td>
                     <td>
                         <div style="display:flex; gap:6px; flex-wrap:wrap; align-items:center;">
                             <a th:href="@{${savedBase + '/' + r.id}}" class="btn btn-outline" style="padding:4px 10px; font-size:12px;"><i class="bi bi-box-arrow-up-right"></i> Open</a>
-                            <form th:action="@{${savedBase + '/' + r.id + '/update'}}" method="post" style="display:flex; gap:6px; align-items:center;">
-                                <input type="hidden" name="type" th:value="${selectedType}"/>
-                                <input type="hidden" name="from" th:value="${from}"/>
-                                <input type="hidden" name="to" th:value="${to}"/>
-                                <input type="hidden" name="className" th:value="${className}"/>
-                                <input type="text" name="name" th:value="${r.name}" maxlength="100" required style="padding:4px 8px; font-size:12.5px; width:150px;" aria-label="New name"/>
-                                <button type="submit" class="btn btn-outline" style="padding:4px 10px; font-size:12px;" title="Rename and replace its filters with the ones currently on screen"><i class="bi bi-pencil-square"></i> Update</button>
-                            </form>
-                            <form th:action="@{${savedBase + '/' + r.id + '/delete'}}" method="post" class="delete-saved-report-form"
+                            <button type="button" class="btn btn-outline js-edit-saved" th:attr="data-target='edit-saved-' + ${r.id}"
+                                    style="padding:4px 10px; font-size:12px;"><i class="bi bi-pencil-square"></i> Edit</button>
+                            <form th:action="@{${savedBase + '/' + r.id + '/delete'}}" method="post" style="margin:0;"
                                   th:data-confirm="'Delete saved report: ' + ${r.name} + '?'">
                                 <button type="submit" class="btn btn-danger" style="padding:4px 10px; font-size:12px;"><i class="bi bi-trash-fill"></i> Delete</button>
                             </form>
                         </div>
                     </td>
                 </tr>
+                <tr th:id="'edit-saved-' + ${r.id}" style="display:none; background:var(--azure-soft);">
+                    <td colspan="5">
+                        <form th:action="@{${savedBase + '/' + r.id + '/update'}}" method="post"
+                              style="display:flex; gap:10px; align-items:flex-end; flex-wrap:wrap; padding:6px 0;">
+                            <div class="field" style="margin-bottom:0; min-width:200px;">
+                                <label>Name</label>
+                                <input type="text" name="name" th:value="${r.name}" maxlength="100" required/>
+                            </div>
+                            <div class="field" style="margin-bottom:0;">
+                                <label>Report</label>
+                                <select name="type">
+                                    <option th:each="t : ${reportTypes}" th:value="${t}" th:text="${t}" th:selected="${t == r.reportType}">TYPE</option>
+                                </select>
+                            </div>
+                            <div class="field" style="margin-bottom:0;">
+                                <label>From</label>
+                                <input type="date" name="from" th:value="${r.fromDate}"/>
+                            </div>
+                            <div class="field" style="margin-bottom:0;">
+                                <label>To</label>
+                                <input type="date" name="to" th:value="${r.toDate}"/>
+                            </div>
+                            <div class="field" style="margin-bottom:0;">
+                                <label>Class</label>
+                                <select name="className">
+                                    <option value="">&mdash;</option>
+                                    <option th:each="c : ${allClassNames}" th:value="${c}" th:text="${c}" th:selected="${c == r.className}">Class</option>
+                                </select>
+                            </div>
+                            <button type="submit" class="btn btn-primary" style="padding:8px 14px; font-size:13px;"><i class="bi bi-save-fill"></i> Save Changes</button>
+                            <button type="button" class="btn btn-outline js-cancel-saved" style="padding:8px 14px; font-size:13px;">Cancel</button>
+                        </form>
+                    </td>
+                </tr>
+                </th:block>
                 <tr th:if="${#lists.isEmpty(savedReports)}">
-                    <td colspan="5"><div class="empty-state"><i class="bi bi-bookmark"></i> No saved reports yet &mdash; pick filters above and save them.</div></td>
+                    <td colspan="5"><div class="empty-state"><i class="bi bi-bookmark"></i> No saved reports yet &mdash; create one above.</div></td>
                 </tr>
                 </tbody>
             </table>
         </div>
         <p style="font-size:12.5px; opacity:.65; margin:10px 0 0;">
-            Update renames the saved report and replaces its filters with the ones currently on screen. Saved reports only store filters &mdash; the data is always recomputed live.
+            Open shows a saved report. Edit lets you change its name, report type, dates and class. Saved reports only store filters &mdash; the data is always recomputed live.
         </p>
     </div>
     <script>
-        document.querySelectorAll('.delete-saved-report-form').forEach(function (form) {
-            form.addEventListener('submit', function (e) {
-                if (!confirm(form.dataset.confirm || 'Delete this saved report?')) e.preventDefault();
+        document.querySelectorAll('.js-edit-saved').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                var row = document.getElementById(btn.getAttribute('data-target'));
+                row.style.display = row.style.display === 'none' ? 'table-row' : 'none';
+            });
+        });
+        document.querySelectorAll('.js-cancel-saved').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                var row = btn.closest('tr');
+                row.querySelector('form').reset();
+                row.style.display = 'none';
             });
         });
     </script>

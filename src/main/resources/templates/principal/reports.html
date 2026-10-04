@@ -22,34 +22,41 @@
         </div>
 
         <div class="card" style="margin-bottom:18px;">
-            <form th:action="@{/principal/reports}" method="get" style="display:flex; gap:10px; align-items:flex-end; flex-wrap:wrap;">
+            <h3 style="margin-top:0;"><i class="bi bi-bookmark-plus-fill"></i> Create a Saved Report</h3>
+            <form th:action="@{/principal/reports/saved}" method="post" style="display:flex; gap:10px; align-items:flex-end; flex-wrap:wrap;">
+                <div class="field" style="margin-bottom:0; min-width:220px;">
+                    <label for="savedName">Report Name</label>
+                    <input id="savedName" type="text" name="name" maxlength="100" required placeholder="e.g. Term 1 enrolment"/>
+                </div>
                 <div class="field" style="margin-bottom:0; min-width:200px;">
                     <label for="type">Report</label>
                     <select id="type" name="type">
-                        <option th:each="t : ${reportTypes}" th:value="${t}" th:text="${t}" th:selected="${t == selectedType}">TYPE</option>
+                        <option th:each="t : ${reportTypes}" th:value="${t}" th:text="${t}" >TYPE</option>
                     </select>
                 </div>
                 <div class="field" style="margin-bottom:0;">
                     <label for="from">From</label>
-                    <input id="from" type="date" name="from" th:value="${from}"/>
+                    <input id="from" type="date" name="from"/>
                 </div>
                 <div class="field" style="margin-bottom:0;">
                     <label for="to">To</label>
-                    <input id="to" type="date" name="to" th:value="${to}"/>
+                    <input id="to" type="date" name="to"/>
                 </div>
                 <div class="field" style="margin-bottom:0; min-width:180px;">
                     <label for="className">Class (Academic / Class List)</label>
                     <select id="className" name="className">
                         <option value="">—</option>
-                        <option th:each="c : ${allClassNames}" th:value="${c}" th:text="${c}" th:selected="${c == className}">Class</option>
+                        <option th:each="c : ${allClassNames}" th:value="${c}" th:text="${c}" >Class</option>
                     </select>
                 </div>
-                <button type="submit" class="btn btn-outline"><i class="bi bi-search"></i> View</button>
+                <button type="submit" class="btn btn-primary"><i class="bi bi-bookmark-plus-fill"></i> Save Report</button>
             </form>
         </div>
 
         <div th:replace="~{layout/saved-reports :: card}"></div>
 
+        <th:block th:if="${report != null}">
+        <div id="openedReport"></div>
         <div class="card" style="margin-bottom:18px;" th:if="${chart != null and not #lists.isEmpty(chart.labels())}">
             <canvas id="reportChart" height="220"></canvas>
             <script th:inline="javascript">
@@ -80,6 +87,7 @@
                 <div style="display:flex; gap:10px;">
                     <a th:href="@{/principal/reports/export(type=${selectedType},format='pdf',from=${from},to=${to},className=${className})}" class="btn btn-outline"><i class="bi bi-file-earmark-pdf-fill"></i> Export as PDF</a>
                     <a th:href="@{/principal/reports/export(type=${selectedType},format='excel',from=${from},to=${to},className=${className})}" class="btn btn-outline"><i class="bi bi-file-earmark-excel-fill"></i> Export as Excel</a>
+                    <a th:href="@{/principal/reports}" class="btn btn-outline"><i class="bi bi-x-lg"></i> Close</a>
                 </div>
             </div>
             <div style="overflow-x:auto;">
@@ -98,6 +106,8 @@
                 </table>
             </div>
         </div>
+        <script>document.getElementById('openedReport').scrollIntoView({behavior: 'smooth'});</script>
+        </th:block>
     </main>
 </div>
 <script th:src="@{/js/main.js}"></script>

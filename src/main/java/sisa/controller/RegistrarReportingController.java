@@ -42,13 +42,13 @@ public class RegistrarReportingController {
     }
 
     @GetMapping
-    public String reports(@RequestParam(required = false, defaultValue = "ENROLMENT") ReportType type,
+    public String reports(@RequestParam(required = false) ReportType type,
                           @RequestParam(required = false) String from,
                           @RequestParam(required = false) String to,
                           @RequestParam(required = false) String className,
                           Authentication authentication, Model model) {
         User user = userRepository.findByUsername(authentication.getName()).orElseThrow();
-        if (user.getRole() == Role.REGISTRAR && !ALLOWED_TYPES.contains(type)) {
+        if (type != null && user.getRole() == Role.REGISTRAR && !ALLOWED_TYPES.contains(type)) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN,
                     "The Registrar can only view Enrolment, Transfer, Class List and Staff reports.");
         }
@@ -63,10 +63,12 @@ public class RegistrarReportingController {
         model.addAttribute("savedReports", savedReportService.listFor(user));
         model.addAttribute("savedBase", "/registrar/reports/saved");
 
-        ReportingAggregationService.Report report = reportingAggregationService.build(
-                type, parseDate(from), parseDate(to), className, false);
-        model.addAttribute("report", report.data());
-        model.addAttribute("chart", report.chart());
+        if (type != null) {
+            ReportingAggregationService.Report report = reportingAggregationService.build(
+                    type, parseDate(from), parseDate(to), className, false);
+            model.addAttribute("report", report.data());
+            model.addAttribute("chart", report.chart());
+        }
         return "registrar/reports";
     }
 
