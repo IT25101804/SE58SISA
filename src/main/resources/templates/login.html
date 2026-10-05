@@ -41,7 +41,11 @@
 
   <section class="login-side">
     <div class="login-card">
-      <h2>Welcome back</h2>
+      <div class="login-card-head">
+        <h2>Welcome back</h2>
+        <p>South International School Academy</p>
+      </div>
+      <div class="login-card-body">
       <p class="sub">Log in with the ID your school gave you.</p>
 
       <div th:if="${param.error}" class="login-alert">
@@ -58,16 +62,40 @@
         </div>
         <div class="field">
           <label for="password">Password</label>
-          <input id="password" type="password" name="password" placeholder="&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;" required/>
+          <div class="password-wrap">
+            <input id="password" type="password" name="password" placeholder="&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;" required/>
+            <button type="button" class="pw-toggle" id="pwToggle" aria-label="Show password" aria-pressed="false">
+              <i class="bi bi-eye"></i>
+            </button>
+          </div>
         </div>
+        <label class="remember" for="rememberMe">
+          <input id="rememberMe" type="checkbox" name="remember-me"/> Remember me
+        </label>
         <button type="submit" class="btn btn-primary">
           <i class="bi bi-box-arrow-in-right"></i> Log in
         </button>
       </form>
+      </div>
     </div>
   </section>
 
 </div>
+
+<script>
+  (function () {
+    var input = document.getElementById('password');
+    var btn = document.getElementById('pwToggle');
+    btn.addEventListener('click', function () {
+      var show = input.type === 'password';
+      input.type = show ? 'text' : 'password';
+      btn.setAttribute('aria-pressed', show ? 'true' : 'false');
+      btn.setAttribute('aria-label', show ? 'Hide password' : 'Show password');
+      btn.innerHTML = show ? '<i class="bi bi-eye-slash"></i>' : '<i class="bi bi-eye"></i>';
+      input.focus();
+    });
+  })();
+</script>
 
 </body>
 </html>

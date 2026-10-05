@@ -1,5 +1,6 @@
 package sisa.config;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -17,6 +18,9 @@ public class SecurityConfig {
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
+
+    @Value("${sisa.security.remember-me-key:#{T(java.util.UUID).randomUUID().toString()}}")
+    private String rememberMeKey;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -37,7 +41,12 @@ public class SecurityConfig {
                 .defaultSuccessUrl("/dashboard", true)
                 .permitAll()
             )
-            .logout(logout -> logout.logoutSuccessUrl("/login?logout").permitAll())
+            .rememberMe(remember -> remember
+                .key(rememberMeKey)
+                .rememberMeParameter("remember-me")
+                .tokenValiditySeconds(14 * 24 * 60 * 60)
+            )
+            .logout(logout -> logout.logoutSuccessUrl("/login?logout").deleteCookies("JSESSIONID", "remember-me").permitAll())
             .csrf(csrf -> csrf.ignoringRequestMatchers("/h2-console/**"))
             .headers(headers -> headers.frameOptions(HeadersConfigurer.FrameOptionsConfig::sameOrigin));
 
