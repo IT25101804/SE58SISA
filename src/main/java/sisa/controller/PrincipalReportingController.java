@@ -32,7 +32,7 @@ public class PrincipalReportingController {
         this.reportingAggregationService = reportingAggregationService;
         this.savedReportService = savedReportService;
     }
-
+// handle principle report request
     @GetMapping
     public String reports(@RequestParam(required = false) ReportType type,
                           @RequestParam(required = false) String from,
