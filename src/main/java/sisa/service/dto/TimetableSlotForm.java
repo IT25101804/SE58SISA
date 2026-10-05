@@ -4,6 +4,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+// copy data from html in dto (Data transfer object)
+
 @Getter
 @Setter
 @NoArgsConstructor
