@@ -63,7 +63,19 @@ body.login-body {
 .login-slide:nth-child(6), .login-caption:nth-child(6), .login-bars i:nth-child(6)::after { animation-delay: 30s; }
 .login-slide:nth-child(7), .login-caption:nth-child(7), .login-bars i:nth-child(7)::after { animation-delay: 36s; }
 
-.login-side { flex: 1; display: flex; align-items: center; justify-content: center; padding: 32px 24px; }
+.login-side { flex: 1; display: flex; align-items: center; justify-content: center; padding: 32px 24px; position: relative; overflow: hidden; }
+.login-side .login-card { position: relative; z-index: 1; }
+
+/* Soft waves behind the login card: large rounded squares rotating slowly, only their top edge shows */
+.login-waves { position: absolute; inset: 0; pointer-events: none; z-index: 0; }
+.wave {
+  position: absolute; left: 50%; width: 1700px; height: 1700px; margin-left: -850px;
+  border-radius: 43%; animation: login-wave linear infinite;
+}
+.wave-1 { top: calc(100% - 115px); background: rgba(17, 53, 111, 0.07); animation-duration: 26s; }
+.wave-2 { top: calc(100% - 88px);  background: rgba(241, 133, 31, 0.12); animation-duration: 34s; animation-direction: reverse; }
+.wave-3 { top: calc(100% - 62px);  background: rgba(17, 53, 111, 0.08); animation-duration: 42s; }
+@keyframes login-wave { to { transform: rotate(360deg); } }
 
 .login-card {
   width: 100%;
@@ -118,7 +130,7 @@ body.login-body {
 .login-card .btn-primary { width: 100%; justify-content: center; padding: 13px; font-size: 15px; margin-top: 6px; }
 
 @media (prefers-reduced-motion: reduce) {
-  .login-slide, .login-slide img, .login-caption, .login-bars i::after { animation: none; }
+  .login-slide, .login-slide img, .login-caption, .login-bars i::after, .wave { animation: none; }
   .login-slide:first-child, .login-caption:first-child { opacity: 1; }
 }
 
