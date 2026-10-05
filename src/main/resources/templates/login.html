@@ -69,36 +69,5 @@
 
 </div>
 
-<div class="demo-quick-login" role="group" aria-label="Demo account quick login">
-  <span class="demo-quick-login-label">Demo login</span>
-  <button type="button" class="demo-chip demo-chip--principal" data-role="principal" title="Principal demo login &middot; principal">P</button>
-  <button type="button" class="demo-chip demo-chip--registrar" data-role="registrar" title="Registrar demo login &middot; R2600001">R</button>
-  <button type="button" class="demo-chip demo-chip--teacher" data-role="teacher" title="Teacher demo login &middot; T2600001">T</button>
-  <button type="button" class="demo-chip demo-chip--student" data-role="student" title="Student demo login &middot; S2600001">S</button>
-  <button type="button" class="demo-chip demo-chip--parent" data-role="parent" title="Parent demo login &middot; P2600001">P</button>
-</div>
-
-<script>
-  (function () {
-    var demoAccounts = {
-      principal: { username: 'principal', password: 'Principal@123' },
-      registrar: { username: 'R2600001', password: 'Registrar@123' },
-      teacher:   { username: 'T2600001', password: 'Teacher@123' },
-      student:   { username: 'S2600001', password: 'Student@123' },
-      parent:    { username: 'P2600001', password: 'Parent@123' }
-    };
-    document.querySelectorAll('.demo-chip').forEach(function (btn) {
-      btn.addEventListener('click', function () {
-        var account = demoAccounts[btn.getAttribute('data-role')];
-        var form = document.querySelector('.login-card form');
-        if (!account || !form) return;
-        document.getElementById('username').value = account.username;
-        document.getElementById('password').value = account.password;
-        form.submit();
-      });
-    });
-  })();
-</script>
-
 </body>
 </html>
