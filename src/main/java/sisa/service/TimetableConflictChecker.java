@@ -8,8 +8,9 @@ import java.time.DayOfWeek;
 import java.util.Optional;
 
 @Service
-public class TimetableConflictChecker {
+public class TimetableConflictChecker {  //This class Act as Facade
 
+    // Under TimetableConflictChecker there are two components
     private final TimetableSlotRepository timetableSlotRepository;
     private final BookingConflictChecker bookingConflictChecker;
 
