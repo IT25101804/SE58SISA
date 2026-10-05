@@ -32,7 +32,7 @@ public class SavedReportController {
     private static String reportsBase(HttpServletRequest request) {
         return request.getRequestURI().contains("/principal/") ? "/principal/reports" : "/registrar/reports";
     }
-
+    // Build redirect URL with report filters
     private static String redirectTo(String base, ReportType type, String from, String to, String className) {
         UriComponentsBuilder uri = UriComponentsBuilder.fromPath(base);
         if (type != null) uri.queryParam("type", type);
