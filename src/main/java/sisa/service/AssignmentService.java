@@ -17,10 +17,10 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
-public class AssignmentService {
+public class AssignmentService { // Act As Facade
 
-    private final AssignmentRepository assignmentRepository;
-    private final AssignmentSubmissionRepository submissionRepository;
+    private final AssignmentRepository assignmentRepository; //Subsystem 1
+    private final AssignmentSubmissionRepository submissionRepository; // Subsystem 2
 
     public AssignmentService(AssignmentRepository assignmentRepository, AssignmentSubmissionRepository submissionRepository) {
         this.assignmentRepository = assignmentRepository;
