@@ -1,3 +1,5 @@
+// Handles Academic Management functions performed by teachers.
+// Teachers can create exams, enter/update marks, view report cards.
 package sisa.controller;
 
 import sisa.entity.BehaviourCategory;
@@ -66,6 +68,7 @@ public class TeacherAcademicController {
         return userRepository.findByUsername(authentication.getName()).orElseThrow();
     }
 
+    // View exams
     @GetMapping
     public String list(Authentication authentication, Model model) {
         User user = currentUser(authentication);
@@ -86,6 +89,7 @@ public class TeacherAcademicController {
         return "teacher/academic-exams";
     }
 
+    // Show exam form
     @GetMapping("/new")
     public String newForm(Authentication authentication, Model model) {
         User user = currentUser(authentication);
@@ -100,6 +104,7 @@ public class TeacherAcademicController {
         return "teacher/academic-exam-new";
     }
 
+    // Create exam
     @PostMapping("/new")
     public String create(@ModelAttribute("form") ExamForm form, Authentication authentication, Model model) {
         User user = currentUser(authentication);
@@ -117,6 +122,7 @@ public class TeacherAcademicController {
         }
     }
 
+    // View student marks
     @GetMapping("/{examId}")
     public String marksEntry(@PathVariable Long examId, Authentication authentication, Model model) {
         User user = currentUser(authentication);
@@ -144,6 +150,7 @@ public class TeacherAcademicController {
         return "teacher/academic-marks";
     }
 
+    // Save student marks
     @PostMapping("/{examId}/marks")
     public String saveMarks(@PathVariable Long examId, @ModelAttribute("form") MarksEntryForm form,
                             Authentication authentication, RedirectAttributes redirectAttributes) {
