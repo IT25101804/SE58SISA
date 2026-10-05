@@ -67,7 +67,7 @@ public class SavedReportController {
                 saved.getToDate() == null ? null : saved.getToDate().toString(),
                 saved.getClassName());
     }
-
+//update the report details
     @PostMapping("/{id}/update")
     public String update(@PathVariable Long id, @RequestParam String name, @RequestParam ReportType type,
                          @RequestParam(required = false) String from, @RequestParam(required = false) String to,
