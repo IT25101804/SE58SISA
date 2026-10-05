@@ -58,6 +58,8 @@ public class PrincipalTimetableController {
         model.addAttribute("days", TimetableService.SCHOOL_DAYS);
         model.addAttribute("className", className);
 
+        // Create function
+
         if (className != null && !className.isBlank()) {
             model.addAttribute("grid", timetableService.asGrid(timetableService.slotsForClass(className)));
             TimetableSlotForm form = new TimetableSlotForm();
