@@ -52,6 +52,7 @@ public class RegistrarReportingController {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN,
                     "The Registrar can only view Enrolment, Transfer, Class List and Staff reports.");
         }
+        //Get logging user
         model.addAttribute("user", user);
         model.addAttribute("activeItem", "reports");
         model.addAttribute("reportTypes", ALLOWED_TYPES);
