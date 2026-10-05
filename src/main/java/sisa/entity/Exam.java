@@ -19,10 +19,10 @@ public class Exam {
     private Long id;
 
     @Column(nullable = false, length = 60)
-    private String className;
+    private String className; // Class assigned to the exam
 
     @Column(nullable = false, length = 80)
-    private String subject;
+    private String subject; // Subject of the exam
 
     @Column(nullable = false)
     private String examName;
@@ -31,13 +31,13 @@ public class Exam {
     private LocalDate examDate;
 
     @Column(nullable = false)
-    private double maxMarks;
+    private double maxMarks; // Maximum marks for the exam
 
     @ManyToOne(optional = false)
     @JoinColumn(name = "created_by_teacher_id", referencedColumnName = "teacherId", nullable = false)
-    private Teacher createdBy;
+    private Teacher createdBy; // Teacher who created the exam
 
     @ManyToOne
     @JoinColumn(name = "term_id")
-    private AcademicTerm term;
+    private AcademicTerm term; // Academic term of the exam
 }
