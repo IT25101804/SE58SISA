@@ -72,7 +72,7 @@ public class RegistrarReportingController {
         }
         return "registrar/reports";
     }
-
+// Convert data String to local date
     private LocalDate parseDate(String raw) {
         if (raw == null || raw.isBlank()) return null;
         return LocalDate.parse(raw);
