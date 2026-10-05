@@ -44,3 +44,33 @@ public class TimetableSlot {
         return room == null ? null : room.getName();
     }
 }
+
+/*
+CREATE TABLE timetable_slots (
+    id BIGINT IDENTITY(1,1) PRIMARY KEY,
+
+    class_name VARCHAR(60) NOT NULL,
+
+    subject VARCHAR(80) NOT NULL,
+
+    teacher_id BIGINT NOT NULL,
+
+    day_of_week VARCHAR(10) NOT NULL,
+
+    period_number INT NOT NULL,
+
+    room_resource_id BIGINT NULL,
+
+    CONSTRAINT uk_timetable_class_day_period
+        UNIQUE (class_name, day_of_week, period_number),
+
+    CONSTRAINT fk_timetable_teacher
+        FOREIGN KEY (teacher_id)
+        REFERENCES teacher(teacherId),
+
+    CONSTRAINT fk_timetable_room
+        FOREIGN KEY (room_resource_id)
+        REFERENCES resource(id)
+);
+
+*/
