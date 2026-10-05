@@ -18,7 +18,7 @@ import java.time.LocalDate;
 @Controller
 @RequestMapping("/principal/reports")
 public class PrincipalReportingController {
-
+    // Handles GET /principal/reports
     private final UserRepository userRepository;
     private final StudentRepository studentRepository;
     private final ReportingAggregationService reportingAggregationService;
