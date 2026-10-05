@@ -61,6 +61,8 @@ public class TimetableService {
         return write(form, existingForClass);
     }
 
+    // CRUD and VALIDATIONS
+
     @Transactional
     public TimetableSlot saveSlot(TimetableSlotForm form) {
         if (form.getDayOfWeek() == null || form.getDayOfWeek().isBlank()) {
@@ -74,7 +76,7 @@ public class TimetableService {
                 .orElseThrow(() -> new IllegalArgumentException("No such teacher: " + form.getTeacherId()));
         if (teacher.getSubjectSpecialty() == null || !teacher.getSubjectSpecialty().trim().equalsIgnoreCase(form.getSubject().trim())) {
             throw new IllegalArgumentException(teacher.getUser().getFullName() + " does not teach " + form.getSubject()
-                    + " — choose a teacher whose subject specialty is " + form.getSubject() + ".");
+                    + " choose a teacher whose subject specialty is " + form.getSubject() + ".");
         }
 
         TimetableSlot target = null;
@@ -106,7 +108,7 @@ public class TimetableService {
                     throw new IllegalArgumentException(
                             teacher.getUser().getFullName() + " is already teaching " + conflict.getClassName()
                                     + " (" + conflict.getSubject() + ") on " + dayOfWeek + " period " + form.getPeriodNumber()
-                                    + " — choose a different period or teacher.");
+                                    + " choose a different period or teacher.");
                 });
 
         Resource room = null;

@@ -58,7 +58,7 @@ public class PrincipalTimetableController {
         model.addAttribute("days", TimetableService.SCHOOL_DAYS);
         model.addAttribute("className", className);
 
-        // Create function
+        
 
         if (className != null && !className.isBlank()) {
             model.addAttribute("grid", timetableService.asGrid(timetableService.slotsForClass(className)));
@@ -81,6 +81,8 @@ public class PrincipalTimetableController {
         }
         return "principal/timetable";
     }
+
+    // CREATE Function
 
     @PostMapping("/slot")
     public String saveSlot(@ModelAttribute("form") TimetableSlotForm form, Authentication authentication,
