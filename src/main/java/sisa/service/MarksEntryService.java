@@ -1,3 +1,5 @@
+// Handles exam creation, marks entry, grade calculation,
+
 package sisa.service;
 
 import sisa.entity.*;
@@ -75,6 +77,7 @@ public class MarksEntryService {
         return a != null && b != null && Objects.equals(a.getId(), b.getId());
     }
 
+    // Calculate grade based on marks percentage
     public static Grade gradeFor(double marksObtained, double maxMarks) {
         double pct = maxMarks <= 0 ? 0 : (marksObtained / maxMarks) * 100.0;
         if (pct >= 75) return Grade.A;
@@ -194,7 +197,7 @@ public class MarksEntryService {
     @Transactional
     public void enterMarks(Long examId, MarksEntryForm form, User actingUser) {
         Exam exam = getOrThrow(examId);
-        Teacher teacher = requireSubjectAccess(exam.getClassName(), exam.getSubject(), actingUser);
+        Teacher teacher = requireSubjectAccess(exam.getClassName(), exam.getSubject(), actingUser); // Check teacher authorization
 
         for (MarksEntryForm.Entry entry : form.getEntries()) {
             if (entry.getStudentId() == null || entry.getStudentId().isBlank()) continue;
@@ -213,7 +216,7 @@ public class MarksEntryService {
                 throw new IllegalArgumentException(
                         "\"" + entry.getMarksObtained() + "\" isn't a valid number for " + entry.getFullName() + ".");
             }
-            if (marksObtained < 0 || marksObtained > exam.getMaxMarks()) {
+            if (marksObtained < 0 || marksObtained > exam.getMaxMarks()) { // Validate entered marks
                 throw new IllegalArgumentException(
                         entry.getFullName() + "'s mark must be between 0 and " + exam.getMaxMarks() + ".");
             }
@@ -221,11 +224,12 @@ public class MarksEntryService {
             Student student = studentRepository.findById(entry.getStudentId())
                     .orElseThrow(() -> new IllegalArgumentException("No such student: " + entry.getStudentId()));
 
+            // Create or update student marks
             Mark mark = existing.orElseGet(Mark::new);
             mark.setExam(exam);
             mark.setStudent(student);
             mark.setMarksObtained(marksObtained);
-            mark.setGrade(gradeFor(marksObtained, exam.getMaxMarks()));
+            mark.setGrade(gradeFor(marksObtained, exam.getMaxMarks())); // Calculate grade
             mark.setEnteredBy(teacher.getTeacherId());
             mark.setEnteredAt(LocalDateTime.now());
             markRepository.save(mark);
