@@ -1,3 +1,4 @@
+// Handles academic overview for principal
 package sisa.controller;
 
 import sisa.entity.User;
